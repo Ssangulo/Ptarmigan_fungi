@@ -623,15 +623,33 @@ step_postrfy <- dplyr::bind_rows(lapply(names(alldat.rfy), function(nm) {
 # SECTION 7 — TAXONOMY TABLE CLEANING
 # =============================================================================
 
-tax_fix_default <- function(x)
-  tax_fix(x, min_length=3, unknowns=c(""), sep=" ", anon_unique=TRUE, suffix_rank="classified")
+# Standardize genuinely uninformative tax_table entries (empty string, bare
+# rank prefixes like "g__", "unknown"/"NA" text) to real NA. Deliberately NOT
+# using microViz::tax_fix() here — it always fills unknown/NA ranks by
+# carrying forward the nearest classified parent rank + a suffix (e.g. an
+# unassigned Species becomes "g__Thelebolus Genus"), which is misleading for
+# this table. Unassigned ranks should just stay NA.
+# Matches "", "g__", "unknown", "NA", "NaN", and compound forms like
+# "g__unknown" / "g__NA" / "s__Unknown" (all case-insensitive).
+tax_placeholder_pattern <- "^([a-zA-Z]__)?(unknown|na|nan)?$"
+
+clean_tax_na <- function(ps) {
+  tt <- as.data.frame(tax_table(ps), stringsAsFactors = FALSE)
+  tt[] <- lapply(tt, function(col) {
+    col <- trimws(col)
+    col[is.na(col) | grepl(tax_placeholder_pattern, col, ignore.case = TRUE)] <- NA_character_
+    col
+  })
+  tax_table(ps) <- tax_table(as.matrix(tt))
+  ps
+}
 label_dup_default <- function(x)
   label_duplicate_taxa(x, "Species", duplicate_label="<tax> <id>")
 
-alldat <- lapply(alldat, tax_fix_default)
-alldat.rfy <- lapply(alldat.rfy, tax_fix_default)
-alldat_rg2_sensitivity <- lapply(alldat_rg2_sensitivity, tax_fix_default)
-alldat_full <- lapply(alldat_full, tax_fix_default)
+alldat <- lapply(alldat, clean_tax_na)
+alldat.rfy <- lapply(alldat.rfy, clean_tax_na)
+alldat_rg2_sensitivity <- lapply(alldat_rg2_sensitivity, clean_tax_na)
+alldat_full <- lapply(alldat_full, clean_tax_na)
 
 alldat <- lapply(alldat, label_dup_default)
 alldat.rfy <- lapply(alldat.rfy, label_dup_default)
