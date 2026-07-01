@@ -589,28 +589,27 @@ load("merged_ITS2.RData")
 # Format: {sample_id}r{pcr_rep}
 # Example: S_6_2_P1r1..r4
 #
-# The "plate" field (P1–P4) is the sequencing PLATE, NOT the root replicate.
-# The root replicate (root 1 or 2 within an individual) is tracked via
-#  root_rep_label / root_rep_num (derived from the replicate_ID suffix).
+# The "plate" field (P1–P2) is the sequencing PLATE. There is no root/field
+# replicate concept in this study (unlike the reference root study) — each
+# individual x TimeBlock x Year has one dung sample, amplified via 2 PCR
+# technical replicates (r1/r2, from Section 1's rep labeling).
 #
 # Metadata columns in the expanded PCR-level tables
 # --------------------------------------------------
-# All columns from final_merged_metadata.xlsx are carried through plus:
+# All columns from exdata (ITS_metadata_ptarmigan_clean.xlsx, loaded in
+# Section 4) are carried through plus:
 #
 # Auto-derived by expand_to_pcr_metadata():
 #   pcr_sample_id  : exact PCR replicate sample ID (= otu_table rowname)
-#                    format: paste0(sample, "r", pcr_rep_num)  e.g. "S_6_2_P1r1"
-#   root_id        : root sample ID (= sample column; all 4 PCRs share this)
-#   pcr_rep_num    : PCR replicate number as integer (1/2/3/4)
-#   pcr_rep_label  : PCR replicate as character ("r1"/"r2"/"r3"/"r4")
-#   root_rep_label : root replicate letter derived from replicate_ID suffix ("a"/"b")
-#   root_rep_num   : root replicate number derived from replicate_ID suffix (1/2)
+#                    format: paste0(sample, "r", pcr_rep_num)  e.g. "S_1_4_P1_1Br1"
+#   root_id        : biological sample ID (= sample column; both PCRs share this)
+#   pcr_rep_num    : PCR replicate number as integer (1/2)
+#   pcr_rep_label  : PCR replicate as character ("r1"/"r2")
 #
-# Passed through from collapsed metadata (final_merged_metadata.xlsx):
-#   sample         : dung sample ID (e.g. "S_6_2_P1")
-#   Individual_ID  : host individual identifier
-#   replicate_ID   : original field replicate ID
-#   plate          : sequencing plate (P1/P2; from metadata file)
+# Passed through from exdata:
+#   sample         : dung sample ID (e.g. "S_1_4_P1_1B")
+#   sampletype     : "S" = real dung sample (filtered to this below)
+#   indivID, TimeBlock, Season, Year, sex, species, iNext_plate, ...
 #
 # Output CSV:  ITS_pcr_metadata.csv
 # =============================================================================
@@ -626,15 +625,26 @@ make_flat_otu_mat <- function(pcr_list, otu_ids) {
   flat
 }
 
+# ---- Restrict to real dung samples (sampletype "S") before flattening -------
+# PC_ (positive control) and T_ (tissue/other) samples were also sequenced and
+# are still present as keys in *.lulu.controlled (only NTC/extraction blanks
+# were dropped earlier), but the full-complexity object models real biological
+# samples only (root_id/PCR replicate structure for GLLVM/HMSC).
+dung_sample_ids <- exdata$sample[exdata$sampletype == "S"]
+
+nopool.lulu.controlled.S <- nopool.lulu.controlled[names(nopool.lulu.controlled) %in% dung_sample_ids]
+pool.lulu.controlled.S   <- pool.lulu.controlled[names(pool.lulu.controlled)     %in% dung_sample_ids]
+pspool.lulu.controlled.S <- pspool.lulu.controlled[names(pspool.lulu.controlled) %in% dung_sample_ids]
+
 # ---- OTU IDs (one per column-sequence, consistent with FASTA files above) ---
-nopool_otu_ids  <- paste0("OTU", seq_len(ncol(nopool.lulu.controlled[[1]])))
-pool_otu_ids    <- paste0("OTU", seq_len(ncol(pool.lulu.controlled[[1]])))
-pspool_otu_ids  <- paste0("OTU", seq_len(ncol(pspool.lulu.controlled[[1]])))
+nopool_otu_ids  <- paste0("OTU", seq_len(ncol(nopool.lulu.controlled.S[[1]])))
+pool_otu_ids    <- paste0("OTU", seq_len(ncol(pool.lulu.controlled.S[[1]])))
+pspool_otu_ids  <- paste0("OTU", seq_len(ncol(pspool.lulu.controlled.S[[1]])))
 
 # ---- Build flat OTU matrices ------------------------------------------------
-fullmat_nopool  <- make_flat_otu_mat(nopool.lulu.controlled,  nopool_otu_ids)
-fullmat_pool    <- make_flat_otu_mat(pool.lulu.controlled,    pool_otu_ids)
-fullmat_pspool  <- make_flat_otu_mat(pspool.lulu.controlled,  pspool_otu_ids)
+fullmat_nopool  <- make_flat_otu_mat(nopool.lulu.controlled.S,  nopool_otu_ids)
+fullmat_pool    <- make_flat_otu_mat(pool.lulu.controlled.S,    pool_otu_ids)
+fullmat_pspool  <- make_flat_otu_mat(pspool.lulu.controlled.S,  pspool_otu_ids)
 
 cat("Full-complexity matrix dimensions (PCR replicates × OTUs):\n")
 cat("  nopool :", nrow(fullmat_nopool),  "PCR samples ×", ncol(fullmat_nopool),  "OTUs\n")
@@ -642,36 +652,22 @@ cat("  pool   :", nrow(fullmat_pool),    "PCR samples ×", ncol(fullmat_pool),  
 cat("  pspool :", nrow(fullmat_pspool),  "PCR samples ×", ncol(fullmat_pspool),  "OTUs\n")
 
 # ---- Reference sequences (DNAStringSet) — one per OTU -----------------------
-dna_nopool  <- Biostrings::DNAStringSet(colnames(nopool.lulu.controlled[[1]]))
+dna_nopool  <- Biostrings::DNAStringSet(colnames(nopool.lulu.controlled.S[[1]]))
 names(dna_nopool)  <- nopool_otu_ids
 
-dna_pool    <- Biostrings::DNAStringSet(colnames(pool.lulu.controlled[[1]]))
+dna_pool    <- Biostrings::DNAStringSet(colnames(pool.lulu.controlled.S[[1]]))
 names(dna_pool)    <- pool_otu_ids
 
-dna_pspool  <- Biostrings::DNAStringSet(colnames(pspool.lulu.controlled[[1]]))
+dna_pspool  <- Biostrings::DNAStringSet(colnames(pspool.lulu.controlled.S[[1]]))
 names(dna_pspool)  <- pspool_otu_ids
 
-# ---- Build PCR-level metadata from final_merged_metadata --------------------
-# The collapsed metadata has sample IDs like: S_6_2_P1
+# ---- Build PCR-level metadata from exdata (Section 4) -----------------------
+# exdata has sample IDs like: S_1_4_P1_1B
 # We expand each biological sample row to 2 PCR rows:
-#   S_6_2_P1r1, S_6_2_P1r2
+#   S_1_4_P1_1Br1, S_1_4_P1_1Br2
 
-load_collapsed_metadata <- function(
-  xlsx_path = "final_merged_metadata.xlsx",
-  csv_path = "final_merged_metadata_from_xlsx.csv"
-) {
-  if (file.exists(xlsx_path) && requireNamespace("readxl", quietly = TRUE)) {
-    meta <- readxl::read_excel(xlsx_path)
-    return(as.data.frame(meta, stringsAsFactors = FALSE))
-  }
-  if (file.exists(csv_path)) {
-    return(read.csv(csv_path, stringsAsFactors = FALSE, check.names = FALSE))
-  }
-  stop("Could not find metadata source. Provide either final_merged_metadata.xlsx (with readxl installed) or final_merged_metadata_from_xlsx.csv")
-}
-
-expand_to_pcr_metadata <- function(meta_collapsed, reps = 1:4, sampletype_keep = "S") {
-  required_cols <- c("sample", "sampletype", "Individual_ID", "replicate_ID")
+expand_to_pcr_metadata <- function(meta_collapsed, reps = 1:2, sampletype_keep = "S") {
+  required_cols <- c("sample", "sampletype")
   missing_cols <- setdiff(required_cols, colnames(meta_collapsed))
   if (length(missing_cols) > 0) {
     stop(sprintf("Collapsed metadata missing columns: %s", paste(missing_cols, collapse = ", ")))
@@ -686,19 +682,6 @@ expand_to_pcr_metadata <- function(meta_collapsed, reps = 1:4, sampletype_keep =
   expanded$pcr_rep_label <- paste0("r", expanded$pcr_rep_num)
   expanded$pcr_sample_id <- paste0(expanded$sample, expanded$pcr_rep_label)
 
-  # Keep root replicate tracking explicit (from replicate_ID; typically *_a / *_b)
-  rep_suffix <- sub("^.*_", "", expanded$replicate_ID)
-  expanded$root_rep_label <- dplyr::case_when(
-    rep_suffix %in% c("a", "A") ~ "a",
-    rep_suffix %in% c("b", "B") ~ "b",
-    TRUE ~ NA_character_
-  )
-  expanded$root_rep_num <- dplyr::case_when(
-    expanded$root_rep_label == "a" ~ 1L,
-    expanded$root_rep_label == "b" ~ 2L,
-    TRUE ~ NA_integer_
-  )
-
   rownames(expanded) <- expanded$pcr_sample_id
   expanded
 }
@@ -712,8 +695,7 @@ align_meta_to_otu <- function(meta_df, otu_mat) {
   meta_df[rownames(otu_mat), , drop = FALSE]
 }
 
-meta_collapsed <- load_collapsed_metadata()
-meta_pcr <- expand_to_pcr_metadata(meta_collapsed, reps = 1:2, sampletype_keep = "S")
+meta_pcr <- expand_to_pcr_metadata(exdata, reps = 1:2, sampletype_keep = "S")
 
 pcr_meta_nopool <- align_meta_to_otu(meta_pcr, fullmat_nopool)
 pcr_meta_pool   <- align_meta_to_otu(meta_pcr, fullmat_pool)
