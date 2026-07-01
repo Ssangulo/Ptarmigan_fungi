@@ -1,20 +1,35 @@
 # =============================================================================
 # 4_data_prep.R
-# Load rg2-filtered phyloseq objects, remove non-fungal OTUs via PlutoF SH
-# matching, filter low-depth samples, rarefy, fix taxonomy labels, and save
-# analysis-ready datasets.
+# Load PCR-collapsed phyloseq objects (unfiltered by rg2 — see design decision
+# below), remove non-fungal OTUs via PlutoF SH matching, filter low-depth
+# samples, rarefy, fix taxonomy labels, and save analysis-ready datasets.
+# Also prepares the full-complexity (per-PCR-replicate) object for models that
+# use PCR replicate as a random effect (GLLVM/HMSC), and keeps the rg2-filtered
+# objects as a separate, clearly labeled sensitivity check.
 #
-# Input:  rg2.nopoolps.tax.rds / rg2.poolps.tax.rds / rg2.pspoolps.tax.rds
-#         nopoolps.dada2.rds / poolps.dada2.rds / pspoolps.dada2.rds
+# Canonical object design (locked 2026-07-01):
+#   alldat / alldat.rfy — PCR replicates collapsed by summing, NO rg2 filter.
+#     Primary object for all methods needing independent sample rows
+#     (PERMANOVA/dbRDA, iNEXT3D, NRI/NTI, UniFrac).
+#   ps.full — one row per PCR replicate, never collapsed. Non-fungal OTUs
+#     removed and taxonomy cleaned, but NOT depth-filtered or rarefied (use a
+#     per-row read-count offset instead). For GLLVM/HMSC only, where PCR
+#     replicate enters as an explicit random effect.
+#   alldat_rg2_sensitivity — same as alldat but built from the rg2-filtered
+#     (OTU must appear in >=2 replicates) objects. Kept only as an optional
+#     robustness check; not part of the primary analysis path.
+# Collapsing is irreversible (summed counts can't be un-collapsed), so both
+# the collapsed and full-complexity objects are persisted here rather than
+# derived on demand downstream.
+#
+# Input:  nopoolps.dada2.rds / poolps.dada2.rds / pspoolps.dada2.rds
+#         rg2.nopoolps.tax.rds / rg2.poolps.tax.rds / rg2.pspoolps.tax.rds
+#         fullps_nopool.rds
 #         PlutoF output CSVs: matches_out_taxonomy_{nopool,pool,pspool}.csv
 # Output: eco_analysis.RData              (analysis-ready workspace)
 #         phyloseq_comparison_summary.csv (per-step object metrics)
 #         nonfungal_reads_summary.csv     (non-fungal removal accounting)
 #         nonfungal_kingdom_breakdown.csv (kingdom-level breakdown of removed OTUs)
-#
-# Note: Full-complexity (PCR-replicate-level) phyloseq objects are NOT used
-#       from this script onward. They remain in 2_DADA2_lulu.R and
-#       3_taxonomic_assignment.R as diagnostic/Monte Carlo outputs only.
 #
 # Reference: 4_data_prep.R @ 65fbffa (Root_fungi_DADA2)
 # =============================================================================
@@ -28,27 +43,41 @@ library(dplyr)
 library(tidyr)
 
 # =============================================================================
-# SECTION 1 — LOAD rg2-FILTERED PHYLOSEQ OBJECTS
+# SECTION 1 — LOAD PHYLOSEQ OBJECTS (canonical, sensitivity, full-complexity)
 # =============================================================================
 
 setwd("/home/daniel/Ptarmigan/trimmed/mergedPlates/")
 
-# Primary analysis objects: rg2-filtered, taxonomy-annotated (minBoot=80).
-# Built in 2_DADA2_lulu.R Section 5 (rep.groups2 filter); taxonomy in
-# 3_taxonomic_assignment.R. Metadata (Season, Year, TimeBlock, indivID, sex,
-# species, sampletype, etc.) is embedded from ITS_metadata_ptarmigan_clean.xlsx.
+# Primary analysis objects: PCR-collapsed (summed), NO rg2 filter,
+# taxonomy-annotated (minBoot=80). Built in 2_DADA2_lulu.R Section 5
+# (make.phylo, raw/no-rg2 branch); taxonomy in 3_taxonomic_assignment.R
+# Section 2. Metadata (Season, Year, TimeBlock, indivID, sex, species,
+# sampletype, etc.) is embedded from ITS_metadata_ptarmigan_clean.xlsx.
 # nopool is the PRIMARY strategy; pool and pspool are kept for comparison.
+nopoolps.dada2  <- readRDS("nopoolps.dada2.rds")
+poolps.dada2    <- readRDS("poolps.dada2.rds")
+pspoolps.dada2  <- readRDS("pspoolps.dada2.rds")
+
+# rg2-filtered counterparts (OTU must appear in >=2 PCR replicates), kept only
+# as an optional sensitivity check — see header note.
 rg2.nopoolps.tax  <- readRDS("rg2.nopoolps.tax.rds")
 rg2.poolps.tax    <- readRDS("rg2.poolps.tax.rds")
 rg2.pspoolps.tax  <- readRDS("rg2.pspoolps.tax.rds")
 
 stopifnot(all(vapply(
-  list(rg2.nopoolps.tax, rg2.poolps.tax, rg2.pspoolps.tax),
+  list(nopoolps.dada2, poolps.dada2, pspoolps.dada2,
+       rg2.nopoolps.tax, rg2.poolps.tax, rg2.pspoolps.tax),
   function(ps) inherits(ps, "phyloseq") && !is.null(tax_table(ps, errorIfNULL=FALSE)),
   logical(1)
 )))
 
 cat("Objects loaded:\n")
+cat("  nopoolps.dada2:   ", nsamples(nopoolps.dada2),   "samples,",
+    ntaxa(nopoolps.dada2),   "taxa\n")
+cat("  poolps.dada2:     ", nsamples(poolps.dada2),     "samples,",
+    ntaxa(poolps.dada2),     "taxa\n")
+cat("  pspoolps.dada2:   ", nsamples(pspoolps.dada2),   "samples,",
+    ntaxa(pspoolps.dada2),   "taxa\n")
 cat("  rg2.nopoolps.tax: ", nsamples(rg2.nopoolps.tax), "samples,",
     ntaxa(rg2.nopoolps.tax), "taxa\n")
 cat("  rg2.poolps.tax:   ", nsamples(rg2.poolps.tax),   "samples,",
@@ -57,7 +86,7 @@ cat("  rg2.pspoolps.tax: ", nsamples(rg2.pspoolps.tax), "samples,",
     ntaxa(rg2.pspoolps.tax), "taxa\n")
 
 # Quick metadata check
-meta_check <- as.data.frame(sample_data(rg2.nopoolps.tax))
+meta_check <- as.data.frame(sample_data(nopoolps.dada2))
 cat("\nSeason distribution (nopool):\n")
 print(table(meta_check$Season, useNA="always"))
 cat("Year distribution (nopool):\n")
@@ -66,17 +95,25 @@ cat("TimeBlock distribution (nopool):\n")
 print(table(meta_check$TimeBlock, useNA="always"))
 
 # =============================================================================
-# SECTION 2 — BUILD ANALYSIS LIST
+# SECTION 2 — BUILD ANALYSIS LISTS
 # =============================================================================
 
-# alldat: named list; nopool = primary analysis strategy
+# alldat: named list; nopool = primary analysis strategy; canonical (no rg2)
 alldat <- list(
+  nopool = nopoolps.dada2,
+  pool   = poolps.dada2,
+  pspool = pspoolps.dada2
+)
+
+# alldat_rg2_sensitivity: same strategies, rg2-filtered — robustness check only
+alldat_rg2_sensitivity <- list(
   nopool = rg2.nopoolps.tax,
   pool   = rg2.poolps.tax,
   pspool = rg2.pspoolps.tax
 )
 
 alldat <- lapply(alldat, function(x) phyloseq_validate(x, remove_undetected=TRUE))
+alldat_rg2_sensitivity <- lapply(alldat_rg2_sensitivity, function(x) phyloseq_validate(x, remove_undetected=TRUE))
 
 # Capture initial state for comparison table
 summarise_ps <- function(ps, object_label, step) {
@@ -95,7 +132,7 @@ summarise_ps <- function(ps, object_label, step) {
 }
 
 step_initial <- dplyr::bind_rows(lapply(names(alldat), function(nm) {
-  summarise_ps(alldat[[nm]], nm, "initial_rg2")
+  summarise_ps(alldat[[nm]], nm, "initial")
 }))
 
 # =============================================================================
@@ -105,9 +142,10 @@ step_initial <- dplyr::bind_rows(lapply(names(alldat), function(nm) {
 # PlutoF SH matching v2.0.0 for BLAST verification. Confirmed non-fungal OTUs
 # (mostly Viridiplantae — ingested plant ITS2 in dung) are removed here.
 #
-# Export was run from nopoolps.dada2 / poolps.dada2 / pspoolps.dada2 (full OTU
-# sets before rg2 filtering) for maximum sensitivity, then results are applied
-# to the rg2-filtered alldat objects above (intersect() handles the difference).
+# Export was run from nopoolps.dada2 / poolps.dada2 / pspoolps.dada2 — the
+# same (no-rg2) objects that are now `alldat` — so the OTU universes match
+# directly; results are also applied to alldat_rg2_sensitivity and ps.full,
+# which share the same OTU ID space (intersect() guards against any mismatch).
 #
 # NOTE: The pool PlutoF run returned 0 matches (run failed on PlutoF server).
 #       nopool and pspool results are used. Since nopool is the primary strategy
@@ -198,11 +236,8 @@ export_unresolved_fasta <- function(ps, object_label, out_dir = ".") {
   ))
 }
 
-# Load taxonomy-annotated objects from 3_taxonomic_assignment.R
-nopoolps.dada2  <- readRDS("nopoolps.dada2.rds")
-poolps.dada2    <- readRDS("poolps.dada2.rds")
-pspoolps.dada2  <- readRDS("pspoolps.dada2.rds")
-
+# Taxonomy-annotated, no-rg2 objects (already loaded in Section 1) — these are
+# the exact objects PlutoF export runs against and that now underlie `alldat`.
 taxa_ps_list <- list(nopool = nopoolps.dada2, pool = poolps.dada2, pspool = pspoolps.dada2)
 
 cat("PlutoF export — taxonomy-unresolved OTUs (no Phylum OR Phylum but no Class):\n")
@@ -286,7 +321,8 @@ read_nonfungal_ids_for_strategy <- function(strategy, valid_ids) {
   nonfungal_ids
 }
 
-# Get non-fungal IDs validated against rg2 taxa (not full pre-rg2 OTU sets)
+# Get non-fungal IDs validated against alldat's taxa (== the no-rg2 taxa
+# universe used for the PlutoF export itself)
 nonfungal_ids_by_strategy <- setNames(
   lapply(names(alldat), function(nm) {
     read_nonfungal_ids_for_strategy(nm, taxa_names(alldat[[nm]]))
@@ -350,6 +386,12 @@ remove_nonfungal <- function(ps, drop_ids) {
 alldat <- setNames(lapply(names(alldat), function(nm) {
   remove_nonfungal(alldat[[nm]], nonfungal_ids_by_strategy[[nm]])
 }), names(alldat))
+
+# Same drop lists apply to the rg2 sensitivity objects (same OTU ID space —
+# rg2 only zeroes disagreeing-replicate cells, it never changes OTU identity).
+alldat_rg2_sensitivity <- setNames(lapply(names(alldat_rg2_sensitivity), function(nm) {
+  remove_nonfungal(alldat_rg2_sensitivity[[nm]], nonfungal_ids_by_strategy[[nm]])
+}), names(alldat_rg2_sensitivity))
 
 # ---- 3C) Upgrade taxonomy for PlutoF-confirmed fungal OTUs ------------------
 # For OTUs that UNITE left partially unresolved (NA at Phylum or Class) and
@@ -429,6 +471,32 @@ alldat <- setNames(lapply(names(alldat), function(nm) {
   update_tax_from_plutof(alldat[[nm]], nm)
 }), names(alldat))
 
+alldat_rg2_sensitivity <- setNames(lapply(names(alldat_rg2_sensitivity), function(nm) {
+  update_tax_from_plutof(alldat_rg2_sensitivity[[nm]], nm)
+}), names(alldat_rg2_sensitivity))
+
+# =============================================================================
+# SECTION 3b — FULL-COMPLEXITY OBJECT (ps.full): non-fungal removal only
+#
+# ps.full carries every PCR replicate as its own row (root_id/pcr_rep_num in
+# sample_data — see 2_DADA2_lulu.R Section 5b). Only "nopool" is prepared,
+# matching the primary strategy above. Non-fungal OTUs are dropped using the
+# same nopool drop list as alldat (same OTU ID space). No depth filter and no
+# rarefaction are applied here: GLLVM/HMSC should use PCR replicate as a
+# random effect and a per-row read-count offset instead of discarding or
+# rarefying low-depth replicates.
+# =============================================================================
+
+fullps_nopool <- readRDS("fullps_nopool.rds")
+cat("\nps.full (full-complexity, nopool) before non-fungal removal: ",
+    nsamples(fullps_nopool), "PCR-replicate samples,", ntaxa(fullps_nopool), "taxa\n")
+
+ps.full <- remove_nonfungal(fullps_nopool, nonfungal_ids_by_strategy$nopool)
+ps.full <- update_tax_from_plutof(ps.full, "nopool")
+
+cat("ps.full after non-fungal removal: ",
+    nsamples(ps.full), "PCR-replicate samples,", ntaxa(ps.full), "taxa\n")
+
 # =============================================================================
 # SECTION 4 — NON-FUNGAL READS SUMMARY (export CSV)
 # =============================================================================
@@ -473,9 +541,16 @@ depth_filter <- function(ps) prune_samples(sample_sums(ps) >= min_depth, ps)
 alldat <- lapply(alldat, depth_filter)
 alldat <- lapply(alldat, function(ps) prune_taxa(taxa_sums(ps) > 0, ps))
 
+alldat_rg2_sensitivity <- lapply(alldat_rg2_sensitivity, depth_filter)
+alldat_rg2_sensitivity <- lapply(alldat_rg2_sensitivity, function(ps) prune_taxa(taxa_sums(ps) > 0, ps))
+
 cat("\nSamples remaining after depth filter (>= 10,000 reads):\n")
 for (nm in names(alldat)) {
   cat(sprintf("  %-8s %d samples, %d taxa\n", nm, nsamples(alldat[[nm]]), ntaxa(alldat[[nm]])))
+}
+cat("\nSamples remaining after depth filter, rg2 sensitivity objects:\n")
+for (nm in names(alldat_rg2_sensitivity)) {
+  cat(sprintf("  %-8s %d samples, %d taxa\n", nm, nsamples(alldat_rg2_sensitivity[[nm]]), ntaxa(alldat_rg2_sensitivity[[nm]])))
 }
 
 step_postdepth <- dplyr::bind_rows(lapply(names(alldat), function(nm) {
@@ -511,17 +586,20 @@ step_postrfy <- dplyr::bind_rows(lapply(names(alldat.rfy), function(nm) {
 # SECTION 7 — TAXONOMY TABLE CLEANING
 # =============================================================================
 
-alldat <- lapply(alldat, function(x)
-  tax_fix(x, min_length=3, unknowns=c(""), sep=" ", anon_unique=TRUE, suffix_rank="classified"))
+tax_fix_default <- function(x)
+  tax_fix(x, min_length=3, unknowns=c(""), sep=" ", anon_unique=TRUE, suffix_rank="classified")
+label_dup_default <- function(x)
+  label_duplicate_taxa(x, "Species", duplicate_label="<tax> <id>")
 
-alldat.rfy <- lapply(alldat.rfy, function(x)
-  tax_fix(x, min_length=3, unknowns=c(""), sep=" ", anon_unique=TRUE, suffix_rank="classified"))
+alldat <- lapply(alldat, tax_fix_default)
+alldat.rfy <- lapply(alldat.rfy, tax_fix_default)
+alldat_rg2_sensitivity <- lapply(alldat_rg2_sensitivity, tax_fix_default)
+ps.full <- tax_fix_default(ps.full)
 
-alldat <- lapply(alldat, function(x)
-  label_duplicate_taxa(x, "Species", duplicate_label="<tax> <id>"))
-
-alldat.rfy <- lapply(alldat.rfy, function(x)
-  label_duplicate_taxa(x, "Species", duplicate_label="<tax> <id>"))
+alldat <- lapply(alldat, label_dup_default)
+alldat.rfy <- lapply(alldat.rfy, label_dup_default)
+alldat_rg2_sensitivity <- lapply(alldat_rg2_sensitivity, label_dup_default)
+ps.full <- label_dup_default(ps.full)
 
 cat("\nTaxonomy cleaned. Example (nopool, first 5 taxa):\n")
 print(head(tax_table(alldat$nopool), 5))
@@ -532,6 +610,10 @@ step_final <- dplyr::bind_rows(lapply(names(alldat), function(nm) {
 step_final_rfy <- dplyr::bind_rows(lapply(names(alldat.rfy), function(nm) {
   summarise_ps(alldat.rfy[[nm]], nm, "final_rarefied")
 }))
+step_final_rg2 <- dplyr::bind_rows(lapply(names(alldat_rg2_sensitivity), function(nm) {
+  summarise_ps(alldat_rg2_sensitivity[[nm]], paste0(nm, "_rg2"), "final_rg2_sensitivity")
+}))
+step_final_full <- summarise_ps(ps.full, "nopool_full", "final_full_complexity")
 
 # =============================================================================
 # SECTION 8 — EXPORT COMPREHENSIVE COMPARISON TABLE
@@ -543,7 +625,9 @@ comparison_tbl <- dplyr::bind_rows(
   step_postplutof,
   step_postdepth,
   step_final,
-  step_final_rfy
+  step_final_rfy,
+  step_final_rg2,
+  step_final_full
 )
 
 write.csv(comparison_tbl, "phyloseq_comparison_summary.csv", row.names=FALSE)
@@ -554,13 +638,26 @@ print(comparison_tbl)
 # SECTION 9 — SAVE R WORKSPACE
 #
 # Objects in eco_analysis.RData:
-#   alldat       — named list (nopool, pool, pspool): rg2-filtered, non-fungal
-#                  removed, depth-filtered, taxonomy-cleaned. NOT rarefied.
-#                  Use for abundance-based analyses and compositional methods.
-#   alldat.rfy   — same list but rarefied to min depth per strategy.
-#                  Use for alpha/beta diversity.
+#   alldat                  — named list (nopool, pool, pspool): PCR replicates
+#                             collapsed by summing, NO rg2 filter, non-fungal
+#                             removed, depth-filtered, taxonomy-cleaned. NOT
+#                             rarefied. CANONICAL object for PERMANOVA/dbRDA
+#                             (robust Aitchison), iNEXT3D, NRI/NTI.
+#   alldat.rfy              — same list but rarefied to min depth per strategy.
+#                             Use for UniFrac (weighted/unweighted) and other
+#                             fixed-depth alpha/beta diversity methods.
+#   alldat_rg2_sensitivity  — same as alldat but from rg2-filtered (OTU in
+#                             >=2 PCR replicates) input. Optional robustness
+#                             check only — not the primary analysis path.
+#   ps.full                 — full-complexity, one row per PCR replicate
+#                             (nopool only), non-fungal removed, taxonomy
+#                             cleaned. NOT depth-filtered or rarefied. For
+#                             GLLVM/HMSC, which model PCR replicate
+#                             (nested in root_id/Individual_ID) as a random
+#                             effect and use a read-count offset instead of
+#                             rarefaction.
 #
-# Primary analysis strategy: alldat$nopool / alldat.rfy$nopool
+# Primary analysis strategy: alldat$nopool / alldat.rfy$nopool / ps.full
 # Pool and pspool kept for sensitivity comparisons.
 # =============================================================================
 
