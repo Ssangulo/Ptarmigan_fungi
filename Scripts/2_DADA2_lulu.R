@@ -602,7 +602,6 @@ load("merged_ITS2.RData")
 # Auto-derived by expand_to_pcr_metadata():
 #   pcr_sample_id  : exact PCR replicate sample ID (= otu_table rowname)
 #                    format: paste0(sample, "r", pcr_rep_num)  e.g. "S_1_4_P1_1Br1"
-#   root_id        : biological sample ID (= sample column; both PCRs share this)
 #   pcr_rep_num    : PCR replicate number as integer (1/2)
 #   pcr_rep_label  : PCR replicate as character ("r1"/"r2")
 #
@@ -629,7 +628,7 @@ make_flat_otu_mat <- function(pcr_list, otu_ids) {
 # PC_ (positive control) and T_ (tissue/other) samples were also sequenced and
 # are still present as keys in *.lulu.controlled (only NTC/extraction blanks
 # were dropped earlier), but the full-complexity object models real biological
-# samples only (root_id/PCR replicate structure for GLLVM/HMSC).
+# samples only (sample/PCR replicate structure for GLLVM/HMSC).
 dung_sample_ids <- exdata$sample[exdata$sampletype == "S"]
 
 nopool.lulu.controlled.S <- nopool.lulu.controlled[names(nopool.lulu.controlled) %in% dung_sample_ids]
@@ -674,8 +673,7 @@ expand_to_pcr_metadata <- function(meta_collapsed, reps = 1:2, sampletype_keep =
   }
 
   base <- meta_collapsed %>%
-    dplyr::filter(.data$sampletype %in% sampletype_keep) %>%
-    dplyr::mutate(root_id = .data$sample)
+    dplyr::filter(.data$sampletype %in% sampletype_keep)
 
   expanded <- base[rep(seq_len(nrow(base)), each = length(reps)), , drop = FALSE]
   expanded$pcr_rep_num <- rep(reps, times = nrow(base))

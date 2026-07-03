@@ -716,7 +716,7 @@ print(comparison_tbl)
 #                             with a very low pass-through threshold
 #                             (min_depth_full) instead of the real 10,000-read
 #                             cutoff, and NOT rarefied. For GLLVM/HMSC, which
-#                             model PCR replicate (nested in root_id) as a
+#                             model PCR replicate (nested in sample) as a
 #                             random effect and use a read-count offset
 #                             instead of rarefaction.
 #

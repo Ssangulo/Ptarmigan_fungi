@@ -11,10 +11,10 @@
 # taxonomy upgrade applied, taxonomy-cleaned; NOT depth-filtered/rarefied --
 # see 4_data_prep.R header). Every analysis below needs one independent row
 # per biological sample, so PCR replicates (2 per dung sample, sharing the
-# same `sample`/`root_id` value) are summed into `ps_collapsed` ONCE in
-# Section 1 and reused throughout. This is a fresh sum from alldat_full,
-# not the pre-collapsed `alldat$nopool` from 4_data_prep.R -- note that
-# unlike `alldat$nopool`, no min-depth filter has been applied here.
+# same `sample` value) are summed into `ps_collapsed` ONCE in Section 1 and
+# reused throughout. This is a fresh sum from alldat_full, not the
+# pre-collapsed `alldat$nopool` from 4_data_prep.R -- note that unlike
+# `alldat$nopool`, no min-depth filter has been applied here.
 #
 # This study has no site/habitat/elevation gradient (unlike the reference
 # root study this pipeline derives from). The design is Season (winter/
@@ -47,9 +47,7 @@ dir.create(plot_dir, showWarnings = FALSE)
 # =============================================================================
 
 # ---- Collapse PCR replicates by summing --------------------------------------
-# group_var = "sample": the dung-sample ID shared by both PCR replicates
-# (identical to `root_id`; `sample` is the native metadata column -- see
-# 7_gllvm.R header note on root_id being a pipeline-naming alias only).
+# group_var = "sample": the dung-sample ID shared by both PCR replicates.
 collapse_pcr_replicates <- function(ps, group_var = "sample") {
   otu <- as(otu_table(ps), "matrix")
   if (taxa_are_rows(ps)) otu <- t(otu)           # -> samples (rows) x taxa (cols)
