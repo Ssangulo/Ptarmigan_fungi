@@ -46,11 +46,15 @@ dir.create(plot_dir, showWarnings = FALSE, recursive = TRUE)
 
 # ---- Plotting strategy: always write PNG via an explicit png() device -------
 # Remote/headless server -- no display available, so nothing should ever try
-# to open an interactive graphics window. ggsave() can still probe for a
-# device in ways that error out here; opening png() explicitly and print()-ing
-# into it is the pattern that's proven robust for this setup. Use for every
-# ggplot/patchwork object below; base-R plots (e.g. the dbRDA plot) already
-# use the same explicit png()/dev.off() pattern directly.
+# to open an interactive graphics window. Keep a permanent null device open
+# for the script's whole run: with zero devices open, R's default fallback
+# for ANY base-graphics call (not just ours -- e.g. gg_ordiplot() below calls
+# base plot() internally) is to open X11, which errors here ("unable to start
+# device X11cairo"). A standing null device means that fallback never
+# triggers, no matter what internally plots. Our own png()/dev.off() calls
+# (via save_png() or directly) still push/pop their own device on top of this
+# and are unaffected.
+grDevices::pdf(NULL)
 save_png <- function(plot_obj, filename, width, height, dpi = 800, units = "in") {
   png(file.path(plot_dir, filename), width = width, height = height, units = units, res = dpi)
   print(plot_obj)
