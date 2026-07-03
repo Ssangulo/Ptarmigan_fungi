@@ -20,7 +20,7 @@
 # root study this pipeline derives from). The design is Season (winter/
 # summer) x Year (2022-2024) -- see H1 in project notes. Reference-script
 # sections built around habitat/site/elevation have been mapped onto
-# Season/Year throughout; Section 5 (originally an elevation-gradient test)
+# Season/Year throughout; Section 6 (originally an elevation-gradient test)
 # is adapted into a Season-centroid/Year-consistency check.
 # =============================================================================
 
@@ -37,10 +37,25 @@ library(patchwork)
 setwd("/home/daniel/Ptarmigan/trimmed/mergedPlates/")
 load("eco_analysis.RData")
 
-out_dir  <- "models"
-plot_dir <- "Plots2"
-dir.create(out_dir,  showWarnings = FALSE)
-dir.create(plot_dir, showWarnings = FALSE)
+# Absolute output dirs (independent of the data working dir above) so plots/
+# models land in one place regardless of where this script is launched from.
+out_dir  <- "/home/daniel/Ptarmigan/models/"
+plot_dir <- "/home/daniel/Ptarmigan/plots/"
+dir.create(out_dir,  showWarnings = FALSE, recursive = TRUE)
+dir.create(plot_dir, showWarnings = FALSE, recursive = TRUE)
+
+# ---- Plotting strategy: always write PNG via an explicit png() device -------
+# Remote/headless server -- no display available, so nothing should ever try
+# to open an interactive graphics window. ggsave() can still probe for a
+# device in ways that error out here; opening png() explicitly and print()-ing
+# into it is the pattern that's proven robust for this setup. Use for every
+# ggplot/patchwork object below; base-R plots (e.g. the dbRDA plot) already
+# use the same explicit png()/dev.off() pattern directly.
+save_png <- function(plot_obj, filename, width, height, dpi = 800, units = "in") {
+  png(file.path(plot_dir, filename), width = width, height = height, units = units, res = dpi)
+  print(plot_obj)
+  dev.off()
+}
 
 # =============================================================================
 # SECTION 1 — COLLAPSE PCR REPLICATES (once) + QUICK METADATA CHECK
@@ -104,11 +119,53 @@ gdata  <- sample_data(ps)
 
 p <- gg_ordiplot(my.rda, groups=gdata$Season, pt.size=3, spiders=TRUE, ellipse=FALSE)
 p <- p$plot
-ggsave(file.path(plot_dir, "PCA_Aitchison_Season.png"),
-       plot=p, device="png", width=10, height=6, dpi=600)
+save_png(p, "PCA_Aitchison_Season.png", width=10, height=6, dpi=600)
 
 # =============================================================================
-# SECTION 3 — PERMANOVA + BETA-DISPERSION (Season x Year; H1)
+# SECTION 3 — PCoA ON ROBUST AITCHISON DISTANCES (unconstrained)
+# =============================================================================
+
+ps <- ps_collapsed
+otu_mat <- as(otu_table(ps), "matrix");  if (taxa_are_rows(ps)) otu_mat <- t(otu_mat)
+d_ait_pcoa <- vegdist(otu_mat, binary=FALSE, method="robust.aitchison")
+attr(d_ait_pcoa, "Labels") <- rownames(otu_mat)  # vegdist drops Labels for robust.aitchison
+ord_ait    <- capscale(d_ait_pcoa ~ 1)
+
+eig  <- pmax(ord_ait$CA$eig, 0)
+ax1p <- round(100 * eig[1] / sum(eig), 1)
+ax2p <- round(100 * eig[2] / sum(eig), 1)
+
+sc <- as.data.frame(scores(ord_ait, display="sites", choices=1:2, scaling=1))
+colnames(sc)[1:2] <- c("Axis1","Axis2")
+sc$sample <- rownames(sc)
+
+meta_p <- as.data.frame(sample_data(ps));  meta_p$sample <- rownames(meta_p)
+sc$Season <- meta_p$Season[match(sc$sample, meta_p$sample)]
+sc$Year   <- meta_p$Year[match(sc$sample, meta_p$sample)]
+sc$Season <- droplevels(factor(sc$Season))
+sc$Year   <- droplevels(factor(sc$Year))
+
+cent <- aggregate(cbind(Axis1,Axis2) ~ Season, data=sc, FUN=mean)
+names(cent) <- c("Season","cX","cY")
+sc <- merge(sc, cent, by="Season", all.x=TRUE)
+
+gp_ait <- ggplot(sc, aes(Axis1, Axis2, colour=Season, shape=Year)) +
+  geom_segment(aes(xend=cX, yend=cY, group=interaction(Season,sample)),
+               alpha=0.5, linewidth=0.3, show.legend=FALSE) +
+  geom_point(size=3) +
+  geom_point(data=cent, aes(x=cX,y=cY,colour=Season), inherit.aes=FALSE,
+             size=3, shape=4, stroke=1) +
+  coord_equal() +
+  xlab(paste0("PCoA1 (",ax1p,"%)")) +
+  ylab(paste0("PCoA2 (",ax2p,"%)")) +
+  guides(colour=guide_legend(title="Season",order=1),
+         shape =guide_legend(title="Year",   order=2)) +
+  theme_classic(base_size=12)
+
+save_png(gp_ait, "PCoA_Aitchison_Season.png", width=12, height=8, dpi=800)
+
+# =============================================================================
+# SECTION 4 — PERMANOVA + BETA-DISPERSION (Season x Year; H1)
 # =============================================================================
 
 ps <- ps_collapsed
@@ -126,7 +183,7 @@ permutest(beta)
 permutest(beta1)
 
 # =============================================================================
-# SECTION 4 — CONSTRAINED ORDINATION (dbRDA; Season conditioned on Year)
+# SECTION 5 — CONSTRAINED ORDINATION (dbRDA; Season conditioned on Year)
 # =============================================================================
 
 ps      <- ps_collapsed
@@ -174,7 +231,7 @@ mtext(paste0("dbRDA2 (", cap2_pct, "%)"), side=2, line=2.5)
 dev.off()
 
 # =============================================================================
-# SECTION 5 — DISTANCE-TO-SEASON-CENTROID TEST (consistency across years)
+# SECTION 6 — DISTANCE-TO-SEASON-CENTROID TEST (consistency across years)
 # Reference script tested whether beta-diversity escalated with elevation
 # consistently across sites (parallel-slopes test). No elevation gradient
 # exists here, so this is adapted to test whether a sample's dispersion from
@@ -211,7 +268,7 @@ mod <- lm(dist_centroid ~ Season * Year, data=df)
 anova(mod); summary(mod)
 
 # =============================================================================
-# SECTION 6 — PCoA ON BRAY-CURTIS DISSIMILARITIES
+# SECTION 7 — PCoA ON BRAY-CURTIS DISSIMILARITIES
 # =============================================================================
 
 ps <- ps_collapsed
@@ -252,11 +309,10 @@ gp <- ggplot(sc, aes(Axis1, Axis2, colour=Season, shape=Year)) +
          shape =guide_legend(title="Year",   order=2)) +
   theme_classic(base_size=12)
 
-ggsave(file.path(plot_dir, "PCoA_BrayCurtis_Season.png"),
-       plot=gp, width=12, height=8, dpi=800)
+save_png(gp, "PCoA_BrayCurtis_Season.png", width=12, height=8, dpi=800)
 
 # =============================================================================
-# SECTION 7 — TAXONOMIC COMPOSITION BAR PLOTS (microViz)
+# SECTION 8 — TAXONOMIC COMPOSITION BAR PLOTS (microViz)
 # =============================================================================
 
 filter_taxa_by_rank <- function(physeq_obj, rank_prefix="o__", exclude_term="Incertae_sedis") {
@@ -303,8 +359,7 @@ phy <- ps_filtered %>%
   theme(legend.text=element_text(size=6), legend.title=element_text(size=7),
         legend.key.size=unit(0.3,"cm"), legend.spacing.x=unit(0.2,"cm"))
 
-ggsave(file.path(plot_dir, "phylum_barplot_ordered_season.png"),
-       plot=phy, device="png", width=12, height=8, dpi=800)
+save_png(phy, "phylum_barplot_ordered_season.png", width=12, height=8, dpi=800)
 
 # ---- Order bar plot ---------------------------------------------------------
 p <- ps_filtered %>%
@@ -315,8 +370,7 @@ p <- ps_filtered %>%
   theme(legend.text=element_text(size=6), legend.title=element_text(size=7),
         legend.key.size=unit(0.3,"cm"), legend.spacing.x=unit(0.2,"cm"))
 
-ggsave(file.path(plot_dir, "Order_barplot_ordered_season.png"),
-       plot=p, device="png", width=12, height=8, dpi=800)
+save_png(p, "Order_barplot_ordered_season.png", width=12, height=8, dpi=800)
 
 # ---- Class bar plot ---------------------------------------------------------
 class <- ps_filtered %>%
@@ -327,8 +381,7 @@ class <- ps_filtered %>%
   theme(legend.text=element_text(size=6), legend.title=element_text(size=7),
         legend.key.size=unit(0.3,"cm"), legend.spacing.x=unit(0.2,"cm"))
 
-ggsave(file.path(plot_dir, "class_barplot_ordered_season.png"),
-       plot=class, device="png", width=12, height=8, dpi=800)
+save_png(class, "class_barplot_ordered_season.png", width=12, height=8, dpi=800)
 
 # ---- Genus bar plot ---------------------------------------------------------
 genus <- ps_filtered %>%
@@ -339,8 +392,7 @@ genus <- ps_filtered %>%
   theme(legend.text=element_text(size=6), legend.title=element_text(size=7),
         legend.key.size=unit(0.3,"cm"), legend.spacing.x=unit(0.2,"cm"))
 
-ggsave(file.path(plot_dir, "genus_barplot_ordered_season.png"),
-       plot=genus, device="png", width=12, height=8, dpi=800)
+save_png(genus, "genus_barplot_ordered_season.png", width=12, height=8, dpi=800)
 
 # ---- Panel plot (Phylum + Genus + Order) ------------------------------------
 axis_tweak  <- theme(axis.text.x=element_text(size=6), axis.text.y=element_text(size=5),
@@ -360,11 +412,10 @@ p_lab     <- p     + ggtitle("C) Order")  + legend_tweak +
 panel <- phy_lab + genus_lab + p_lab +
   plot_layout(design="AC\nBC", widths=c(1.3,1.65), heights=c(1,1), guides="keep")
 
-ggsave(file.path(plot_dir, "Panel_PhylumGenus_Order_Season.png"),
-       plot=panel, width=15, height=10, dpi=800)
+save_png(panel, "Panel_PhylumGenus_Order_Season.png", width=15, height=10, dpi=800)
 
 # =============================================================================
-# SECTION 8 — TAXONOMIC ASSIGNMENT SUMMARY (% reads/OTUs assigned per Season)
+# SECTION 9 — TAXONOMIC ASSIGNMENT SUMMARY (% reads/OTUs assigned per Season)
 # =============================================================================
 
 ps <- ps_collapsed
