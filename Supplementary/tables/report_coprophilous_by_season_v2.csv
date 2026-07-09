@@ -1,0 +1,18 @@
+"OTU","Genus","Species","winter_mean_pct","summer_mean_pct","occ_winter","occ_summer"
+"OTU1","Thelebolus",NA,3.208,24.85,5,15
+"OTU636","Sporormiella","intermedia 1",2.499,9.049,1,15
+"OTU1225","Coniochaeta",NA,0.197,10.128,3,15
+"OTU1206","Sporormiella",NA,1.617,0.003,6,1
+"OTU213","Thelebolus",NA,0.059,1.4,2,8
+"OTU3","Thelebolus",NA,0.647,0,2,0
+"OTU220","Sporormiella","leporina 1",0,0.199,0,1
+"OTU1230","Sporormiella","leporina 3",0.191,0.005,1,2
+"OTU430","Sporormiella","leporina 2",0.112,0.01,2,4
+"OTU468","Psathyrella","trivialis",0.11,0,1,0
+"OTU95","Stropharia","hornemannii 1",0.079,0,1,0
+"OTU767","Sporormiella","intermedia 3",0,0.047,0,2
+"OTU793","Sporormiella",NA,0,0.025,0,1
+"OTU851","Stropharia","hornemannii 2",0,0,0,3
+"OTU1123","Coprinopsis",NA,0,0,0,1
+"OTU1180","Psathyrella","fennoscandica",0,0,0,1
+"OTU1200","Thelebolus",NA,0,0,1,0

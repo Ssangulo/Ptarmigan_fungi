@@ -1,0 +1,25 @@
+"step","strategy","n_samples","n_taxa","total_reads"
+"post_cutadapt_input_to_filter","nopool",226,NA,28693536
+"post_cutadapt_input_to_filter","pool",226,NA,28693536
+"post_cutadapt_input_to_filter","pspool",226,NA,28693536
+"post_quality_filter","nopool",226,NA,25813196
+"post_quality_filter","pool",226,NA,25813196
+"post_quality_filter","pspool",226,NA,25813196
+"post_merge_denoise","nopool",225,5604,25489713
+"post_merge_denoise","pool",225,3530,25362806
+"post_merge_denoise","pspool",225,5967,25437222
+"post_chimera_removal","nopool",225,4536,25381436
+"post_chimera_removal","pool",225,3059,25308769
+"post_chimera_removal","pspool",225,4657,25330584
+"post_LULU_curation","nopool",225,1463,25381436
+"post_LULU_curation","pool",225,1532,25308769
+"post_LULU_curation","pspool",225,1495,25330584
+"pcr_collapsed_decontaminated_taxassigned","nopool",57,1282,24708213
+"pcr_collapsed_decontaminated_taxassigned","pool",57,1444,24626597
+"pcr_collapsed_decontaminated_taxassigned","pspool",57,1331,24654973
+"non_fungal_OTU_removal","nopool",57,1144,18766612
+"non_fungal_OTU_removal","pool",57,1444,24626597
+"non_fungal_OTU_removal","pspool",57,1181,18760690
+"depth_filter_final (>=10,000 reads)","nopool",52,1129,18750696
+"depth_filter_final (>=10,000 reads)","pool",57,1444,24626597
+"depth_filter_final (>=10,000 reads)","pspool",52,1166,18744716

@@ -1,0 +1,11 @@
+"Season","OTU","mean_pct_share","Phylum","Class","Order","Family","Genus","Species"
+"summer","OTU1",24.85,"p__Ascomycota","c__Leotiomycetes","o__Thelebolales","f__Thelebolaceae","g__Thelebolus",NA
+"summer","OTU1225",10.13,"p__Ascomycota","c__Sordariomycetes","o__Coniochaetales","f__Coniochaetaceae","g__Coniochaeta",NA
+"summer","OTU636",9.05,"p__Ascomycota","c__Dothideomycetes","o__Pleosporales","f__Sporormiaceae","g__Sporormiella","s__intermedia 1"
+"summer","OTU1231",3.85,"p__Ascomycota","c__Leotiomycetes","o__Helotiales","f__Dermateaceae","g__Coleophoma","s__coptospermatis"
+"summer","OTU1275",3.69,"p__Basidiomycota","c__Agaricomycetes","o__Cantharellales","f__Hydnaceae","g__Bergerella","s__atrofusca"
+"winter","OTU1369",11.24,"p__Ascomycota","c__Dothideomycetes",NA,NA,NA,NA
+"winter","OTU2",5.05,"p__Ascomycota","c__Dothideomycetes","o__Myriangiales","f__Myriangiales_fam_Incertae_sedis","g__Myriangiales_gen_Incertae_sedis",NA
+"winter","OTU252",4.67,"p__Ascomycota","c__Dothideomycetes","o__Pleosporales","f__Didymellaceae",NA,NA
+"winter","OTU136",4.34,"p__Ascomycota","c__Saccharomycetes","o__Saccharomycetales","f__Saccharomycetales_fam_Incertae_sedis","g__Candida","s__parapsilosis 1"
+"winter","OTU320",3.47,"p__Ascomycota","c__Leotiomycetes",NA,NA,NA,NA

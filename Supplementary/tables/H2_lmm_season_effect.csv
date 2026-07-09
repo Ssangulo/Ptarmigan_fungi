@@ -1,0 +1,4 @@
+"metric","re_structure","summer_minus_winter","lwr","upr","p"
+"q0","Season + (1|Year) + (1|pcr_replicate_id)",18.771,4.825,32.716,0.0112
+"q1","Season + (1|Year) + (1|indivID_glm) + (1|pcr_replicate_id)",-4.446,-9.008,0.116,0.0623
+"q2","Season + (1|Year) + (1|indivID_glm) + (1|pcr_replicate_id)",-3.906,-6.743,-1.068,0.0097

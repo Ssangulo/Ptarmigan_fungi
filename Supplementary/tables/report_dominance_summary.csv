@@ -1,0 +1,3 @@
+"Season","n","mean_richness","mean_top1_prop_pct","mean_pielou_J","wilcox_p_richness","wilcox_p_top1_prop","wilcox_p_pielou_J"
+"summer",26,71.7,56.4,0.38,0.00293,1e-05,0
+"winter",26,35.5,25.4,0.72,0.00293,1e-05,0
