@@ -207,6 +207,21 @@ occ <- data.frame(
 
 sh <- left_join(sh, occ, by = "OTU_ID")
 
+# ---- Citable UNITE identifier for placeable OTUs ----------------------------
+# Each existing UNITE SH has a stable page https://unite.ut.ee/sh/<SH_code>
+# carrying the taxon name and the SH's formal DOI. NB the DOI is a Taxon-
+# Hypothesis id (e.g. 10.15156/BIO/TH106574) that is NOT derivable from the SH
+# code, so we link the resolvable SH page rather than fabricate a DOI. Novel /
+# no-match OTUs carry a LOCAL cluster id (e.g. "104"), not a real SH code, so
+# they get NA -- candidate new SHs whose DOI is only minted if imprinted via
+# PlutoF (see the export in Section 5e).
+sh_code_primary <- sh[[paste0("SH_code_", primary_thr)]]
+is_real_sh <- grepl("^SH[0-9]+\\.[0-9]+FU$", sh_code_primary)
+sh$SH_URL <- ifelse(is_real_sh,
+                    paste0("https://unite.ut.ee/sh/", sh_code_primary),
+                    NA_character_)
+cat(sprintf("UNITE SH page links set for %d placeable OTUs\n", sum(is_real_sh)))
+
 # Sanity check vs the data-check report's OTU1369 figures (~20/26 winter, 11.2%)
 o1369 <- sh[sh$OTU_ID == "OTU1369", ]
 if (nrow(o1369) == 1)
@@ -238,7 +253,7 @@ write.csv(assign_summary, file.path(out_dir, "E1_SH_assignment_summary.csv"),
 winter_dark <- dark %>%
   arrange(desc(winter_mean_share)) %>%
   transmute(OTU_ID, Class, Order,
-            SH_code = .data[[paste0("SH_code_", primary_thr)]],
+            SH_code = .data[[paste0("SH_code_", primary_thr)]], SH_URL,
             SH_class, SH_common_taxonomy = common_taxonomy,
             similarity_percentage,
             winter_occ, winter_n, winter_mean_share,
@@ -251,7 +266,7 @@ write.csv(winter_dark, file.path(out_dir, "E1_winter_dominant_dark_taxa_SH.csv")
 # 5c) Full per-OTU SH table (the deliverable)
 sh_out <- sh %>%
   select(OTU_ID, Kingdom, Phylum, Class, Order, Family, Genus, Species, is_dark,
-         SH_class, common_taxonomy, common_rank, similarity_percentage,
+         SH_class, SH_URL, common_taxonomy, common_rank, similarity_percentage,
          dplyr::starts_with("SH_code_"), dplyr::starts_with("status_"),
          winter_occ, winter_mean_share, summer_occ, summer_mean_share)
 write.csv(sh_out, file.path(out_dir, "dark_taxa_SH_matching.csv"), row.names = FALSE)
@@ -275,6 +290,44 @@ cat(sprintf("\n-- Winter caveat: dark reads = %.1f%% of winter reads on average;
 write.csv(frac_tbl, file.path(out_dir, "E1_winter_dark_placeable_fraction.csv"),
           row.names = FALSE)
 
+# 5e) PlutoF export for the NOVEL taxa (candidate new SHs). Placeable OTUs
+# already have DOIs (SH_DOI); novel taxa get a DOI only if imprinted via the
+# PlutoF web platform. Export their sequences + metadata + instructions so the
+# imprint can be done manually when desired.
+novel_ids <- sh$OTU_ID[sh$SH_class %in% c("novel_new_SH", "no_SH_match")]
+writeXStringSet(refseq(ps)[novel_ids],
+                file.path(out_dir, "E1_novel_taxa_for_plutof.fasta"),
+                format = "fasta")
+novel_meta <- sh %>%
+  filter(OTU_ID %in% novel_ids) %>%
+  transmute(OTU_ID, is_dark, SH_class,
+            best_hit_lineage = common_taxonomy, similarity_percentage,
+            winter_occ, winter_mean_share, summer_occ, summer_mean_share)
+write.csv(novel_meta, file.path(out_dir, "E1_novel_taxa_metadata.csv"),
+          row.names = FALSE)
+cat(sprintf("Exported %d novel/no-match OTUs for optional PlutoF DOI minting\n",
+            length(novel_ids)))
+writeLines(c(
+  "# Minting UNITE DOIs for the novel ptarmigan dark taxa (E1)",
+  "",
+  "Existing-SH matches already resolve to a stable UNITE SH page (SH_URL column",
+  "in `dark_taxa_SH_matching.csv`, `https://unite.ut.ee/sh/<SH_code>`) that carries",
+  "the taxon name and the SH's formal DOI. Novel taxa (`SH_class` = novel_new_SH /",
+  "no_SH_match) form candidate new SHs and receive a DOI only if imprinted into",
+  "UNITE via PlutoF. Manual steps:",
+  "",
+  "1. Log in at https://plutof.ut.ee (free account).",
+  "2. Open the SH matching / 'Add sequences to UNITE' workbench.",
+  "3. Upload `E1_novel_taxa_for_plutof.fasta` (marker region: ITS2).",
+  "4. Review the proposed new SHs and imprint them (public or personal) to mint",
+  "   DOIs for the candidate new species hypotheses.",
+  "5. Download the returned `matches_out_*` files; dropping them into",
+  "   `sh_matching/outdata/parsed_1/` lets the parser in 9_dark_taxa_SH_matching.R",
+  "   ingest the minted SH codes/DOIs.",
+  "",
+  "Companion metadata: `E1_novel_taxa_metadata.csv`."
+), file.path(out_dir, "E1_plutof_instructions.md"))
+
 # =============================================================================
 # SECTION 6 — PLOTS
 # =============================================================================
@@ -296,5 +349,20 @@ p_cls <- ggplot(dark, aes(x = SH_class, fill = SH_class)) +
   labs(x = NULL, y = "dark OTUs", title = "E1 dark taxa: placeable vs novel SH") +
   theme_bw()
 save_png(p_cls, "E1_dark_taxa_novel_vs_placeable.png", width = 7, height = 4)
+
+# =============================================================================
+# SECTION 7 — STAGE OUTPUTS FOR THE QUARTO APPENDIX
+# =============================================================================
+# Supplementary_Appendix.qmd reads committed copies from Supplementary/figures|
+# tables via relative paths -- keep them in sync on every run.
+supp_fig <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/figures"
+supp_tab <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
+invisible(file.copy(file.path(plot_dir, c("E1_SH_similarity_hist.png",
+                                          "E1_dark_taxa_novel_vs_placeable.png")),
+                    supp_fig, overwrite = TRUE))
+invisible(file.copy(file.path(out_dir, c("E1_SH_assignment_summary.csv",
+                                         "E1_winter_dominant_dark_taxa_SH.csv")),
+                    supp_tab, overwrite = TRUE))
+cat("Staged E1 figures/tables into Supplementary/figures|tables\n")
 
 cat("\nDone. Tables ->", out_dir, "| plots ->", plot_dir, "\n")
