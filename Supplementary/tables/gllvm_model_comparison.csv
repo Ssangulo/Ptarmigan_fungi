@@ -1,0 +1,4 @@
+"model","object","logLik","AIC","dAIC"
+"Poisson (num.lv=0, PCR-rep RE)","fit_poisson",-1400868715.80517,2801738741.61033,2801682215.98535
+"Negative binomial (num.lv=1, indiv + PCR-rep RE)","fit_nb_2",-27314.3256046177,57248.6512092354,723.026223143475
+"Negative binomial (num.lv=2, indiv + PCR-rep RE)","fit_nb_2_2",-26626.8124930459,56525.6249860919,0

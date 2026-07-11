@@ -43,11 +43,16 @@ if (knitr::is_html_output()) {
 
 ## Overview and reproducibility
 
-This document compiles methodological details, supplementary analyses, and reproducibility outputs supporting the main manuscript. It tests three preregistered hypotheses about the fungal community of willow ptarmigan dung across a seasonal contrast (winter vs. summer) replicated over three years (2022–2024):
+This document compiles methodological details, supplementary analyses, and reproducibility outputs supporting the main manuscript. It tests three preregistered hypotheses about the fungal community of willow ptarmigan dung across a seasonal contrast (winter, March vs. summer, June) replicated over three years (2022–2024):
 
--   **H1** — seasonal compositional turnover of the dung mycobiome, reproducible across years.
--   **H2** — higher summer alpha diversity, tracking the greater richness of the summer diet.
--   **H3** — some fungal OTUs covary tightly with specific diet plants (ingested), others diffusely (coprophilous/environmental); exploratory interest in taxonomically unresolved "dark taxa" and in *Sporormiella*/Sordariales as a herbivore-presence proxy.
+-   **H1** — The dung fungal community differs in composition between the winter and summer timeblocks, and the magnitude of this seasonal shift is consistent across the three sampling years (2022–2024).
+-   **H2** — Fungal alpha diversity is higher in summer than winter. On the diet-matched subset, per-sample fungal alpha diversity increases with per-sample dietary plant richness, consistent with diet acting as the dominant propagule source for the dung fungal community.
+-   **H3** — On the diet-matched subset, individual fungal OTUs differ in *how specifically* they covary with the diet-plant community. Fungi tightly covarying with particular plant taxa are interpreted as likely ingested dietary passengers; taxonomically recognised coprophilous taxa (e.g. Sordariales) are expected to show diffuse, non-specific associations, consistent with their non-host-specific spore dispersal. Tight single-plant covariation is treated as the strong, interpretable signal.
+
+Two exploratory aims accompany the preregistered hypotheses and are kept conceptually distinct from them:
+
+-   **E1** — Identify fungal OTUs lacking a confident UNITE assignment that occur at non-trivial abundance ("dark taxa"); see Section 3.4.
+-   **E2** — Document the occurrence and relative abundance of *Sporormiella*-type and other Sordariales taxa used in palynological reconstructions, to provide a modern avian reference point for a herbivore-presence proxy currently calibrated almost entirely on mammals; see Section 3.2. Note that E2 (a herbivore-presence proxy) is distinct from H3 (plant–fungus covariation) and from E1 (dark taxa).
 
 Computationally intensive steps (DADA2 denoising, LULU curation, iNEXT3D diversity estimation, GLLVM and Bayesian model fitting, phylogenetic community-structure null models) were executed on a remote Ubuntu-based computing environment. Their outputs (figures, tables, and selected model objects) are integrated here as static results, with the generating code shown in collapsible drop-downs in the HTML version.
 
@@ -56,7 +61,7 @@ All figures (PNG) and result tables (CSV) are stored within the project reposito
 ::: callout-note
 ## Status of this appendix
 
-The analyses in **Sections 2–5** are finalized: they were regenerated end-to-end from the corrected canonical dataset and independently checked. **Sections 6–9** (GLLVM, Bayesian diet-tracking, phylogenetic community structure, functional guilds) are placeholders for analyses that are computed but not yet finalized for the manuscript; each is flagged as such and will be integrated after review.
+The analyses in **Sections 2–5** are finalized: they were regenerated end-to-end from the corrected canonical dataset and independently checked. **Section 6** (GLLVM, OTU-resolved H1) is integrated, with one flagged caveat — its fitted models predate the depth-filter correction (see the callout there). **Sections 7–9** (Bayesian diet-tracking, phylogenetic community structure, functional guilds) remain placeholders for analyses that are computed but not yet finalized for the manuscript; each is flagged as such and will be integrated after review.
 :::
 
 **Data availability.**
@@ -278,7 +283,9 @@ Per-sample relative read abundance at four taxonomic ranks, with samples grouped
 
 **Figure S5**: Genus-level composition per sample, grouped by Season. Many summer bars are dominated end-to-end by a single genus (*Thelebolus*, *Sporormiella*, or *Coniochaeta*), consistent with the dominance analysis in Section 5, whereas winter bars are more evenly patchworked across genera.
 
-### 3.2 Coprophilous (dung-specialist) genera
+### 3.2 Coprophilous (dung-specialist) genera (E2)
+
+This subsection addresses exploratory aim **E2**: documenting the occurrence and relative abundance of *Sporormiella*-type and other Sordariales taxa used in palynological herbivore-presence reconstructions, to provide a modern avian reference point for a proxy currently calibrated almost entirely on mammalian dung. It is a descriptive screen, distinct from the plant–fungus covariation hypothesis (H3, deferred to the diet-matched Bayesian analysis).
 
 The canonical tax table was screened against a standard list of coprophilous, spore-dispersed genera — *Sordaria, Podospora, Cercophora, Chaetomium, Schizothecium, Preussia, Sporormiella, Delitschia, Pilobolus, Ascobolus, Coprinopsis, Saccobolus, Sporormia*. Only ***Sporormiella*** (multiple OTUs) and a single trace ***Coprinopsis*** OTU were detected; none of the other genera appear in this dataset. Per-OTU winter/summer mean read shares and occurrences (number of samples per season, of 26 each) are shown below.
 
@@ -545,7 +552,7 @@ kable(top5, digits = 2,
       caption = "Table S11. Top-5 dominant OTUs per Season by mean within-season read share, with taxonomy.")
 ```
 
-Summer's dominance is driven by three strongly season-skewed OTUs: **OTU1 (*Thelebolus*)** averages 24.9% of summer reads (15/26 summer samples vs 5/26 winter at 3.2%), **OTU1225 (*Coniochaeta*)** is essentially summer-only (10.1% vs 0.2%), and **OTU636 (*Sporormiella* cf. *intermedia*)** — a coprophilous taxon — is also summer-skewed (9.0% vs 2.5%). Winter's own top OTU, **OTU1369**, is a "dark taxon" (unclassified below Class, Dothideomycetes), present in 20/26 winter samples but only 3/26 summer, at 11.2% mean winter share. This dark, winter-associated OTU is a candidate for the H3 dark-taxa exploration and revises the original "stable cold-adapted *Thelebolus*–*Sporormiella* core" framing: those recognizable coprophilous genera are part of the **summer**-inflated, activity-tracking tail, not a season-independent core.
+Summer's dominance is driven by three strongly season-skewed OTUs: **OTU1 (*Thelebolus*)** averages 24.9% of summer reads (15/26 summer samples vs 5/26 winter at 3.2%), **OTU1225 (*Coniochaeta*)** is essentially summer-only (10.1% vs 0.2%), and **OTU636 (*Sporormiella* cf. *intermedia*)** — a coprophilous taxon — is also summer-skewed (9.0% vs 2.5%). Winter's own top OTU, **OTU1369**, is a "dark taxon" (unclassified below Class, Dothideomycetes), present in 20/26 winter samples but only 3/26 summer, at 11.2% mean winter share. This dark, winter-associated OTU is an **E1** dark taxon (Section 3.4) — and, being winter-persistent, a candidate to carry into the deferred H3 plant-covariation analysis downstream — and it revises the original "stable cold-adapted *Thelebolus*–*Sporormiella* core" framing: those recognizable coprophilous genera are part of the **summer**-inflated, activity-tracking tail, not a season-independent core.
 
 ```{r}
 #| eval: false
@@ -648,11 +655,78 @@ copro_otus  <- rownames(tax)[!is.na(genus_clean) & genus_clean %in% COPRO_GENERA
 # per-OTU winter/summer mean share + occurrences -> report_coprophilous_by_season(_v2).csv
 ```
 
-## Section 6: Lineage-specific responses — GLLVM *(placeholder)* {.page-break-before}
+## Section 6: Lineage-specific seasonal responses — GLLVM (H1, OTU-resolved) {.page-break-before}
+
+Sections 4 and 5 establish that the community shifts between seasons (H1) and that summer samples gain a long rare tail while becoming more dominance-skewed (H2). This section resolves H1 to the level of individual OTUs. We fit a generalized linear latent-variable model (GLLVM, negative-binomial) of per-OTU counts as a function of **Season** (winter as reference), with a library-size offset and random intercepts for individual bird and PCR replicate; the model is fitted on the full-complexity, one-row-per-PCR-replicate object (`Scripts/7_gllvm.R`, objects `models/fit_nb_2.rds` and `models/fit_nb_2_2.rds`). It answers *which* lineages drive the turnover — each with its own model uncertainty — and, through its latent variables, describes the residual co-occurrence that remains after Season is accounted for.
+
+This is a Season model. It does **not** include plant predictors and therefore does **not** test H3 (specific OTU–plant covariation): that is the separate diet-matched Bayesian analysis in Section 7. The coprophilous *Sporormiella*/Sordariales screen is E2 (Section 3.2). Keeping these apart matters — the GLLVM speaks only to seasonal differential abundance.
 
 ::: callout-warning
-**To be integrated.** Generalized linear latent-variable models (GLLVM, negative-binomial) of OTU-level responses to Season, with individual bird and PCR replicate as random effects and a read-count offset, were fitted on the server (`Scripts/7_gllvm.R`; fitted objects `models/fit_nb_2.rds`, `models/fit_nb_2_2.rds`). A genus-level response heatmap and the residual-ordination/diagnostics will be inserted here (Figure S-GLLVM, Table S-GLLVM) once finalized.
+**Fitted on the pre-depth-fix object.** These fits were built on the full-complexity object as it stood *before* the July depth-filter correction: 57 samples (114 PCR-replicate rows) and 327 filtered OTUs, versus the 52-sample / 278-OTU canonical object used everywhere else in this appendix. The library-size offset, per-OTU abundance weights, and the Poisson baseline in Table S-GLLVMa are all reconstructed from that same pre-fix object so the section is internally consistent. The five extra samples and larger OTU set do not change the direction or rank of any result below, but exact coefficients will move slightly when the models are refitted on the corrected object — treat the numbers as robust in sign and rank, provisional in the last digit.
 :::
+
+### 6.1 Model choice
+
+```{r tab-gllvm-aic}
+#| echo: false
+library(knitr)
+mc <- read.csv("tables/gllvm_model_comparison.csv", stringsAsFactors = FALSE)
+mc$logLik <- signif(mc$logLik, 4); mc$AIC <- signif(mc$AIC, 5); mc$dAIC <- signif(mc$dAIC, 4)
+kable(mc[, c("model", "logLik", "AIC", "dAIC")],
+      col.names = c("Model", "logLik", "AIC", "ΔAIC"),
+      caption = "Table S-GLLVMa. GLLVM model comparison on the same 327-OTU / 114-row response matrix. The negative-binomial fits are dramatically better than the Poisson baseline (strong overdispersion), and two latent variables are preferred over one (ΔAIC ≈ 723). fit_nb_2_2 is the reported model.")
+```
+
+The negative-binomial family is strongly favoured over Poisson (the Poisson log-likelihood is worse by ~5 orders of magnitude, the signature of severe count overdispersion), and two latent variables outperform one by ΔAIC ≈ 723. We therefore report `fit_nb_2_2` (negative-binomial, two latent variables).
+
+### 6.2 Which OTUs drive the seasonal turnover
+
+For every OTU we extract the Season coefficient (β on the GLLVM log scale; positive = higher in summer) together with the model's own Wald 95% CI, and flag significance at a Benjamini–Hochberg FDR of 5%.
+
+![](figures/gllvm_perOTU_season_coef.png)
+
+**Figure S-GLLVMa**: Season response of the 30 most abundant OTUs, each with its model 95% CI, coloured by Order; filled points are significant at BH q < 0.05. Of the 327 modelled OTUs, **209 are significant, and the turnover is strongly asymmetric: 166 OTUs are enriched in summer versus 43 in winter** — the OTU-level counterpart of the summer rare-tail inflation seen in H2. A further 134 OTUs are near-complete "on/off" seasonal switches (essentially absent in one season); these have real but non-interpretable point estimates (β in the hundreds, or exploding CIs) and are flagged (`separation`) and excluded from this panel while retained in Table S-GLLVMb.
+
+```{r tab-gllvm-otu}
+#| echo: false
+suppressMessages(library(dplyr)); library(knitr)
+oc  <- read.csv("tables/gllvm_perOTU_season_coef.csv", stringsAsFactors = FALSE)
+well <- oc %>% filter(!separation, sig)
+fmt <- function(df) df %>% transmute(OTU = taxon, Genus, Order,
+                                     beta = round(beta_season, 2),
+                                     `95% CI` = sprintf("[%.1f, %.1f]", ci_lo, ci_hi),
+                                     `BH q` = signif(p_adj, 2))
+kable(well %>% arrange(desc(beta_season)) %>% slice_head(n = 8) %>% fmt(),
+      caption = "Table S-GLLVMb(i). Most strongly summer-enriched well-estimated OTUs (BH q < 0.05).")
+kable(well %>% arrange(beta_season) %>% slice_head(n = 8) %>% fmt(),
+      caption = "Table S-GLLVMb(ii). Most strongly winter-enriched well-estimated OTUs (BH q < 0.05). Full per-OTU table: tables/gllvm_perOTU_season_coef.csv.")
+```
+
+Two results connect directly to the dominance analysis (Section 5.4). The coprophilous taxa that dominate summer read share behave differently under the model: **OTU636 (*Sporormiella*, β ≈ 17.2) and OTU1225 (*Coniochaeta*, β ≈ 17.3) are both significantly summer-enriched**, but **OTU1 (*Thelebolus*, β ≈ 3.0) is *not* significant** (95% CI crosses zero) — its large summer read share is carried by a few samples and high among-individual variance rather than a model-robust per-OTU shift. On the winter side, **the dark taxon OTU1369 (class Dothideomycetes) is significantly winter-enriched (β ≈ −6.9)**: the GLLVM independently corroborates the dominance/E1 finding that winter's persistent anchor is a taxonomically unresolved lineage, not a recognisable coprophile.
+
+Aggregating to genus gives the broader pattern:
+
+![](figures/panel_AB_heatmap_barplot_season.png)
+
+**Figure S-GLLVMc**: Genus-level seasonal response. (A) Heatmap of the abundance-weighted mean β per genus; (B) the same as a point-range plot with bootstrapped 95% CIs. Warm = summer-enriched, cool = winter-enriched.
+
+```{r tab-gllvm-genus}
+#| echo: false
+suppressMessages(library(dplyr)); library(knitr)
+gt <- read.csv("tables/genus_table_season.csv", stringsAsFactors = FALSE)
+gt %>% transmute(Order, Genus, n_OTUs,
+                 `total reads` = round(total_w_abund),
+                 `median beta` = round(median_beta_season, 1),
+                 `weighted-mean beta` = round(w_mean_beta_season, 1)) %>%
+  arrange(desc(`weighted-mean beta`)) %>%
+  kable(caption = "Table S-GLLVMc. Genus-level seasonal responses (β = summer vs winter, GLLVM log scale) for genera passing the abundance/effect-size thresholds. Full detail in models/genus_table_season.csv.")
+```
+
+### 6.3 Residual co-occurrence beyond Season
+
+![](figures/gllvm_residual_ordination.png)
+
+**Figure S-GLLVMb**: Model-based ordination on the two latent variables of `fit_nb_2_2` — the residual OTU co-occurrence structure that remains *after* Season and the random effects are accounted for. Sites are coloured by Season; the eight strongest species loadings are labelled. This is the model-based counterpart to the unconstrained robust-Aitchison PCoA in Section 4.1: because Season is already in the model as a fixed effect, the two seasons overlap substantially here, confirming that Season captures a coherent axis of the community rather than all of its covariation. A small set of winter samples separates along the second latent variable, echoing the higher within-winter heterogeneity of these dung communities.
 
 ## Section 7: Diet-tracking and Bayesian mechanism — H2/H3 *(placeholder)* {.page-break-before}
 
@@ -677,7 +751,7 @@ copro_otus  <- rownames(tax)[!is.na(genus_clean) & genus_clean %in% COPRO_GENERA
 
 **Takeaway to remember: use `funguild_otu` as the primary/only guild source for analysis; treat `fungaltraits_otu` at most as a coarse genus-level sensitivity check, and never merge/union guild calls between the two for the same OTU.**
 
-A quick check of the seasonal pattern (canonical `alldat$nopool`, 52 samples) already reproduces the same summer/winter shift seen via taxonomy alone (Section 3 / H3: dung-saprotroph summer dominance, dark-taxa winter dominance):
+A quick check of the seasonal pattern (canonical `alldat$nopool`, 52 samples) already reproduces the same summer/winter shift seen via taxonomy and differential abundance (the H1 seasonal story of Sections 3–6: dung-saprotroph summer dominance, dark-taxa winter dominance):
 
 | | Summer | Winter |
 |---|---|---|
