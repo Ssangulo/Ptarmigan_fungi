@@ -181,6 +181,63 @@ cat("\n-- SH classification (all retained OTUs) --\n"); print(table(sh$SH_class)
 cat("\n-- SH classification for DARK taxa (is.na Genus) --\n")
 print(table(sh$SH_class[sh$is_dark]))
 
+# ---- 3d) PlutoF live-database upgrade (optional) ----------------------------
+# The novel taxa (E1_novel_taxa_for_plutof.fasta) were re-run through the PlutoF
+# web SH matching service, whose reference DB is larger/more current than the
+# local container reference. OTUs that PlutoF now matches to an EXISTING named
+# SH are upgraded here (novel -> placeable) with the real SH code + refreshed
+# taxonomy; provenance is recorded in SH_source. IMPORTANT: PlutoF's downloadable
+# matching output carries NO DOIs and does NOT mint SHs for the still-novel taxa
+# -- those remain CANDIDATE new SHs pending public sequence deposition (ENA/
+# GenBank) + the separate PlutoF imprint step. PlutoF's chimera flag is recorded
+# only (plutof_chimera_flag), NOT acted on: it is a coverage heuristic (<=85%
+# alignment) that flips run-to-run (these same OTUs passed cleanly in the
+# container run), so it is treated as unreliable.
+sh$SH_source <- "UNITE_container"
+sh$plutof_chimera_flag <- NA
+plutof_zip <- "/home/daniel/Ptarmigan/models/source_67536.zip"
+if (file.exists(plutof_zip)) {
+  pl_run <- sub("^.*source_([0-9]+)\\.zip$", "\\1", plutof_zip)
+  pdir   <- file.path(sh_base, "outdata", "plutof_parsed")
+  unlink(pdir, recursive = TRUE); dir.create(pdir, recursive = TRUE)
+  utils::unzip(plutof_zip, exdir = pdir)
+  pcols <- c("seq_id_tmp","OTU_ID","status","SH_code","SH_taxonomy",
+             "compound_cl_code","compound_taxonomy","dup_id","dup_accno")
+  pf <- read.table(file.path(pdir, "matches", sprintf("matches_out_%s.csv", primary_thr)),
+                   header = FALSE, sep = "\t", quote = "", skip = 1, fill = TRUE,
+                   comment.char = "", stringsAsFactors = FALSE,
+                   col.names = c(pcols, "extra1", "extra2"))[, pcols]
+  pf_tax <- read.delim(file.path(pdir, "matches", "matches_out_taxonomy.csv"),
+                       stringsAsFactors = FALSE, check.names = FALSE)
+  pf_tax$common_rank <- suppressWarnings(as.numeric(pf_tax$common_rank))
+  pf_tax$similarity_percentage <- suppressWarnings(as.numeric(pf_tax$similarity_percentage))
+  # OTUs PlutoF places into an existing NAMED SH (real SH code)
+  upg <- pf[grepl("present", pf$status) &
+            grepl("^SH[0-9]+\\.[0-9]+FU$", pf$SH_code), ]
+  ix  <- match(upg$OTU_ID, sh$OTU_ID); keep <- !is.na(ix)
+  ix  <- ix[keep]; upg <- upg[keep, ]
+  sh$SH_class[ix]                              <- "placeable_existing_SH"
+  sh[[paste0("SH_code_", primary_thr)]][ix]    <- upg$SH_code
+  sh$SH_source[ix]                             <- "PlutoF_live"
+  tix <- match(sh$OTU_ID[ix], pf_tax$seq_name)
+  ok  <- !is.na(tix)
+  sh$common_taxonomy[ix][ok]        <- pf_tax$common_taxonomy[tix][ok]
+  sh$common_rank[ix][ok]            <- pf_tax$common_rank[tix][ok]
+  sh$similarity_percentage[ix][ok]  <- pf_tax$similarity_percentage[tix][ok]
+  # Record (do not act on) PlutoF chimera flag
+  pex <- read.delim(file.path(pdir, sprintf("excluded_%s.txt", pl_run)),
+                    header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+  pn  <- read.delim(file.path(pdir, sprintf("source_%s_names", pl_run)),
+                    header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+  c2o <- setNames(pn$V1, pn$V2)
+  chim_otus <- unique(na.omit(c2o[pex$V1[grepl("chimeric", pex$V3, ignore.case = TRUE)]]))
+  sh$plutof_chimera_flag <- sh$OTU_ID %in% chim_otus
+  cat(sprintf("\nPlutoF live-DB upgrade: %d OTUs novel->existing named SH (%d dark); %d flagged chimeric (recorded, NOT excluded)\n",
+              length(ix), sum(sh$is_dark[ix]), length(chim_otus)))
+  cat("-- DARK taxa SH classification AFTER PlutoF upgrade --\n")
+  print(table(sh$SH_class[sh$is_dark]))
+}
+
 # =============================================================================
 # SECTION 4 — SEASONAL OCCUPANCY & READ SHARE (for the winter caveat)
 # =============================================================================
@@ -254,7 +311,7 @@ winter_dark <- dark %>%
   arrange(desc(winter_mean_share)) %>%
   transmute(OTU_ID, Class, Order,
             SH_code = .data[[paste0("SH_code_", primary_thr)]], SH_URL,
-            SH_class, SH_common_taxonomy = common_taxonomy,
+            SH_class, SH_source, SH_common_taxonomy = common_taxonomy,
             similarity_percentage,
             winter_occ, winter_n, winter_mean_share,
             summer_occ, summer_n, summer_mean_share) %>%
@@ -266,7 +323,8 @@ write.csv(winter_dark, file.path(out_dir, "E1_winter_dominant_dark_taxa_SH.csv")
 # 5c) Full per-OTU SH table (the deliverable)
 sh_out <- sh %>%
   select(OTU_ID, Kingdom, Phylum, Class, Order, Family, Genus, Species, is_dark,
-         SH_class, SH_URL, common_taxonomy, common_rank, similarity_percentage,
+         SH_class, SH_source, SH_URL, plutof_chimera_flag, common_taxonomy,
+         common_rank, similarity_percentage,
          dplyr::starts_with("SH_code_"), dplyr::starts_with("status_"),
          winter_occ, winter_mean_share, summer_occ, summer_mean_share)
 write.csv(sh_out, file.path(out_dir, "dark_taxa_SH_matching.csv"), row.names = FALSE)
