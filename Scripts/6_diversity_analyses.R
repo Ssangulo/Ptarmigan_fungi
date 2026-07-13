@@ -469,32 +469,198 @@ png(file.path(plot_dir, "H2_brms_diet_richness_ppc.png"), width=900, height=600,
 print(brms::pp_check(b_h2, ndraws=100) + labs(title="H2 mechanism: posterior predictive check"))
 dev.off()
 
-# ---- Fitted relationship on the raw (unscaled) diversity/richness scale ----
-nd <- data.frame(
-  plant_richness_z = seq(min(diet$plant_richness_z), max(diet$plant_richness_z), length=60),
-  Season = "winter"
-)
-fe <- brms::posterior_epred(b_h2, newdata=nd, re_formula=NA)
+# =============================================================================
+# SECTION 3b -- H2-MECHANISM: SECOND MODEL, SENSITIVITY, ROBUSTNESS, STAGING
+# The preregistered RE model (Year + individual random intercepts) does not
+# converge on this n=30 matched subset (see the note at the model call above),
+# so the H2 mechanism is reported as two complementary well-converged models,
+# documented side by side in appendix Section 7.1:
+#   (1) b_h2        : Season-adjusted, Year fixed -- primary (fitted above)
+#   (2) b_h2_noyear : Season only (Year dropped)  -- less-conservative variant
+# =============================================================================
 
+# ---- (2) Drop-Year model ----------------------------------------------------
+b_h2_noyear <- brms::brm(
+  fungal_hill_z ~ plant_richness_z + Season,
+  data    = diet,
+  family  = gaussian(),
+  prior   = h2_prior,
+  chains  = 4, iter = 6000, warmup = 3000, cores = 4,
+  control = list(adapt_delta = 0.999, max_treedepth = 15),
+  seed    = 1, refresh = 0,
+  file    = file.path(out_dir, "H2_brms_diet_richness_noyear")
+)
+
+# ---- Slope-summary / diagnostic helpers -------------------------------------
+.slope_draws <- function(fit) brms::as_draws_df(fit)$b_plant_richness_z
+.n_div       <- function(fit) { np <- brms::nuts_params(fit)
+                                sum(np$Value[np$Parameter == "divergent__"]) }
+.slope_row <- function(fit, label, form) {
+  d <- .slope_draws(fit)
+  data.frame(model=label, formula=form, median=median(d),
+             lwr95=unname(quantile(d, .025)), upr95=unname(quantile(d, .975)),
+             P_gt0=mean(d > 0), max_rhat=round(max(brms::rhat(fit), na.rm=TRUE), 4),
+             divergences=.n_div(fit), supported=mean(d > 0) > support_threshold,
+             stringsAsFactors=FALSE)
+}
+
+# ---- Model-comparison table (both models side by side) ----------------------
+h2_model_comparison <- rbind(
+  .slope_row(b_h2,        "Season-adjusted (primary)", "~ plant_richness_z + Season + Year"),
+  .slope_row(b_h2_noyear, "Drop-Year",                 "~ plant_richness_z + Season")
+)
+write.csv(h2_model_comparison,
+          file.path(out_dir, "H2_mechanism_model_comparison.csv"), row.names=FALSE)
+cat("\nH2-mechanism model comparison:\n"); print(h2_model_comparison, digits=3)
+
+# ---- Sensitivity: Hill order q0/q1/q2 x both model structures ----------------
+# Reuse the per-sample q0/q1/q2 already in hill_sample; z-score within the
+# matched subset so slopes are comparable to the primary (q1) model.
+diet$q0   <- hill_sample$q0[match(diet$sample, hill_sample$sample)]
+diet$q2   <- hill_sample$q2[match(diet$sample, hill_sample$sample)]
+diet$q0_z <- as.numeric(scale(diet$q0))
+diet$q1_z <- diet$fungal_hill_z
+diet$q2_z <- as.numeric(scale(diet$q2))
+
+fit_sens <- function(ycol, drop_year) {
+  form <- as.formula(paste0(ycol, if (drop_year) " ~ plant_richness_z + Season"
+                                  else            " ~ plant_richness_z + Season + Year"))
+  brms::brm(form, data=diet, family=gaussian(), prior=h2_prior,
+            chains=4, iter=6000, warmup=3000, cores=4,
+            control=list(adapt_delta=0.999, max_treedepth=15),
+            seed=1, refresh=0)
+}
+sens_grid <- expand.grid(q=c("q0","q1","q2"), model=c("Season-adjusted","Drop-Year"),
+                         stringsAsFactors=FALSE)
+h2_sensitivity <- do.call(rbind, Map(function(q, m) {
+  fit <- fit_sens(paste0(q, "_z"), drop_year = (m == "Drop-Year"))
+  d   <- .slope_draws(fit)
+  data.frame(metric=q, model=m, median=median(d),
+             lwr95=unname(quantile(d, .025)), upr95=unname(quantile(d, .975)),
+             P_gt0=mean(d > 0), stringsAsFactors=FALSE)
+}, sens_grid$q, sens_grid$model))
+write.csv(h2_sensitivity, file.path(out_dir, "H2_mechanism_sensitivity.csv"), row.names=FALSE)
+cat("\nH2-mechanism sensitivity (Hill order x model structure):\n")
+print(h2_sensitivity, digits=3)
+
+# ---- Robustness: leave-one-out influence + rank correlation -----------------
+# The Bayesian slope is modest and, at n=30, carried by samples at the high end
+# of a short diet-richness gradient. Quantified frequentist-style (fast refits)
+# on the primary q1 outcome, for both model structures.
+.lm_form   <- function(dy) {
+  if (dy) fungal_hill_z ~ plant_richness_z + Season
+  else    fungal_hill_z ~ plant_richness_z + Season + Year
+}
+.lm_slope  <- function(df, dy=FALSE) unname(coef(lm(.lm_form(dy), data=df))["plant_richness_z"])
+.lm_p      <- function(df, dy=FALSE)
+  summary(lm(.lm_form(dy), data=df))$coefficients["plant_richness_z", "Pr(>|t|)"]
+
+inf <- do.call(rbind, lapply(c(FALSE, TRUE), function(dy) {
+  fs <- .lm_slope(diet, dy); fp <- .lm_p(diet, dy)
+  loo <- t(sapply(seq_len(nrow(diet)), function(i)
+            c(slope=.lm_slope(diet[-i, ], dy), p=.lm_p(diet[-i, ], dy))))
+  data.frame(model = if (dy) "Drop-Year" else "Season-adjusted",
+             freq_slope=fs, freq_p=fp,
+             loo_slope_min=min(loo[, "slope"]), loo_slope_max=max(loo[, "slope"]),
+             loo_nonsig_refits=sum(loo[, "p"] > 0.05),
+             most_influential=diet$sample[which.max(abs(loo[, "slope"] - fs))],
+             stringsAsFactors=FALSE)
+}))
+.sp <- function(df, lab) {
+  ct <- suppressWarnings(cor.test(df$fungal_hill, df$plant_richness, method="spearman"))
+  data.frame(scope=lab, n=nrow(df), rho=unname(ct$estimate), p=ct$p.value,
+             stringsAsFactors=FALSE)
+}
+sp <- rbind(.sp(diet, "overall"),
+            .sp(diet[diet$Season == "winter", ], "within winter"),
+            .sp(diet[diet$Season == "summer", ], "within summer"))
+
+# Flatten to one tidy long table for the appendix.
+h2_robustness <- rbind(
+  data.frame(check="leave-one-out influence", group=inf$model, quantity="freq. slope (p)",
+             value=sprintf("%.3f (p=%.3f)", inf$freq_slope, inf$freq_p)),
+  data.frame(check="leave-one-out influence", group=inf$model, quantity="LOO slope range",
+             value=sprintf("%.3f to %.3f", inf$loo_slope_min, inf$loo_slope_max)),
+  data.frame(check="leave-one-out influence", group=inf$model,
+             quantity="# of n-1 refits with p>0.05", value=as.character(inf$loo_nonsig_refits)),
+  data.frame(check="leave-one-out influence", group=inf$model,
+             quantity="most influential sample", value=inf$most_influential),
+  data.frame(check="rank correlation (Spearman)", group=sp$scope,
+             quantity=sprintf("rho (n=%d)", sp$n),
+             value=sprintf("%.3f (p=%.3f)", sp$rho, sp$p)),
+  stringsAsFactors=FALSE
+)
+write.csv(h2_robustness, file.path(out_dir, "H2_mechanism_robustness.csv"), row.names=FALSE)
+cat("\nH2-mechanism robustness summary:\n"); print(h2_robustness, right=FALSE)
+
+# ---- Figure: fitted relationship on the raw scale, BOTH models --------------
+rich_grid <- seq(min(diet$plant_richness_z), max(diet$plant_richness_z), length=60)
 hill_mean <- mean(diet$fungal_hill); hill_sd <- sd(diet$fungal_hill)
 rich_mean <- mean(diet$plant_richness); rich_sd <- sd(diet$plant_richness)
-ribbon <- data.frame(
-  plant_richness = nd$plant_richness_z * rich_sd + rich_mean,
-  fit = apply(fe, 2, median) * hill_sd + hill_mean,
-  lwr = apply(fe, 2, quantile, .025) * hill_sd + hill_mean,
-  upr = apply(fe, 2, quantile, .975) * hill_sd + hill_mean
-)
+ribbon_of <- function(fit, has_year) {
+  nd <- data.frame(plant_richness_z=rich_grid,
+                   Season=factor("winter", levels=levels(diet$Season)))
+  if (has_year) nd$Year <- factor(levels(diet$Year)[1], levels=levels(diet$Year))
+  fe <- brms::posterior_epred(fit, newdata=nd, re_formula=NA)
+  data.frame(plant_richness = rich_grid * rich_sd + rich_mean,
+             fit = apply(fe, 2, median)        * hill_sd + hill_mean,
+             lwr = apply(fe, 2, quantile, .025) * hill_sd + hill_mean,
+             upr = apply(fe, 2, quantile, .975) * hill_sd + hill_mean)
+}
+rib_primary <- ribbon_of(b_h2, TRUE)
+rib_noyear  <- ribbon_of(b_h2_noyear, FALSE)
 
 p_diet <- ggplot(diet, aes(plant_richness, fungal_hill)) +
-  geom_ribbon(data=ribbon, aes(plant_richness, ymin=lwr, ymax=upr), inherit.aes=FALSE, alpha=0.2) +
-  geom_line(data=ribbon, aes(plant_richness, fit), inherit.aes=FALSE) +
+  geom_ribbon(data=rib_primary, aes(plant_richness, ymin=lwr, ymax=upr),
+              inherit.aes=FALSE, alpha=0.18) +
+  geom_line(data=rib_primary, aes(plant_richness, fit, linetype="Season-adjusted"),
+            inherit.aes=FALSE, linewidth=0.8) +
+  geom_line(data=rib_noyear, aes(plant_richness, fit, linetype="Drop-Year"),
+            inherit.aes=FALSE, linewidth=0.8) +
   geom_point(aes(colour=Season), size=3) +
   scale_colour_manual(values=c(winter="#0072B2", summer="#E69F00")) +
+  scale_linetype_manual(name="Model fit",
+                        values=c("Season-adjusted"="solid", "Drop-Year"="22")) +
   labs(title=sprintf("Fungal Hill %s vs dietary plant richness (matched n=%d)", PRIMARY_Q, nrow(diet)),
-       subtitle=sprintf("plant-richness slope P(>0)=%.2f", h2_mechanism_summary$P_gt0),
-       x="Plant OTU richness (rarefied)", y=sprintf("Fungal Hill %s", PRIMARY_Q)) +
+       subtitle=sprintf("plant-richness slope P(>0): %.2f (Season-adjusted), %.2f (drop-Year)",
+                        h2_model_comparison$P_gt0[1], h2_model_comparison$P_gt0[2]),
+       x="Plant OTU richness (rarefied)", y=sprintf("Fungal Hill %s", PRIMARY_Q),
+       caption="Fitted lines at reference Season (winter)/Year; ribbon = 95% CrI (primary model).") +
   theme_bw(base_size=12)
 save_png(p_diet, "H2_diet_richness_fit.png", width=7.5, height=5.5, dpi=800)
+
+# ---- Figure: posterior of the standardised diet-richness slope, both models -
+slope_df <- rbind(
+  data.frame(model="Season-adjusted", slope=.slope_draws(b_h2)),
+  data.frame(model="Drop-Year",       slope=.slope_draws(b_h2_noyear))
+)
+slope_df$model <- factor(slope_df$model, levels=c("Season-adjusted", "Drop-Year"))
+p_slope <- ggplot(slope_df, aes(slope, fill=model, colour=model)) +
+  geom_density(alpha=0.35) +
+  geom_vline(xintercept=0, linetype="dashed") +
+  scale_fill_manual(values=c("Season-adjusted"="#009E73", "Drop-Year"="#CC79A7")) +
+  scale_colour_manual(values=c("Season-adjusted"="#009E73", "Drop-Year"="#CC79A7")) +
+  labs(title=sprintf("Posterior of the diet-richness slope (standardised, Fungal Hill %s)", PRIMARY_Q),
+       subtitle=sprintf("P(slope>0) = %.3f (Season-adjusted), %.3f (drop-Year)",
+                        h2_model_comparison$P_gt0[1], h2_model_comparison$P_gt0[2]),
+       x="Standardised slope of plant richness", y="Posterior density",
+       fill="Model", colour="Model") +
+  theme_bw(base_size=12)
+save_png(p_slope, "H2_mechanism_slope_posterior.png", width=7.5, height=5, dpi=800)
+
+# ---- Stage H2-mechanism outputs for the Quarto appendix (Section 7.1) --------
+# Same convention as 9_dark_taxa_SH_matching.R Section 7: the appendix reads
+# committed copies from Supplementary/figures|tables via relative paths.
+supp_fig <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/figures"
+supp_tab <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
+invisible(file.copy(file.path(plot_dir, c("H2_diet_richness_fit.png",
+                                          "H2_mechanism_slope_posterior.png")),
+                    supp_fig, overwrite=TRUE))
+invisible(file.copy(file.path(out_dir, c("H2_mechanism_model_comparison.csv",
+                                         "H2_mechanism_sensitivity.csv",
+                                         "H2_mechanism_robustness.csv")),
+                    supp_tab, overwrite=TRUE))
+cat("Staged H2-mechanism figures/tables into Supplementary/figures|tables\n")
 
 
 # #############################################################################

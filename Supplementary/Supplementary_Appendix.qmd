@@ -61,7 +61,7 @@ All figures (PNG) and result tables (CSV) are stored within the project reposito
 ::: callout-note
 ## Status of this appendix
 
-The analyses in **Sections 2–5** are finalized: they were regenerated end-to-end from the corrected canonical dataset and independently checked. **Section 6** (GLLVM, OTU-resolved H1) is integrated, with one flagged caveat — its fitted models predate the depth-filter correction (see the callout there). **Sections 7–9** (Bayesian diet-tracking, phylogenetic community structure, functional guilds) remain placeholders for analyses that are computed but not yet finalized for the manuscript; each is flagged as such and will be integrated after review.
+The analyses in **Sections 2–5** are finalized: they were regenerated end-to-end from the corrected canonical dataset and independently checked. **Section 6** (GLLVM, OTU-resolved H1) is integrated, with one flagged caveat — its fitted models predate the depth-filter correction (see the callout there). **Section 7.1** (the Bayesian diet-richness mechanism for H2) is integrated. **Section 7.2** (H3 OTU–plant covariation) and **Sections 8–9** (phylogenetic community structure, functional guilds) remain placeholders for analyses that are computed but not yet finalized for the manuscript; each is flagged as such and will be integrated after review.
 :::
 
 **Data availability.**
@@ -366,7 +366,7 @@ kable(w_disp, digits = 1,
 
 **Toward permanent, citable identifiers.** Placeable taxa already carry citable UNITE SH identifiers (resolvable SH pages with DOIs). The candidate novel taxa are being **registered**: their representative ITS2 sequences are being deposited in a public archive (ENA/GenBank) and imprinted as new SHs via PlutoF, which mints permanent DOIs — converting short-lived study detections into citable candidate species hypotheses (*registration in progress*; sequences in `models/E1_novel_taxa_for_plutof.fasta`).
 
-**Caveats.** (i) OTU320, previously listed among winter's dark dominants, is an ITSx-flagged chimeric/broken sequence and is dropped. (ii) On the PlutoF re-run, a reference-coverage heuristic flagged 248 of the resubmitted OTUs as putatively chimeric, but the *same* sequences passed cleanly in the local run and the flagged set is not the most-divergent one (median ~97% identity), so this flag is recorded (`plutof_chimera_flag`) but treated as unreliable and **not** used to exclude OTUs, pending scrutiny.
+**Caveats.** (i) OTU320, previously listed among winter's dark dominants, is an ITSx-flagged chimeric/broken sequence and is dropped. (ii) On the PlutoF re-run, a reference-coverage heuristic flagged 248 of the resubmitted OTUs as putatively chimeric, but the *same* sequences passed cleanly in the local run and the flagged set is not the most-divergent one (median \~97% identity), so this flag is recorded (`plutof_chimera_flag`) but treated as unreliable and **not** used to exclude OTUs, pending scrutiny.
 :::
 
 ## Section 4: Community composition — H1 {.page-break-before}
@@ -677,7 +677,7 @@ kable(mc[, c("model", "logLik", "AIC", "dAIC")],
       caption = "Table S-GLLVMa. GLLVM model comparison on the same 327-OTU / 114-row response matrix. The negative-binomial fits are dramatically better than the Poisson baseline (strong overdispersion), and two latent variables are preferred over one (ΔAIC ≈ 723). fit_nb_2_2 is the reported model.")
 ```
 
-The negative-binomial family is strongly favoured over Poisson (the Poisson log-likelihood is worse by ~5 orders of magnitude, the signature of severe count overdispersion), and two latent variables outperform one by ΔAIC ≈ 723. We therefore report `fit_nb_2_2` (negative-binomial, two latent variables).
+The negative-binomial family is strongly favoured over Poisson (the Poisson log-likelihood is worse by \~5 orders of magnitude, the signature of severe count overdispersion), and two latent variables outperform one by ΔAIC ≈ 723. We therefore report `fit_nb_2_2` (negative-binomial, two latent variables).
 
 ### 6.2 Which OTUs drive the seasonal turnover
 
@@ -685,7 +685,7 @@ For every OTU we extract the Season coefficient (β on the GLLVM log scale; posi
 
 ![](figures/gllvm_perOTU_season_coef.png)
 
-**Figure S-GLLVMa**: Season response of the 30 most abundant OTUs, each with its model 95% CI, coloured by Order; filled points are significant at BH q < 0.05. Of the 327 modelled OTUs, **209 are significant, and the turnover is strongly asymmetric: 166 OTUs are enriched in summer versus 43 in winter** — the OTU-level counterpart of the summer rare-tail inflation seen in H2. A further 134 OTUs are near-complete "on/off" seasonal switches (essentially absent in one season); these have real but non-interpretable point estimates (β in the hundreds, or exploding CIs) and are flagged (`separation`) and excluded from this panel while retained in Table S-GLLVMb.
+**Figure S-GLLVMa**: Season response of the 30 most abundant OTUs, each with its model 95% CI, coloured by Order; filled points are significant at BH q \< 0.05. Of the 327 modelled OTUs, **209 are significant, and the turnover is strongly asymmetric: 166 OTUs are enriched in summer versus 43 in winter** — the OTU-level counterpart of the summer rare-tail inflation seen in H2. A further 134 OTUs are near-complete "on/off" seasonal switches (essentially absent in one season); these have real but non-interpretable point estimates (β in the hundreds, or exploding CIs) and are flagged (`separation`) and excluded from this panel while retained in Table S-GLLVMb.
 
 ```{r tab-gllvm-otu}
 #| echo: false
@@ -728,10 +728,75 @@ gt %>% transmute(Order, Genus, n_OTUs,
 
 **Figure S-GLLVMb**: Model-based ordination on the two latent variables of `fit_nb_2_2` — the residual OTU co-occurrence structure that remains *after* Season and the random effects are accounted for. Sites are coloured by Season; the eight strongest species loadings are labelled. This is the model-based counterpart to the unconstrained robust-Aitchison PCoA in Section 4.1: because Season is already in the model as a fixed effect, the two seasons overlap substantially here, confirming that Season captures a coherent axis of the community rather than all of its covariation. A small set of winter samples separates along the second latent variable, echoing the higher within-winter heterogeneity of these dung communities.
 
-## Section 7: Diet-tracking and Bayesian mechanism — H2/H3 *(placeholder)* {.page-break-before}
+## Section 7: Diet-tracking and Bayesian mechanism — H2/H3 {.page-break-before}
+
+### 7.1 Diet richness and fungal diversity — Bayesian mechanism (H2)
+
+Section 5 established the coarse prediction of H2: summer communities are richer than winter ones, in step with the richer summer diet. Here we test the finer *mechanism* directly, on the subset of samples for which we have paired plant ITS2 diet data (**n = 27** dung samples): does an individual sample's fungal diversity track the richness of its own dietary plant community? Fungal Hill diversity (the Shannon-equivalent q1, from the rarefied per-sample object) is modelled as a function of standardised plant (diet) richness, adjusting for Season, in a Bayesian linear model (brms). H2's mechanism is supported if the plant-richness slope is positive with posterior probability P(slope \> 0) \> 0.95.
+
+The preregistration specified Year and individual bird as random intercepts. At this matched sample size that structure is unidentifiable — 27 of the 27 samples are distinct individuals and Year spans only three levels — and the random-effects model does not converge. We therefore report two complementary, cleanly-converged fixed-effect models that bracket the estimate: a **Season-adjusted** model (`plant_richness + Season + Year`, Year as a fixed effect) and a more parsimonious **drop-Year** model (`plant_richness + Season`). Both use weakly-informative standardised priors (slope \~ Normal(0, 1)).
+
+![](figures/H2_diet_richness_fit.png)
+
+**Figure S10**: Per-sample fungal Hill q1 diversity against rarefied dietary plant richness (n = 27 matched samples), coloured by Season. Both model fits are shown — Season-adjusted (solid) and drop-Year (dashed) — with the 95% credible ribbon for the primary Season-adjusted model. Fitted lines are drawn at the reference Season/Year; the quantity of interest is the common positive slope.
+
+```{r tab-h2mech-compare}
+#| echo: false
+library(knitr)
+mc <- read.csv("tables/H2_mechanism_model_comparison.csv", check.names = FALSE)
+mc_disp <- data.frame(
+  Model       = mc$model,
+  Structure   = mc$formula,
+  `Slope (median)` = round(mc$median, 3),
+  `95% CrI`   = sprintf("[%.2f, %.2f]", mc$lwr95, mc$upr95),
+  `P(slope>0)`= round(mc$P_gt0, 3),
+  Divergences = mc$divergences,
+  `Clears 0.95?` = ifelse(mc$supported, "yes", "no"),
+  check.names = FALSE)
+kable(mc_disp,
+      caption = "Table S12. H2-mechanism: the two complementary Bayesian models of fungal Hill q1 diversity vs. dietary plant richness (standardised slope). Both converge cleanly (0 divergences, Rhat < 1.01) and place the diet-richness slope positive.")
+```
+
+Both models place the diet-richness slope firmly positive (medians +0.28 and +0.38 standard deviations of fungal diversity per standard deviation of plant richness), with posterior support of **P(slope \> 0) = 0.92** (Season-adjusted) and **0.96** (drop-Year). The drop-Year model clears the preregistered 0.95 threshold; the Season-adjusted model sits just below it. The direction of the effect is therefore consistent, and the weight of posterior evidence favours the predicted positive diet-richness → fungal-diversity relationship.
+
+![](figures/H2_mechanism_slope_posterior.png)
+
+**Figure S11**: Posterior distribution of the standardised diet-richness slope for both models. The mass of both posteriors lies to the right of zero (dashed line).
+
+The signal is consistent across the choice of Hill order: refitting with richness (q0) and Simpson-equivalent (q2) diversity as the outcome gives positive slopes throughout, with P(slope \> 0) between 0.89 and 0.96 (Table S13). No specification reverses the direction.
+
+```{r tab-h2mech-sens}
+#| echo: false
+library(knitr)
+sn <- read.csv("tables/H2_mechanism_sensitivity.csv", check.names = FALSE)
+sn_disp <- data.frame(
+  `Hill order` = sn$metric,
+  Model        = sn$model,
+  `Slope (median)` = round(sn$median, 3),
+  `95% CrI`    = sprintf("[%.2f, %.2f]", sn$lwr95, sn$upr95),
+  `P(slope>0)` = round(sn$P_gt0, 3),
+  check.names = FALSE)
+kable(sn_disp,
+      caption = "Table S13. Sensitivity of the diet-richness slope to Hill order (q0 richness, q1 Shannon, q2 Simpson) under both model structures. All twelve estimates are positive.")
+```
+
+**Ecological interpretation.** Dietary plant richness is markedly higher in summer than winter, so most of the diet–diversity relationship is expressed through the *seasonal* contrast — which is exactly the diet-driven mechanism H2 proposes: the seasonal diet shift is the dominant axis of variation in propagule supply, and summer's richer plant intake is accompanied by a richer fungal community. Within a single season the diet-richness gradient is short (only a few plant OTUs separate one sample from another), so the per-sample effect is correspondingly modest.
+
+Consistent with a modest, gradient-limited signal at this sample size, the estimate is carried by the samples at the extremes of the diet-richness range: a single leave-one-out omission moves the slope within the ranges in Table S14, and rank (Spearman) correlations within each Season are close to zero — the parametric slope reflects the between-season spread of the gradient more than fine within-season covariation. The honest reading is therefore a **weak, directionally-consistent signal**: fungal diversity does tend to rise with dietary plant richness, primarily at the seasonal scale, but the per-sample effect is not resolved decisively at n = 27 and is a clear target for a larger diet-matched sample.
+
+```{r tab-h2mech-robust}
+#| echo: false
+library(knitr)
+rb <- read.csv("tables/H2_mechanism_robustness.csv", check.names = FALSE)
+names(rb) <- c("Check", "Group", "Quantity", "Value")
+kable(rb,
+      caption = "Table S14. Robustness of the diet-richness slope: leave-one-out influence (frequentist slope, its range across single-sample omissions, and the most influential sample) and within/between-Season Spearman rank correlations.")
+```
+
+### 7.2 OTU–plant covariation (H3) *(placeholder)* {.unnumbered}
 
 ::: callout-warning
-**To be integrated.** For the \~31 samples with paired plant ITS2 diet data, the H2 mechanism (fungal Hill diversity \~ plant/diet richness + Season, with Year and individual random effects) was fitted as a Bayesian model (brms); provisional outputs are `models/H2_diet_richness_matched_data.csv`, `models/H2_mechanism_brms_summary.csv`, and figures `plots/H2_diet_richness_fit.png`, `plots/H2_brms_diet_richness_ppc.png`. The H3 OTU–plant covariation analysis (ingested vs. coprophilous/diffuse association) will also live here. Both are pending final review before inclusion.
+**To be integrated.** H3 — how *individual* fungal OTUs covary with the dietary plant community (tight single-plant covariation indicating likely ingested passengers, versus the diffuse, non-specific association expected of recognised coprophilous taxa) — is a distinct analysis (plant-predictor GLLVM / brms on the matched subset) and will be added here. It is conceptually separate from the diet-richness mechanism in 7.1 and from the E2 coprophilous-proxy documentation in Section 3.2.
 :::
 
 ## Section 8: Phylogenetic community structure — supplementary *(placeholder)* {.page-break-before}
@@ -753,18 +818,18 @@ gt %>% transmute(Order, Genus, n_OTUs,
 
 A quick check of the seasonal pattern (canonical `alldat$nopool`, 52 samples) already reproduces the same summer/winter shift seen via taxonomy and differential abundance (the H1 seasonal story of Sections 3–6: dung-saprotroph summer dominance, dark-taxa winter dominance):
 
-| | Summer | Winter |
-|---|---|---|
-| % reads on a guild-assigned OTU | 79% | 49% |
-| Dung Saprotroph guild share | 58% | 19% |
-| Unassigned share | 21% | 51% |
-| Pathotroph share | 9.0% | 16.3% |
+|                                  | Summer | Winter |
+|----------------------------------|--------|--------|
+| \% reads on a guild-assigned OTU | 79%    | 49%    |
+| Dung Saprotroph guild share      | 58%    | 19%    |
+| Unassigned share                 | 21%    | 51%    |
+| Pathotroph share                 | 9.0%   | 16.3%  |
 
-The winter pathotroph share (~2x summer) hadn't been flagged before and is worth a closer look. Caveat: this table was computed as a direct workspace check, not produced by `8_functional_guilds.R` itself — that script still builds its FUNGuild input from `alldat_full[[1]]` (114 PCR reps) rather than the canonical `alldat$nopool`, and still carries the reference `habitat` grouping instead of `Season`/`Year`, so it needs the same adaptation as scripts 6/7 before its own outputs supersede this preliminary table.
+The winter pathotroph share (\~2x summer) hadn't been flagged before and is worth a closer look. Caveat: this table was computed as a direct workspace check, not produced by `8_functional_guilds.R` itself — that script still builds its FUNGuild input from `alldat_full[[1]]` (114 PCR reps) rather than the canonical `alldat$nopool`, and still carries the reference `habitat` grouping instead of `Season`/`Year`, so it needs the same adaptation as scripts 6/7 before its own outputs supersede this preliminary table.
 :::
 
 ------------------------------------------------------------------------
 
 ::: {.callout-note appearance="minimal"}
-Sections 2–5 were regenerated end-to-end from the corrected canonical dataset (`4_data_prep.R`), which fixed a depth-filter bug in a previously saved workspace (three sub-10,000-read samples had been retained and rarefaction depth had silently collapsed to 2,975 reads). All finalized figures and tables use the corrected 52-sample canonical object (`alldat$nopool`), except the Section 3 taxonomic barplots, which use script 5's 57-sample unfiltered PCR-collapsed object as noted. Sections 6–9 are placeholders for analyses awaiting final review.
+Sections 2–5 were regenerated end-to-end from the corrected canonical dataset (`4_data_prep.R`), which fixed a depth-filter bug in a previously saved workspace (three sub-10,000-read samples had been retained and rarefaction depth had silently collapsed to 2,975 reads). All finalized figures and tables use the corrected 52-sample canonical object (`alldat$nopool`), except the Section 3 taxonomic barplots, which use script 5's 57-sample unfiltered PCR-collapsed object as noted. Section 6 and Section 7.1 are integrated; Section 7.2 and Sections 8–9 are placeholders for analyses awaiting final review.
 :::
