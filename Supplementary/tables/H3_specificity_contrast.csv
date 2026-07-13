@@ -1,0 +1,3 @@
+"grouping","n_coprophilous","n_plant_assoc","copro_spec_med","plant_spec_med","wilcox_p_copro_lower","prop_diff_med","prop_diff_lwr95","prop_diff_upr95","P_copro_lower"
+"FUNGuild (primary)",6,12,0.353,0.264,0.855,0,-0.039,0.048,0.503
+"COPRO_GENERA genus list (sensitivity)",3,12,0.494,0.264,1,-0.001,-0.053,0.07,0.518
