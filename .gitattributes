@@ -1,0 +1,28 @@
+# Normalize line endings so the repo has one canonical representation (LF)
+# regardless of whether a file was last edited on the Linux server or in
+# RStudio/VS Code on Windows (via the X:\ SSHFS mount or the PC D clone).
+#
+# `text=auto` lets git auto-detect text vs binary; `eol=lf` forces LF both in
+# the stored blob and on checkout, on every platform, overriding whatever
+# core.autocrlf a given client (Windows Git/GitHub Desktop included) has set.
+# This means: even if an editor writes CRLF back to disk, git normalizes it
+# away on add/commit/diff/status, so line-ending-only "changes" never show up
+# and files always check out as LF everywhere.
+* text=auto eol=lf
+
+*.R    text eol=lf
+*.r    text eol=lf
+*.qmd  text eol=lf
+*.md   text eol=lf
+*.sh   text eol=lf
+*.csv  text eol=lf
+
+# Explicit binary overrides (belt-and-suspenders on top of the text=auto
+# heuristic) -- never line-ending-normalize these, and future-proofed for
+# types not currently tracked but likely to be added (models, figures).
+*.png    binary
+*.xlsx   binary
+*.pdf    binary
+*.rds    binary
+*.RData  binary
+*.zip    binary

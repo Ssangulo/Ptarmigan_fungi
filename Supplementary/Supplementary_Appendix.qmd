@@ -61,7 +61,7 @@ All figures (PNG) and result tables (CSV) are stored within the project reposito
 ::: callout-note
 ## Status of this appendix
 
-The analyses in **Sections 2–5** are finalized: they were regenerated end-to-end from the corrected canonical dataset and independently checked. **Section 6** (GLLVM, OTU-resolved H1) is integrated, with one flagged caveat — its fitted models predate the depth-filter correction (see the callout there). **Section 7.1** (the Bayesian diet-richness mechanism for H2) is integrated. **Section 7.2** (H3 OTU–plant covariation) and **Sections 8–9** (phylogenetic community structure, functional guilds) remain placeholders for analyses that are computed but not yet finalized for the manuscript; each is flagged as such and will be integrated after review.
+The analyses in **Sections 2–5** are finalized: they were regenerated end-to-end from the corrected canonical dataset and independently checked. **Section 6** (GLLVM, OTU-resolved H1) is integrated, with one flagged caveat — its fitted models predate the depth-filter correction (see the callout there). **Sections 7.1** (the Bayesian diet-richness mechanism for H2) and **7.2** (H3 OTU–plant covariation) are integrated. **Sections 8–9** (phylogenetic community structure, functional guilds) remain placeholders for analyses that are computed but not yet finalized for the manuscript; each is flagged as such and will be integrated after review.
 :::
 
 **Data availability.**
@@ -728,11 +728,11 @@ gt %>% transmute(Order, Genus, n_OTUs,
 
 **Figure S-GLLVMb**: Model-based ordination on the two latent variables of `fit_nb_2_2` — the residual OTU co-occurrence structure that remains *after* Season and the random effects are accounted for. Sites are coloured by Season; the eight strongest species loadings are labelled. This is the model-based counterpart to the unconstrained robust-Aitchison PCoA in Section 4.1: because Season is already in the model as a fixed effect, the two seasons overlap substantially here, confirming that Season captures a coherent axis of the community rather than all of its covariation. A small set of winter samples separates along the second latent variable, echoing the higher within-winter heterogeneity of these dung communities.
 
-## Section 7: Diet-tracking and Bayesian mechanism — H2/H3 {.page-break-before}
+## Section 7: Diet-tracking and Bayesian models — H2 and H3 {.page-break-before}
 
 ### 7.1 Diet richness and fungal diversity — Bayesian mechanism (H2)
 
-Section 5 established the coarse prediction of H2: summer communities are richer than winter ones, in step with the richer summer diet. Here we test the finer *mechanism* directly, on the subset of samples for which we have paired plant ITS2 diet data (**n = 27** dung samples): does an individual sample's fungal diversity track the richness of its own dietary plant community? Fungal Hill diversity (the Shannon-equivalent q1, from the rarefied per-sample object) is modelled as a function of standardised plant (diet) richness, adjusting for Season, in a Bayesian linear model (brms). H2's mechanism is supported if the plant-richness slope is positive with posterior probability P(slope \> 0) \> 0.95.
+Section 5 established the coarse prediction of H2: summer communities are richer than winter ones, in step with the richer summer diet. Here we test the finer mechanism directly, on the subset of samples for which we have paired plant ITS2 diet data (**n = 27** dung samples): does an individual sample's fungal diversity track the richness of its own dietary plant community? Fungal Hill diversity (the Shannon-equivalent q1, from the rarefied per-sample object) is modelled as a function of standardised plant (diet) richness, adjusting for Season, in a Bayesian linear model (brms). H2's mechanism is supported if the plant-richness slope is positive with posterior probability P(slope \> 0) \> 0.95.
 
 The preregistration specified Year and individual bird as random intercepts. At this matched sample size that structure is unidentifiable — 27 of the 27 samples are distinct individuals and Year spans only three levels — and the random-effects model does not converge. We therefore report two complementary, cleanly-converged fixed-effect models that bracket the estimate: a **Season-adjusted** model (`plant_richness + Season + Year`, Year as a fixed effect) and a more parsimonious **drop-Year** model (`plant_richness + Season`). Both use weakly-informative standardised priors (slope \~ Normal(0, 1)).
 
@@ -793,11 +793,128 @@ kable(rb,
       caption = "Table S14. Robustness of the diet-richness slope: leave-one-out influence (frequentist slope, its range across single-sample omissions, and the most influential sample) and within/between-Season Spearman rank correlations.")
 ```
 
-### 7.2 OTU–plant covariation (H3) *(placeholder)* {.unnumbered}
+### 7.2 OTU–plant covariation (H3)
 
-::: callout-warning
-**To be integrated.** H3 — how *individual* fungal OTUs covary with the dietary plant community (tight single-plant covariation indicating likely ingested passengers, versus the diffuse, non-specific association expected of recognised coprophilous taxa) — is a distinct analysis (plant-predictor GLLVM / brms on the matched subset) and will be added here. It is conceptually separate from the diet-richness mechanism in 7.1 and from the E2 coprophilous-proxy documentation in Section 3.2.
-:::
+Section 7.1 asked whether *overall* fungal diversity tracks *overall* diet richness. H3 is finer-grained and taxon-resolved: does each fungal OTU covary with *particular* diet-plant taxa, and — the preregistered contrast — do recognised coprophilous taxa show the *diffuse*, non-specific plant associations expected of dung specialists dispersed independently of any host plant, while other taxa may show the *tight, single-plant* covariation that would flag a likely ingested phyllosphere/endophyte passenger? Inference is strictly forward-directional: a tight single-plant association is read as evidence of a likely ingested passenger; a diffuse or absent association is *not* read as evidence of gut/dung residency.
+
+**Model.** We fit a single hierarchical joint negative-binomial model (brms) to the diet-matched subset. To retain as many matched samples as possible we use the PCR-replicate-level, minimally depth-filtered object (mirroring the GLLVM of Section 6) rather than the collapsed, 10,000-read-filtered object of Sections 4–5; this recovers three additional low-depth winter dung samples that carry paired plant data, raising the matched subset to **n = 30 biological samples (60 PCR-replicate libraries; 19 winter, 11 summer)**. Each fungal OTU count is modelled with a per-replicate log-library-size offset (so shallow libraries are accommodated, not discarded), the six dominant diet-plant genera (rCLR-transformed, standardised) as predictors, Season and Year as population-level covariates, per-OTU varying intercepts and plant slopes (the partial-pooling "joint model"), and a per-OTU biological-sample random effect so the two PCR replicates of a sample are treated as replication rather than independent samples. This substitutes a sample random effect for the preregistered "individual" one (unidentifiable here — nearly every sample is a distinct bird), for the same reason as Section 7.1. Forty-six OTUs present in ≥5 of the 30 samples are modelled. For each OTU we summarise the *specificity* of its plant coefficients with a Herfindahl–Hirschman index (HHI) of the \|plant slopes\| — ≈1/6 = 0.17 if covariation is spread evenly across all six genera, up to 1 if concentrated on a single plant — and flag a *resolved single-plant association* when the 90% credible interval of the OTU's strongest plant slope excludes zero. The preregistered contrast compares specificity between FUNGuild-flagged coprophilous OTUs and plant-associated (endophyte/phyllosphere/plant-saprotroph) OTUs. The model converged cleanly (maximum R̂ = 1.004, no divergent transitions).
+
+![](figures/H3_perOTU_plant_coef.png)
+
+**Figure S12**: Posterior-median covariation of each modelled fungal OTU (rows, ordered by specificity and grouped by FUNGuild guild class) with each dominant diet-plant genus (columns), on the log (negative-binomial) scale; red = positive, blue = negative. The three recognised coprophilous taxa (*Thelebolus*, *Coniochaeta*, *Sporormiella*) covary *positively* and strongly with *Vaccinium*, whereas most other OTUs covary negatively with it.
+
+```{r tab-h3-spec}
+#| echo: false
+library(knitr)
+si <- read.csv("tables/H3_specificity_index.csv", check.names = FALSE)
+si_disp <- head(si, 12)
+kable(data.frame(
+  OTU            = si_disp$OTU_ID,
+  Genus          = ifelse(is.na(si_disp$Genus), "—", si_disp$Genus),
+  `Prev. (/30)`  = si_disp$prevalence,
+  Specificity    = round(si_disp$specificity_HHI, 2),
+  `Top plant`    = si_disp$dominant_plant,
+  `Top slope [90% CrI]` = sprintf("%.2f [%.2f, %.2f]", si_disp$dom_slope_med,
+                                  si_disp$dom_slope_lwr90, si_disp$dom_slope_upr90),
+  Resolved       = ifelse(si_disp$resolved_single_plant, "yes", "—"),
+  Guild          = si_disp$guild_group,
+  check.names = FALSE),
+  caption = "Table S15. The twelve most plant-specific fungal OTUs (of 46 modelled), ranked by the Herfindahl specificity of their plant coefficients. Only OTU1 (Thelebolus) reaches a resolved single-plant association (its Vaccinium slope's 90% CrI excludes zero). Diffuse baseline (six genera) = 0.17.")
+```
+
+**Result.** For almost every OTU the plant covariation is too weak to resolve at this sample size: of the 46 OTUs, **only one — OTU1 (*Thelebolus*) — shows a resolved single-plant association** (a strong positive *Vaccinium* slope, median +2.30 on the log scale, 90% CrI \[0.18, 4.62\]). This single tight association runs *opposite* to the preregistered expectation: *Thelebolus* is a recognised coprophilous dung specialist, not a phyllosphere/endophyte passenger. More generally, the three coprophilous taxa are the *most* plant-concentrated OTUs in the dataset, not the least (Figure S13): the coprophilous group has a **higher** median specificity than the plant-associated group (0.38 vs 0.30) — the reverse of the predicted "coprophilous = more diffuse" pattern. The contrast is not supported in either direction under uncertainty: a one-sided Wilcoxon test of the preregistered direction gives p = 0.72, and propagating the full posterior, P(coprophilous more diffuse) = 0.36. The genus-list sensitivity grouping (coprophilous = *Thelebolus*/*Sporormiella*/*Coniochaeta*) tells the same story (0.51 vs 0.30).
+
+![](figures/H3_specificity_contrast.png)
+
+**Figure S13**: Per-OTU plant-association specificity (Herfindahl index) by FUNGuild guild class. Contrary to the preregistered prediction, coprophilous OTUs are if anything *more* plant-concentrated than plant-associated ones. Dashed line = maximally-diffuse baseline (1/6).
+
+```{r tab-h3-contrast}
+#| echo: false
+library(knitr)
+ct <- read.csv("tables/H3_specificity_contrast.csv", check.names = FALSE)
+kable(data.frame(
+  Grouping                    = ct$grouping,
+  `n copro`                   = ct$n_coprophilous,
+  `n plant-assoc`             = ct$n_plant_assoc,
+  `Copro HHI`                 = round(ct$copro_spec_med, 2),
+  `Plant-assoc HHI`           = round(ct$plant_spec_med, 2),
+  `Wilcoxon p (copro<plant)`  = round(ct$wilcox_p_copro_lower, 2),
+  `P(copro more diffuse)`     = round(ct$P_copro_lower, 2),
+  check.names = FALSE),
+  caption = "Table S16. Preregistered coprophilous-vs-plant-associated specificity contrast (FUNGuild primary grouping; COPRO_GENERA genus list as sensitivity). Neither grouping supports the predicted 'coprophilous more diffuse' direction. The full per-OTU × plant coefficient table is provided as tables/H3_perOTU_plant_coef.csv (Table S17).")
+```
+
+**Interpretation.** H3, as preregistered, is **not supported**: taxonomically recognised coprophilous taxa do *not* show more diffuse plant associations than other taxa — if anything the reverse. The single interpretable plant signal is a *Vaccinium*–*Thelebolus* covariation, and its ecology is the opposite of the "ingested passenger" reading H3 was built to detect: *Thelebolus* is a dung specialist, and *Vaccinium* (with *Empetrum*) is the winter browse of ptarmigan at this site. Because Season is already a covariate this is a within-season-adjusted association, but the residual gradient is short; the most parsimonious reading is that the winter-browse plants and the persistent dung-fungal core co-vary as parallel seasonal signatures of the same samples, not that *Thelebolus* is carried into the gut on *Vaccinium* tissue. This dovetails with Section 6, where *Thelebolus* (OTU1) was the one coprophile *without* a clean seasonal differential-abundance signal, and with the E2 documentation in Section 3.2.
+
+**Limitation.** Even at n = 30 the diet is dominated by a few plant genera (*Betula* near-ubiquitous, then *Vaccinium*/*Empetrum*), so specificity can be assessed over only \~6 genera and the coprophilous group is small (6 OTUs). We therefore report H3 as a directional, exploratory result rather than a decisive test — and, consistent with the forward-directional inference rule, the absence of tight single-plant passenger signatures is **not** evidence that the dung mycobiome is gut-resident. A larger, more diet-even matched sample is the necessary next step.
+
+### 7.3 OTU–plant covariation — GLLVM cross-check (H3)
+
+To check that the H3 verdict of Section 7.2 is not an artefact of one modelling framework, we repeat the analysis with a generalised linear latent-variable model (GLLVM) — the same model-based framework used for the OTU-resolved H1 in Section 6, now with the diet-plant predictors added. Everything about the data is held identical to the Bayesian model: the same PCR-replicate-level matched subset (**n = 30 biological samples, 60 libraries; 46 OTUs present in ≥5 samples**), the same six standardised diet-plant genera (rCLR-transformed), the same per-library log-size offset, and the same specificity index and preregistered coprophilous-vs-plant-associated contrast. Only the estimator differs, which is the point: agreement across two very different fitting machineries is stronger evidence than either alone.
+
+**Model.** Each OTU's counts are modelled with a negative-binomial GLLVM (`gllvm`), with Season and Year as community covariates, a per-OTU (species-specific) *fixed* slope for each plant genus, a biological-sample random row effect (so the two PCR replicates of a sample count as replication, not independent samples), and the log-library-size offset. We fit 0, 1 and 2 residual latent variables and select by AIC; here **num.lv = 0** is preferred — beyond the sample random effect the latent variables capture no further residual co-occurrence (so, unlike Section 6, there is no residual ordination to show). One difference from the Bayesian model is forced by the software: the natural partial-pooling analog (`gllvm`'s `randomX` species-specific *random* slopes) is silently dropped on this dataset, returning no plant-slope parameters at all. We therefore estimate the plant slopes as *fixed* per-OTU coefficients with Wald standard errors — an **unpooled** frequentist estimate that brackets the Bayesian *pooled* one from the other side. Rare on/off OTUs push their fixed coefficients toward ±∞ (near-separation); as in Section 6 these are flagged (16 of 46 OTUs) and excluded from the specificity ranking, contrast and plots, leaving **30 well-estimated OTUs**. Specificity is the same Herfindahl index of the \|plant slopes\|; a *resolved single-plant association* here means the 90 % Wald interval of an OTU's strongest plant slope excludes zero.
+
+```{r tab-h3g-aic}
+#| echo: false
+library(knitr)
+mc <- read.csv("tables/gllvm_H3_model_comparison.csv", check.names = FALSE)
+kable(data.frame(
+  Model    = mc$model,
+  `num.lv` = mc$num_lv,
+  Plants   = ifelse(mc$plants, "yes", "no"),
+  logLik   = round(mc$logLik, 1),
+  AIC      = round(mc$AIC, 1),
+  dAIC     = round(mc$dAIC, 1),
+  check.names = FALSE),
+  caption = "Table S18. GLLVM H3 model comparison (AIC). Latent variables add nothing beyond the sample random effect (num.lv = 0 preferred among the plant models), and — notably — the null model with no plant predictors is itself AIC-preferred over the plant models (dAIC ≈ 117): the per-OTU plant slopes do not improve fit enough to justify their parameters, an independent echo of the 'too weak to resolve' result of Section 7.2.")
+```
+
+![](figures/gllvm_H3_perOTU_plant_coef.png)
+
+**Figure S14**: Per-OTU fixed plant slopes (GLLVM, log scale; red = positive, blue = negative) for the 30 well-estimated OTUs, rows ordered by specificity and grouped by FUNGuild guild class — the frequentist counterpart of Figure S12. As in the Bayesian model, the coprophilous taxa covary *positively* with *Vaccinium* rather than diffusely.
+
+```{r tab-h3g-spec}
+#| echo: false
+suppressMessages(library(dplyr)); library(knitr)
+si <- read.csv("tables/gllvm_H3_specificity_index.csv", check.names = FALSE)
+si_disp <- si %>% filter(!separation) %>% head(12)
+kable(data.frame(
+  OTU            = si_disp$OTU_ID,
+  Genus          = ifelse(is.na(si_disp$Genus), "—", si_disp$Genus),
+  `Prev. (/30)`  = si_disp$prevalence,
+  Specificity    = round(si_disp$specificity_HHI, 2),
+  `Top plant`    = si_disp$dominant_plant,
+  `Top slope [90% CI]` = sprintf("%.2f [%.2f, %.2f]", si_disp$dom_slope_med,
+                                 si_disp$dom_slope_lwr90, si_disp$dom_slope_upr90),
+  Resolved       = ifelse(si_disp$resolved_single_plant, "yes", "—"),
+  Guild          = si_disp$guild_group,
+  check.names = FALSE),
+  caption = "Table S19. The twelve most plant-specific well-estimated OTUs under the GLLVM, ranked by Herfindahl specificity. Without the Bayesian model's shrinkage the unpooled Wald intervals resolve many more single-plant slopes; the strongest resolved coprophilous signal is Sporormiella (OTU636) with Vaccinium. Diffuse baseline (six genera) = 0.17.")
+```
+
+**Result.** The GLLVM reaches the **same verdict as the Bayesian model — H3 is not supported** — and does so through instructively different intermediate numbers. Because the fixed-slope estimator applies no shrinkage, its Wald intervals resolve **15 of the 30** well-estimated OTUs to a single-plant association (versus 1 of 46 under the pooled Bayesian model). But those resolved associations are spread across guilds rather than concentrated in the non-coprophilous taxa H3 predicts, so they do *not* produce the specificity difference the hypothesis requires. On the preregistered contrast the coprophilous group is **not** resolvably more diffuse than the plant-associated group: median specificity 0.21 (coprophilous) vs 0.24 (plant-associated), one-sided Wilcoxon p = 0.42, and propagating the Wald uncertainty P(coprophilous more diffuse) = 0.64 — straddling the no-difference value of 0.5. The genus-list sensitivity grouping runs the other way (0.25 vs 0.24, p = 0.81). And, as above, AIC prefers the plant-free null model outright. The strongest resolved coprophilous signal is again a *positive Vaccinium* slope — here *Sporormiella* (OTU636, +12.3, 90 % CI \[6.7, 17.8\]), the *Sporormiella* counterpart of the Bayesian model's *Vaccinium*–*Thelebolus* signal — the opposite of the diffuse, passenger-free pattern H3 expects of a dung specialist.
+
+![](figures/gllvm_H3_specificity_contrast.png)
+
+**Figure S15**: Per-OTU GLLVM specificity by FUNGuild guild class (frequentist counterpart of Figure S13). Coprophilous OTUs are not resolvably more diffuse than plant-associated ones. Dashed line = maximally-diffuse baseline (1/6).
+
+```{r tab-h3g-contrast}
+#| echo: false
+library(knitr)
+ct <- read.csv("tables/gllvm_H3_specificity_contrast.csv", check.names = FALSE)
+kable(data.frame(
+  Grouping                    = ct$grouping,
+  `n copro`                   = ct$n_coprophilous,
+  `n plant-assoc`             = ct$n_plant_assoc,
+  `Copro HHI`                 = round(ct$copro_spec_med, 2),
+  `Plant-assoc HHI`           = round(ct$plant_spec_med, 2),
+  `Wilcoxon p (copro<plant)`  = round(ct$wilcox_p_copro_lower, 2),
+  `P(copro more diffuse)`     = round(ct$P_copro_lower, 2),
+  check.names = FALSE),
+  caption = "Table S20. GLLVM coprophilous-vs-plant-associated specificity contrast (FUNGuild primary; COPRO_GENERA genus list as sensitivity), the frequentist counterpart of Table S16. Neither grouping supports the predicted 'coprophilous more diffuse' direction. The full per-OTU × plant coefficient table (with Wald z, p and BH-q) is provided as tables/gllvm_H3_perOTU_plant_coef.csv.")
+```
+
+**Interpretation.** Two independent frameworks — a partial-pooling Bayesian joint model and an unpooled frequentist GLLVM — give the same answer: recognised coprophilous taxa are **not** more diffuse in their plant associations than other taxa, so H3 as preregistered is not supported, and the one robust piece of ecology (a positive coprophile–*Vaccinium* covariation, *Thelebolus* under one model, *Sporormiella* under the other) is the reverse of the ingested-passenger signature the test was built to detect. The two models disagree only on how many single-plant slopes count as "resolved," and that gap is exactly the expected footprint of shrinkage — the pooled model is conservative, the unpooled one liberal — not an ecological disagreement. Consistent with the forward-directional inference rule, neither the sparse Bayesian resolutions nor the plentiful GLLVM ones are read as evidence about gut residency; the honest reading remains that these winter-browse plants and the persistent dung-fungal core co-vary as parallel seasonal signatures, and that a larger, more diet-even matched sample is needed to test single-taxon passenger transport directly.
 
 ## Section 8: Phylogenetic community structure — supplementary *(placeholder)* {.page-break-before}
 
@@ -831,5 +948,5 @@ The winter pathotroph share (\~2x summer) hadn't been flagged before and is wort
 ------------------------------------------------------------------------
 
 ::: {.callout-note appearance="minimal"}
-Sections 2–5 were regenerated end-to-end from the corrected canonical dataset (`4_data_prep.R`), which fixed a depth-filter bug in a previously saved workspace (three sub-10,000-read samples had been retained and rarefaction depth had silently collapsed to 2,975 reads). All finalized figures and tables use the corrected 52-sample canonical object (`alldat$nopool`), except the Section 3 taxonomic barplots, which use script 5's 57-sample unfiltered PCR-collapsed object as noted. Section 6 and Section 7.1 are integrated; Section 7.2 and Sections 8–9 are placeholders for analyses awaiting final review.
+Sections 2–5 were regenerated end-to-end from the corrected canonical dataset (`4_data_prep.R`), which fixed a depth-filter bug in a previously saved workspace (three sub-10,000-read samples had been retained and rarefaction depth had silently collapsed to 2,975 reads). All finalized figures and tables use the corrected 52-sample canonical object (`alldat$nopool`), except the Section 3 taxonomic barplots, which use script 5's 57-sample unfiltered PCR-collapsed object as noted. Section 6 and Sections 7.1–7.2 are integrated; Sections 8–9 are placeholders for analyses awaiting final review.
 :::

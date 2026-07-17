@@ -7,7 +7,7 @@
 #   2. Run FUNGuild CLI (bash, Python 3.8)  →  *.guilds.txt
 #   3. Import assignments back into R and summarise by guild × habitat
 #
-# FUNGuild result: 4392 OTUs in, 1898 assigned (43.2% assignment rate)
+# FUNGuild result: 1144 OTUs in, 700 assigned (61.2% assignment rate)
 # Reference: Nguyen et al. 2016 Methods Ecol & Evol
 #
 # Requires: ps object (alldat.N[[2]]) from 4_data_prep.R / eco_analysis.RData
@@ -17,8 +17,9 @@ library(phyloseq)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(fungaltraits)
 
-load("eco_analysis.RData")
+loaded_objs <- load("eco_analysis.RData")
 
 # =============================================================================
 # BASH SETUP (run once outside R)
@@ -33,7 +34,7 @@ load("eco_analysis.RData")
 # SECTION 1 — PREPARE OTU + TAXONOMY TABLE FOR FUNGUILD
 # =============================================================================
 
-ps <- alldat.N[[2]]
+ps <- alldat_full[[1]]
 
 # ---- Extract OTU matrix (taxa x samples) ------------------------------------
 otu_mat <- as(otu_table(ps), "matrix")
@@ -96,7 +97,7 @@ print(head(tax_table_data$taxonomy_string, 5))
 # ---- Write FUNGuild input file -----------------------------------------------
 otu_tax_table <- cbind(otu_table_data, taxonomy=tax_table_data$taxonomy_string)
 
-out_file <- "funguild_input_nosoilcontrols.txt"
+out_file <- "funguild_input.txt"
 write.table(otu_tax_table, file=out_file, sep="\t", quote=FALSE, col.names=NA)
 cat("Wrote:", out_file, "\n")
 cat("First 2 lines:\n"); print(readLines(out_file, n=2))
@@ -114,21 +115,20 @@ print(table(
 # conda activate funguild
 # cd FUNGuild/
 # python Guilds_v1.1.py \
-#   -otu /data/lastexpansion/danieang/data/trimmed/mergedPlates/funguild_input_nosoilcontrols.txt \
+#   -otu /home/daniel/Ptarmigan/trimmed/mergedPlates/funguild_input.txt \
 #   -db fungi
 #
 # Result: .guilds.txt written to same directory as input
-# 4392 OTUs in input
-# 3260 matching taxonomy records found in FUNGuild DB
-# 1898 OTUs assigned guilds  →  43.2% assignment rate
-# Total run time: ~30 s
+# 1144 OTUs in input
+# 1086 matching taxonomy records found in FUNGuild DB
+# 700 OTUs assigned guilds  →  61.2% assignment rate
 
 # =============================================================================
 # SECTION 2 — IMPORT AND CLEAN FUNGUILD RESULTS
 # =============================================================================
 
 funguild_data <- read.table(
-  "/data/lastexpansion/danieang/data/trimmed/mergedPlates/funguild_input_nosoilcontrols.guilds.txt",
+  "/home/daniel/Ptarmigan/trimmed/mergedPlates/funguild_input.guilds.txt",
   header=TRUE, sep="\t", stringsAsFactors=FALSE, check.names=FALSE
 )
 names(funguild_data) <- gsub(" ", "_", names(funguild_data))
@@ -163,6 +163,109 @@ fg_long %>%
   group_by(SampleID) %>%
   summarise(total_assigned_abundance=sum(Abundance)) %>%
   summary()
+
+# =============================================================================
+# SECTION 2b — PER-OTU GUILD LOOKUP TABLE (for future analyses)
+# =============================================================================
+# OTU-level table (one row per guild-assigned OTU), independent of any one
+# phyloseq object's sample set — join onto tax_table()/OTU IDs of alldat,
+# alldat_full, etc. by OTU_ID as needed downstream.
+
+funguild_otu <- fg_assigned %>%
+  transmute(
+    OTU_ID             = OTU_ID,
+    taxonomy_string    = taxonomy,
+    Taxon              = Taxon,
+    Taxon_Level        = Taxon_Level,
+    Trophic_Mode       = Trophic_Mode,
+    Guild              = Guild,
+    Growth_Morphology  = Growth_Morphology,
+    Trait              = Trait,
+    Confidence_Ranking = Confidence_Ranking,
+    Notes              = Notes,
+    Citation_Source    = `Citation/Source`
+  )
+
+cat("funguild_otu: ", nrow(funguild_otu), "guild-assigned OTUs\n")
+
+# =============================================================================
+# R SETUP (run once outside R, or once interactively — not executed here)
+# =============================================================================
+#   library(devtools)
+#   devtools::install_github("ropenscilabs/datastorr")
+#   devtools::install_github("traitecoevo/fungaltraits")
+#
+# NOTE: fungal_traits() below downloads+caches funtothefun.csv on first call via
+# datastorr. If this script ever runs non-interactively, do one interactive
+# `library(fungaltraits); fungal_traits()` first to populate the cache.
+
+# =============================================================================
+# SECTION 2c — FUNGALTRAITS GENUS-LEVEL GUILD LOOKUP (parallel to FUNGuild)
+# =============================================================================
+# Same per-OTU shape/spirit as funguild_otu (Section 2b), sourced from the
+# fungaltraits package's genus-level FUNGuild-derived fields instead of the
+# FUNGuild CLI run directly on OTU taxonomy strings.
+# Reference: Flores-Moreno et al. 2019 (fungaltraits / "funfun"),
+#            github.com/traitecoevo/fungaltraits
+
+ft <- fungal_traits()
+
+first_non_na <- function(x) {
+  x <- x[!is.na(x)]
+  if (length(x) == 0) NA else x[1]
+}
+
+genus_lookup <- ft %>%
+  filter(!is.na(Genus), trimws(Genus) != "") %>%
+  mutate(Genus_clean = trimws(tolower(Genus))) %>%
+  group_by(Genus_clean) %>%
+  summarise(
+    Trophic_Mode_fg     = first_non_na(trophic_mode_fg),
+    Guild_fg            = first_non_na(guild_fg),
+    Growth_Form_fg      = first_non_na(growth_form_fg),
+    Confidence_fg       = first_non_na(confidence_fg),
+    Taxonomic_Level_fg  = first_non_na(taxonomic_level_fg),
+    Source_fg           = first_non_na(source_funguild_fg),
+    Notes_fg            = first_non_na(notes_fg),
+    n_distinct_guild_fg = n_distinct(guild_fg[!is.na(guild_fg)]),
+    .groups = "drop"
+  )
+
+cat("fungaltraits genus lookup:", nrow(genus_lookup), "distinct genera,",
+    sum(genus_lookup$n_distinct_guild_fg > 1),
+    "with conflicting guild_fg across records (first non-NA kept)\n")
+
+# ---- Align to OTU_IDs via tax_table_data$Genus ------------------------------
+otu_genus <- data.frame(
+  OTU_ID          = rownames(tax_table_data),
+  taxonomy_string = tax_table_data$taxonomy_string,
+  Genus           = tax_table_data$Genus,
+  stringsAsFactors = FALSE
+)
+otu_genus$Genus_clean <- trimws(tolower(sub("^g__", "", otu_genus$Genus)))
+
+fungaltraits_otu <- otu_genus %>%
+  filter(Genus_clean != "") %>%
+  inner_join(genus_lookup %>% select(-n_distinct_guild_fg), by = "Genus_clean") %>%
+  filter(!is.na(Guild_fg)) %>%
+  transmute(
+    OTU_ID, taxonomy_string, Genus,
+    Trophic_Mode_fg, Guild_fg, Growth_Form_fg,
+    Confidence_fg, Taxonomic_Level_fg, Source_fg, Notes_fg
+  )
+
+cat("fungaltraits_otu:", nrow(fungaltraits_otu), "genus-assigned OTUs out of",
+    sum(otu_genus$Genus_clean != ""), "OTUs with a resolved genus (of",
+    nrow(otu_genus), "total OTUs)\n")
+
+# ---- Persist into the canonical workspace image, alongside everything ------
+# already loaded from it (loaded_objs), without dumping this script's local
+# intermediates (otu_mat, fg_long, tax_table_data, ft, genus_lookup,
+# otu_genus, etc.) into the .RData.
+save(list=unique(c(loaded_objs, "funguild_otu", "fungaltraits_otu")),
+     file="eco_analysis.RData")
+cat("Saved funguild_otu and fungaltraits_otu into eco_analysis.RData alongside:",
+    paste(loaded_objs, collapse=", "), "\n")
 
 # =============================================================================
 # SECTION 3 — ABUNDANCE SUMMARIES

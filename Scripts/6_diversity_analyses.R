@@ -673,27 +673,40 @@ cat("Staged H2-mechanism figures/tables into Supplementary/figures|tables\n")
 # DIFFUSELY. Inference is forward-directional only -- a diffuse/absent
 # association is never read as evidence of residency.
 #
-# Model: one hierarchical joint negative-binomial brms fit in long format
-# (matched sample x fungal OTU), log-library-size offset, with per-OTU varying
-# intercept + varying plant-genus slopes (partial pooling). The cross-OTU
-# shrinkage is what makes n=27 tractable; this is the preregistered "joint
-# model". Plant predictors are the dominant diet plant genera, rCLR-transformed
-# and standardised. Season + Year enter as global (population-level) covariates.
+# DATA OBJECT (2026-07-14): to maximise the matched subset and mirror the GLLVM
+# object choice (script 7), H3 uses the PCR-REPLICATE-level, minimally-filtered
+# `alldat_full$nopool` (min_depth_full=1000) rather than the depth-filtered
+# collapsed `alldat$nopool`. This retains 3 extra low-depth winter dung samples
+# with paired plant ITS2 data (RL_1045/1047/1666), lifting the matched subset
+# from 27 to 30 biological samples (~54 PCR-rep rows). Shallow reps are handled
+# by the per-rep log-library-size offset, not excluded.
 #
-# HONEST-POWER CAVEAT (report in the same register as Section 3/§7.1): across
-# the 27 matched samples the diet is dominated by a handful of genera (Betula
-# is near-ubiquitous, then Vaccinium/Empetrum), so specificity can only be
-# assessed over ~4-6 plant genera and the coprophilous OTU group is small.
-# Treat the contrast as a directional/exploratory signal, not a decisive test.
+# Model: one hierarchical joint negative-binomial brms fit in long format
+# (PCR-rep row x fungal OTU), per-rep log-library-size offset, per-OTU varying
+# intercept + varying plant-genus slopes (partial pooling = the preregistered
+# "joint model"), plus a per-OTU biological-sample random effect so the two PCR
+# replicates of a sample are treated as replication, not independent samples.
+# Plant predictors = dominant diet genera, rCLR + standardised; Season + Year
+# are global (population-level) covariates.
+#
+# HONEST-POWER CAVEAT (report in the same register as Section 3/§7.1): even at
+# n=30 the diet is dominated by a handful of genera (Betula near-ubiquitous,
+# then Vaccinium/Empetrum), so specificity can only be assessed over ~4-6 plant
+# genera and the coprophilous OTU group is small. Treat the contrast as a
+# directional/exploratory signal, not a decisive test.
 # =============================================================================
 
 # ---- TUNABLE PARAMETERS -----------------------------------------------------
-MIN_OTU_PREV_H3   <- 5      # keep fungal OTUs present in >= this many matched samples
+MIN_OTU_PREV_H3   <- 5      # keep fungal OTUs present in >= this many matched BIOLOGICAL samples
 MIN_PLANT_PREV_H3 <- 4      # keep plant genera present in >= this many matched samples
 H3_ITER           <- 4000   # brms iterations (this joint model is far heavier than §7.1)
 H3_WARMUP         <- 2000
 H3_CORR_RE        <- FALSE  # FALSE = uncorrelated per-OTU plant slopes (|| , robust/fast);
                             # TRUE  = correlated RE with an lkj(2) prior (heavier).
+H3_SAMPLE_OTU_RE  <- TRUE   # TRUE  = per-OTU biological-sample RE (1 | Sample_ID_field:OTU),
+                            #         the correct PCR-replicate pseudoreplication control;
+                            # FALSE = lighter shared (1 | Sample_ID_field) fallback if the
+                            #         per-OTU version is too slow / does not converge.
 
 # COPRO_GENERA: standard coprophilous-genus list (verbatim from
 # working/Fable/confirmatory_analysis.R), used only for the genus-list
@@ -702,33 +715,39 @@ COPRO_GENERA <- c("Sordaria","Podospora","Cercophora","Chaetomium","Schizotheciu
                   "Preussia","Delitschia","Pilobolus","Ascobolus","Saccobolus",
                   "Sporormiella","Coprinopsis","Thelebolus","Coniochaeta")
 
-# ---- Build the matched COUNT object (non-rarefied; H3 uses an offset) --------
-# Unlike Section 3 (rarefied Hill), H3 is a count model: use alldat$nopool raw
-# counts + a log-library-size offset. `plant` is already loaded above (Sec 3).
+# ---- Build the matched COUNT object (PCR-rep level; non-rarefied + offset) ---
+# H3 is a count model: PCR-rep raw counts from alldat_full$nopool + a per-rep
+# log-library-size offset. `plant` is already loaded above (Section 3).
 if (!exists("plant")) plant <- readRDS("/home/daniel/Ptarmigan/plant_ITS/phyloseq_plant_ITS.rds")
 
-ps_cnt  <- alldat$nopool
+ps_cnt  <- alldat_full$nopool                # PCR-rep-level, min_depth_full=1000
 md_cnt  <- data.frame(as(sample_data(ps_cnt), "data.frame"), stringsAsFactors=FALSE)
-match3  <- rownames(md_cnt)[md_cnt$Sample_ID_field %in% sample_names(plant)]
+match_r <- rownames(md_cnt)[md_cnt$Sample_ID_field %in% sample_names(plant)]
 
-psf <- prune_samples(match3, ps_cnt)
+psf <- prune_samples(match_r, ps_cnt)
 psf <- prune_taxa(taxa_sums(psf) > 0, psf)
 md_f <- data.frame(as(sample_data(psf), "data.frame"), stringsAsFactors=FALSE)
 md_f$Season <- factor(md_f$Season, levels=c("winter","summer"))
 md_f$Year   <- factor(md_f$Year)
 
-fom      <- otu_mat_of(psf)                 # matched samples x fungal OTUs (counts)
-libsize  <- rowSums(fom)                    # per-sample fungal library size (all OTUs)
-prev_f   <- colSums(fom > 0)
+fom     <- otu_mat_of(psf)                   # PCR-rep rows x fungal OTUs (counts)
+libsize <- rowSums(fom)                      # per-PCR-rep library size (all OTUs)
+n_bio   <- length(unique(md_f$Sample_ID_field))
+# Prevalence at BIOLOGICAL-sample level: an OTU counts as present in a sample if
+# it is detected in either of that sample's PCR replicates.
+pres_bysamp <- rowsum((fom > 0) * 1, group = md_f$Sample_ID_field) > 0   # bio-sample x OTU
+prev_f   <- colSums(pres_bysamp)
 keep_otu <- names(prev_f)[prev_f >= MIN_OTU_PREV_H3]
 fom_k    <- fom[, keep_otu, drop=FALSE]
-cat(sprintf("\nH3 matched subset: %d fungal samples; %d OTUs modelled (present in >=%d samples)\n",
-            nrow(fom_k), ncol(fom_k), MIN_OTU_PREV_H3))
+cat(sprintf("\nH3 matched subset: %d biological samples (%d PCR-rep rows); %d OTUs modelled (present in >=%d samples)\n",
+            n_bio, nrow(fom_k), ncol(fom_k), MIN_OTU_PREV_H3))
 
 # ---- Dominant diet-plant genera: collapse -> rCLR -> standardise ------------
-plant_m <- prune_samples(md_f$Sample_ID_field, plant)
+# Plant data are one row per biological sample (keyed by Sample_ID_field).
+field_ids <- unique(md_f$Sample_ID_field)
+plant_m <- prune_samples(field_ids, plant)
 plant_m <- prune_taxa(taxa_sums(plant_m) > 0, plant_m)
-pom     <- otu_mat_of(plant_m)              # matched samples x plant taxa; rownames = Sample_ID_field
+pom     <- otu_mat_of(plant_m)              # bio samples x plant taxa; rownames = Sample_ID_field
 ptt     <- data.frame(as(tax_table(plant_m), "matrix"), stringsAsFactors=FALSE)
 
 g_lab <- ptt$Genus[match(colnames(pom), rownames(ptt))]
@@ -738,7 +757,7 @@ f_lab <- ifelse(is.na(f_lab) | f_lab %in% c("", "NA", "f__"), NA, f_lab)
 lab   <- ifelse(!is.na(g_lab), g_lab,
                 ifelse(!is.na(f_lab), paste0(f_lab, "_fam"), colnames(pom)))
 
-pg     <- t(rowsum(t(pom), group=lab))      # matched samples x plant genus
+pg     <- t(rowsum(t(pom), group=lab))      # bio samples x plant genus
 gprev  <- colSums(pg > 0)
 keep_g <- names(gprev)[gprev >= MIN_PLANT_PREV_H3]
 keep_g <- keep_g[order(gprev[keep_g], decreasing=TRUE)]
@@ -757,34 +776,37 @@ plant_var    <- make.names(colnames(pg_z))
 plant_label  <- setNames(colnames(pg_z), plant_var)   # var -> pretty genus name
 colnames(pg_z) <- plant_var
 
-# Align plant predictor rows to the fungal sample order (join on Sample_ID_field)
-field_of  <- setNames(md_f$Sample_ID_field, rownames(md_f))
-pg_bysamp <- pg_z[field_of[rownames(fom_k)], , drop=FALSE]
-rownames(pg_bysamp) <- rownames(fom_k)
-stopifnot(!anyNA(pg_bysamp))
+# Map plant predictors onto each PCR-rep row via its biological Sample_ID_field
+# (both reps of a sample get the same plant vector).
+field_of <- setNames(md_f$Sample_ID_field, rownames(md_f))
+pg_byrow <- pg_z[field_of[rownames(fom_k)], , drop=FALSE]
+rownames(pg_byrow) <- rownames(fom_k)
+stopifnot(!anyNA(pg_byrow))
 
-# ---- Assemble the long-format model frame -----------------------------------
+# ---- Assemble the long-format model frame (PCR-rep row x OTU) ---------------
 otus <- colnames(fom_k); ns <- nrow(fom_k)
 long <- data.frame(
-  sample = rep(rownames(fom_k), times=length(otus)),
-  OTU    = rep(otus,            each=ns),
-  count  = as.vector(fom_k),                # column-major: matches rep() above
+  row_id          = rep(rownames(fom_k), times=length(otus)),
+  OTU             = rep(otus,            each=ns),
+  count           = as.vector(fom_k),       # column-major: matches rep() above
   stringsAsFactors = FALSE
 )
-long$OTU         <- factor(long$OTU)
-long$log_libsize <- log(libsize[long$sample])
-long$Season      <- md_f$Season[match(long$sample, rownames(md_f))]
-long$Year        <- md_f$Year[match(long$sample, rownames(md_f))]
-for (v in plant_var) long[[v]] <- pg_bysamp[long$sample, v]
+long$OTU             <- factor(long$OTU)
+long$log_libsize     <- log(libsize[long$row_id])
+long$Sample_ID_field <- field_of[long$row_id]
+long$Season          <- md_f$Season[match(long$row_id, rownames(md_f))]
+long$Year            <- md_f$Year[match(long$row_id, rownames(md_f))]
+for (v in plant_var) long[[v]] <- pg_byrow[long$row_id, v]
 write.csv(long, file.path(out_dir, "H3_matched_long.csv"), row.names=FALSE)
 
 # ---- Fit the hierarchical joint NB model (brms) -----------------------------
 library(brms)
 plant_terms <- paste(plant_var, collapse = " + ")
 re_bar      <- if (H3_CORR_RE) "|" else "||"
+samp_re     <- if (H3_SAMPLE_OTU_RE) "(1 | Sample_ID_field:OTU)" else "(1 | Sample_ID_field)"
 h3_form <- as.formula(sprintf(
-  "count ~ 1 + Season + Year + %s + (1 + %s %s OTU) + offset(log_libsize)",
-  plant_terms, plant_terms, re_bar))
+  "count ~ 1 + Season + Year + %s + (1 + %s %s OTU) + %s + offset(log_libsize)",
+  plant_terms, plant_terms, re_bar, samp_re))
 
 h3_prior <- c(
   brms::set_prior("normal(0,1)",        class="b"),
@@ -794,15 +816,15 @@ h3_prior <- c(
 if (H3_CORR_RE) h3_prior <- c(h3_prior, brms::set_prior("lkj(2)", class="cor"))
 
 # GOTCHA (CLAUDE.md): brms file= caches the fit -- delete/rename the cached
-# H3_brms_joint.rds after any change to the formula/priors or it silently
-# reloads the stale model.
+# H3_brms_joint_repRE.rds after any change to the formula/priors or it silently
+# reloads the stale model. (The old collapsed-n=27 fit is H3_brms_joint.rds.)
 b_h3 <- brms::brm(
   h3_form, data=long, family=negbinomial(),
   prior   = h3_prior,
   chains  = 4, iter = H3_ITER, warmup = H3_WARMUP, cores = 4,
   control = list(adapt_delta = 0.999, max_treedepth = 15),
   seed    = 1, refresh = 0,
-  file    = file.path(out_dir, "H3_brms_joint")
+  file    = file.path(out_dir, "H3_brms_joint_repRE")
 )
 
 # ---- Convergence check ------------------------------------------------------
@@ -982,8 +1004,8 @@ p_hm <- ggplot(hm, aes(plant, OTU_lab, fill=slope_med)) +
   scale_fill_gradient2(low="#2166AC", mid="white", high="#B2182B", midpoint=0,
                        limits=c(-slim, slim), name="Median\nplant slope\n(log-scale)") +
   labs(title="H3: per-OTU covariation with dominant diet-plant genera",
-       subtitle=sprintf("Joint NB; matched n=%d, %d OTUs, %d plant genera (rows by specificity)",
-                        nrow(fom_k), notu, kp),
+       subtitle=sprintf("Joint NB, PCR-rep offset; n=%d samples, %d OTUs, %d plant genera (rows by specificity)",
+                        n_bio, notu, kp),
        x="Diet-plant genus (rCLR)", y=NULL,
        caption="Per-OTU posterior-median plant slopes; rows grouped by FUNGuild guild class.") +
   theme_bw(base_size=11) +

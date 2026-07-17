@@ -555,7 +555,14 @@ step_postplutof_full <- dplyr::bind_rows(lapply(names(alldat_full), function(nm)
 # =============================================================================
 
 min_depth <- 10000
-min_depth_full <- 1
+# min_depth_full: near pass-through floor for the full-complexity (PCR-rep-level)
+# objects only. Lowered 4000 -> 1000 (2026-07-14) so alldat_full retains the 3
+# low-depth winter dung samples (RL_1045/1047/1666, reps 1104-3684 reads) that
+# carry paired plant ITS2 data -- needed to raise the H3 diet-matched subset from
+# 27 to 30 (script 6 Section 3c uses a per-rep library-size offset, so shallow
+# reps are handled by the offset, not excluded). Does NOT affect alldat/
+# alldat.rfy (gated by min_depth=10000).
+min_depth_full <- 1000
 
 cat("\nSample depth range before depth filter:\n")
 for (nm in names(alldat)) {
@@ -728,3 +735,12 @@ save.image(file="eco_analysis.RData")
 cat("\nWorkspace saved to eco_analysis.RData\n")
 cat("Load with: load('eco_analysis.RData')\n")
 cat("\nNext step: 5_community_composition.R\n")
+
+#SAVED OBJECTS IN WORKSPACE
+
+funguild_otu
+fungaltraits_otu
+
+
+
+## funguild_otu
