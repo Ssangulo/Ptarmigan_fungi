@@ -329,26 +329,43 @@ dev.off()
 
 # =============================================================================
 # SECTION 6.2 -- GAMMA (trait -> Season/Year response) with 95% CrI
+# The CLR-Gaussian Gamma converges poorly on this data (see convergence table);
+# the presence/absence PROBIT Gamma converges cleanly and is the reliable
+# trait->Season inference. Both are written; report the probit.
 # =============================================================================
-geG   <- getPostEstimate(m_clr, parName = "Gamma")   # mean/support: covariates x traits
-gq    <- summary(mpost_clr$Gamma)$quantiles          # rows named "Gamma[cov, trait]"
-trcn  <- colnames(m_clr$Tr); xcn2 <- colnames(m_clr$X)
-gamma_tbl <- data.frame(
-  covariate = rep(xcn2, times = length(trcn)),
-  trait     = rep(trcn, each = length(xcn2)),
-  mean      = round(as.vector(geG$mean),    3),
-  support   = round(as.vector(geG$support), 3),
-  CrI_2.5   = round(gq[, "2.5%"],  3),
-  CrI_97.5  = round(gq[, "97.5%"], 3),
-  stringsAsFactors = FALSE
-)
+gamma_table <- function(m, mp) {
+  ge <- getPostEstimate(m, parName = "Gamma")
+  gq <- summary(mp$Gamma)$quantiles
+  trcn <- colnames(m$Tr); xc <- colnames(m$X)
+  data.frame(
+    covariate = rep(xc, times = length(trcn)),
+    trait     = rep(trcn, each = length(xc)),
+    mean      = round(as.vector(ge$mean),    3),
+    support   = round(as.vector(ge$support), 3),
+    CrI_2.5   = round(gq[, "2.5%"],  3),
+    CrI_97.5  = round(gq[, "97.5%"], 3),
+    stringsAsFactors = FALSE
+  )
+}
+gamma_fig <- function(m, path, ttl) {
+  ge <- getPostEstimate(m, parName = "Gamma")
+  png(path, width = 8, height = 6, units = "in", res = 800)
+  plotGamma(m, post = ge, param = "Support", supportLevel = 0.9, main = ttl)
+  dev.off()
+}
+xcn2 <- colnames(m_clr$X)
+gamma_tbl <- gamma_table(m_clr, mpost_clr)
 write_tab(gamma_tbl, "hmsc_gamma_CrI.csv")
-cat("Gamma (trait x covariate) posterior support:\n")
-print(gamma_tbl[gamma_tbl$covariate != "(Intercept)", ])
-png(file.path(plot_dir, "hmsc_gamma.png"), width = 8, height = 6, units = "in", res = 800)
-plotGamma(m_clr, post = geG, param = "Support",
-          supportLevel = 0.9, main = "Gamma: guild trait -> environmental response")
-dev.off()
+gamma_fig(m_clr, file.path(plot_dir, "hmsc_gamma.png"),
+          "Gamma: guild trait -> abundance response (CLR)")
+# Probit (occurrence) Gamma -- the converged, reportable trait->Season link
+mpost_pa <- convertToCodaObject(m_pa)
+gamma_pa <- gamma_table(m_pa, mpost_pa)
+write_tab(gamma_pa, "hmsc_probit_gamma_CrI.csv")
+gamma_fig(m_pa, file.path(plot_dir, "hmsc_probit_gamma.png"),
+          "Gamma: guild trait -> summer occurrence (probit)")
+cat("Probit Gamma (trait x covariate) Season rows:\n")
+print(gamma_pa[gamma_pa$covariate == "Seasonsummer", ])
 
 # =============================================================================
 # SECTION 6.3 -- BETA (per-OTU Season niche) + GLLVM cross-check
@@ -522,11 +539,13 @@ if (!is.null(m_phy)) {
 if (dir.exists(dirname(supp_fig))) {
   dir.create(supp_fig, showWarnings = FALSE, recursive = TRUE)
   dir.create(supp_tab, showWarnings = FALSE, recursive = TRUE)
-  figs <- c("hmsc_variance_partition.png","hmsc_gamma.png","hmsc_beta_season.png",
-            "hmsc_vs_gllvm_season.png","hmsc_omega_sample.png","hmsc_R2_explanatory_vs_cv.png")
+  figs <- c("hmsc_variance_partition.png","hmsc_gamma.png","hmsc_probit_gamma.png",
+            "hmsc_beta_season.png","hmsc_vs_gllvm_season.png","hmsc_omega_sample.png",
+            "hmsc_R2_explanatory_vs_cv.png")
   tabs <- c("hmsc_otu_guild.csv","hmsc_convergence_psrf.csv","hmsc_variance_partition.csv",
-            "hmsc_gamma_CrI.csv","hmsc_beta_season.csv","hmsc_vs_gllvm_season.csv",
-            "hmsc_predictive_R2.csv","hmsc_predictive_R2_summary.csv","hmsc_rho_phylo.csv")
+            "hmsc_gamma_CrI.csv","hmsc_probit_gamma_CrI.csv","hmsc_beta_season.csv",
+            "hmsc_vs_gllvm_season.csv","hmsc_predictive_R2.csv","hmsc_predictive_R2_summary.csv",
+            "hmsc_rho_phylo.csv")
   figs <- figs[file.exists(file.path(plot_dir, figs))]
   tabs <- tabs[file.exists(file.path(out_dir,  tabs))]
   invisible(file.copy(file.path(plot_dir, figs), supp_fig, overwrite = TRUE))
