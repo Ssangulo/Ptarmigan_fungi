@@ -1,0 +1,7 @@
+"guild_class","guild_display","n_OTUs","note"
+"dung_saprotroph","Dung saprotroph",37,""
+"other","Other assigned",260,"Section 10 'other' OTUs that DO carry a FUNGuild call"
+"pathotroph","Pathotroph",98,""
+"plant_associated","Plant-associated",298,""
+"dark_unassigned","Unassigned / dark",390,""
+"other","Unassigned / dark",46,"Section 10 'other' OTUs with a genus but NO FUNGuild call -- split out for display"
