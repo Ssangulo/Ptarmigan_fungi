@@ -61,7 +61,7 @@ All figures (PNG) and result tables (CSV) are stored within the project reposito
 ::: callout-note
 ## Status of this appendix
 
-The analyses in **Sections 2–5** are finalized: they were regenerated end-to-end from the corrected canonical dataset and independently checked. **Section 6** (GLLVM, OTU-resolved H1) is integrated, with one flagged caveat — its fitted models predate the depth-filter correction (see the callout there). **Sections 7.1** (the Bayesian diet-richness mechanism for H2) and **7.2** (H3 OTU–plant covariation) are integrated. **Section 9** (functional guilds) is integrated and was regenerated from the corrected canonical dataset. **Section 8** (phylogenetic community structure) remains a placeholder for analyses that are computed but not yet finalized for the manuscript; it is flagged as such and will be integrated after review.
+The analyses in **Sections 2–5** are finalized: they were regenerated end-to-end from the corrected canonical dataset and independently checked. **Section 6** (GLLVM, OTU-resolved H1) is integrated, with one flagged caveat — its fitted models predate the depth-filter correction (see the callout there). **Sections 7.1** (the Bayesian diet-richness mechanism for H2) and **7.2** (H3 OTU–plant covariation) are integrated. **Section 9** (functional guilds) is integrated and was regenerated from the corrected canonical dataset. **Section 10** (HMSC joint species distribution model) is integrated. **Section 11** collects the main-text figures and holds the authoritative build code for each; it is being populated as the main text is written. **Section 8** (phylogenetic community structure) remains a placeholder for analyses that are computed but not yet finalized for the manuscript; it is flagged as such and will be integrated after review.
 :::
 
 **Data availability.**
@@ -266,6 +266,8 @@ ggplot(depth_df, aes(reorder(sample, depth), depth, fill = status)) +
 ### 3.1 Community composition across ranks
 
 Per-sample relative read abundance at four taxonomic ranks, with samples grouped and ordered by Season (and Year). Bars are seriated within each Season for readability. These panels use script 5's PCR-collapsed object (57 samples, no depth filter); the qualitative pattern is unaffected by the depth filter used elsewhere.
+
+These four panels are retained here in full because they are a different object and a different question from the main text: all four ranks, all 57 samples, no depth filter. The main-text genus panel (Fig. 1A, Section 11.1) shows the genus rank only, on the canonical depth-filtered 52-sample object, and on the same sample axis as the functional guilds.
 
 ![](figures/phylum_barplot_ordered_season.png)
 
@@ -961,6 +963,8 @@ kable(data.frame(
 
 **Figure S-GUILDa**: Functional-guild composition of the dung mycobiome. **(A)** Per-sample guild read share, one stacked bar per dung sample, faceted by season and ordered within each season by dung-saprotroph share. **(B)** Per-sample read share by guild and season; boxes show the median and interquartile range, points are individual samples, and marks give the Benjamini–Hochberg-adjusted Wilcoxon rank-sum result (\* q \< 0.05, \*\* q \< 0.01, ns = not significant). **(C)** Mean guild read share by season and year, showing that the shift recurs in all three years. Colours are the Okabe–Ito colourblind-safe palette throughout.
 
+Panels **(A)** and **(B)** here are the same object, rule and test as main-text **Fig. 1B–C** (Section 11.1) — the same result, not a second analysis. This figure is retained because panel **(C)**, the Season × Year consistency check of Section 9.3, has no main-text counterpart, and because Fig. 1B is ordered to match its genus panel rather than standing alone.
+
 The seasonal contrast is large and concerns primarily two of the five guilds. **Dung saprotrophs rise from 13.6% of winter reads to 51.5% in summer**, while the **unassigned/dark fraction falls from 51.1% to 21.0%** — that is, roughly half of a typical winter sample consists of reads that FUNGuild cannot place at all, whereas a typical summer sample is dominated by recognised coprophilous fungi. Equivalently, the proportion of reads landing on a guild-annotated OTU rises from **49% in winter to 79% in summer**.
 
 ```{r tab-guild-season}
@@ -1190,8 +1194,239 @@ The explanatory fit is moderate (community-mean R² ≈ 0.46 for the abundance m
 
 **In summary**, HMSC does not overturn any earlier result; it unifies them and adds two things the single-lens analyses could not: a variance decomposition that sizes the seasonal signal against individual heterogeneity (and independently recovers the PERMANOVA effect size), and a formal trait- and phylogeny-level account of *why* the seasonal turnover looks the way it does — a summer-occurring coprophilous dung guild, phylogenetically conserved, riding on top of large among-individual variability.
 
+## Section 11: Main-text figures {.page-break-before}
+
+Sections 2–10 document the analyses in full. This section collects the figures that appear in the **main manuscript**, which present a deliberately reduced selection of those results for a general readership. It exists so that every main-text figure has exactly one authoritative definition.
+
+**How this section works.**
+
+-   Each main figure appears **once**, embedded from `figures/main/`, with its **full build code in the collapsible drop-down** beneath it (HTML version).
+-   That code chunk **is the source of truth** for the figure. There is no parallel copy in `Scripts/`; nothing else generates these files.
+-   The chunks are `eval: false`, so rendering this appendix never rebuilds a figure. To rebuild one after editing its chunk, run the runner from the `Supplementary/` directory:
+
+``` bash
+conda run -n r_env Rscript build_main_figure.R fig1-build
+```
+
+-   Each figure carries a one-line **provenance cross-reference** naming the thematic sections its inputs come from.
+-   The thematic sections keep their own supplementary version of a plot only where it is genuinely different (a different object, more ranks, unfiltered); where it would be the same object, they cross-reference here instead.
+
+**File-naming rule.** Supplementary figure files begin with `S`; main-text figure files are `Fig<N>_<slug>` and live in `figures/main/`. (One legacy exception is pending: `figures/Fig1_guild_season.png` is the *supplementary* Figure S-GUILDa of Section 9 and is scheduled for renaming.)
+
+### 11.1 Figure 1 — Composition and function of the dung mycobiome
+
+*Provenance: Fig. 1A uses the genus-level composition of Section 3.1; Fig. 1B–C the guild assignments of Section 9.2. All three panels are computed on the canonical 52-sample object (`alldat$nopool`), and A and B share one sample axis.*
+
+![](figures/main/Fig1_composition_function.png)
+
+**Figure 1**: Composition and function of the willow ptarmigan dung mycobiome across seasons. **(A)** Per-sample genus-level read share — the nine most abundant genera, all remaining named genera pooled as *Other genera*, and reads on OTUs with no confident genus assignment as *Unassigned*. **(B)** Per-sample functional-guild read share for the **same 52 samples in the same order**, so each column is the same dropping in both panels; samples are ordered within each season by descending dung-saprotroph share. **(C)** Per-sample guild read share by season; boxes show the median and interquartile range, points are individual samples, and marks give the Benjamini–Hochberg-adjusted Wilcoxon rank-sum result across the five guilds (\* q \< 0.05, \*\* q \< 0.01, ns = not significant). *Thelebolus* in (A) and the dung-saprotroph guild in (B) intentionally share one colour — *Thelebolus* is that guild's dominant member — as do the two grey "no assignment" bands.
+
+Read down a column and the two descriptions line up: the summer samples that are almost entirely dung saprotrophs in (B) are the samples dominated end-to-end by *Thelebolus*, *Sporormiella* and *Coniochaeta* in (A), while winter samples are a patchwork of many low-abundance genera sitting under a large unassigned fraction. The seasonal contrast is therefore the same result seen taxonomically and functionally: dung saprotrophs rise from 13.6% of winter reads to 51.5% in summer, and the unassigned fraction falls from 51.1% to 21.0% (panel C; Section 9.2). Panel A also makes the interpretive limit visible — roughly half of a typical winter sample is reads that carry no genus at all, which is the subject of the dark-taxa analysis in Section 3.4.
+
+```{r fig1-build}
+#| eval: false
+#| echo: !expr knitr::is_html_output()
+#| code-fold: true
+#| code-summary: "Full build code for Figure 1 — the source of truth for figures/main/Fig1_composition_function.{png,pdf}"
+
+# Figure 1 -- Composition and function of the dung mycobiome.
+# Canonical object alldat$nopool (52 samples). Panels A and B share one sample
+# axis; panel C tests the guild shares behind panel B.
+# Rebuild:  conda run -n r_env Rscript build_main_figure.R fig1-build
+
+suppressPackageStartupMessages({
+  library(phyloseq); library(ggplot2); library(patchwork)
+})
+
+rdata <- if (file.exists("eco_analysis.RData")) "eco_analysis.RData" else
+         "/home/daniel/Ptarmigan/trimmed/mergedPlates/eco_analysis.RData"
+load(rdata)
+stopifnot(exists("alldat"), exists("funguild_otu"))   # funguild_otu <- 8_functional_guilds.R
+
+out_dir <- "figures/main"
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+grDevices::pdf(NULL)                                  # headless: no X11 fallback
+
+# ---- data ------------------------------------------------------------------
+ps  <- alldat$nopool                                  # 52 samples, PCR reps summed
+m   <- as(otu_table(ps), "matrix"); if (taxa_are_rows(ps)) m <- t(m)   # samples x taxa
+rel <- m / rowSums(m)
+stopifnot(all(abs(rowSums(rel) - 1) < 1e-10))
+
+md     <- data.frame(as(sample_data(ps), "data.frame"), stringsAsFactors = FALSE)
+Season <- factor(c(winter = "Winter", summer = "Summer")[md$Season],
+                 levels = c("Winter", "Summer"))
+stopifnot(!anyNA(Season), identical(rownames(rel), rownames(m)))
+
+strip_rank <- function(x) sub("^[a-z]__", "", x)      # "g__Sporormiella" -> "Sporormiella"
+tax <- data.frame(as(tax_table(ps), "matrix"), stringsAsFactors = FALSE)
+gen <- strip_rank(tax$Genus[match(colnames(m), rownames(tax))])
+gen <- ifelse(gen %in% c("", "NA"), NA, gen)
+
+# ---- panel A categories: top genera + Other + Unassigned -------------------
+N_GENERA  <- 9                                        # see the palette note below
+by_genus  <- t(rowsum(t(rel), group = ifelse(is.na(gen), ".unassigned", gen)))
+named     <- setdiff(colnames(by_genus), ".unassigned")
+top       <- names(sort(colMeans(by_genus[, named, drop = FALSE]),
+                        decreasing = TRUE))[seq_len(N_GENERA)]
+tidy_gen  <- function(x) sub("_gen_Incertae_sedis", " (unclass.)", x)
+
+GEN_LEVELS <- c(tidy_gen(top), "Other genera", "Unassigned (no genus)")
+gen_cat    <- ifelse(is.na(gen), "Unassigned (no genus)",
+              ifelse(gen %in% top, tidy_gen(gen), "Other genera"))
+gen_share  <- t(rowsum(t(rel), group = gen_cat))[, GEN_LEVELS, drop = FALSE]
+stopifnot(all(abs(rowSums(gen_share) - 1) < 1e-10))
+
+# ---- panel B categories: FUNGuild guilds -----------------------------------
+# Rule verbatim from 8_functional_guilds.R (itself from 10_hmsc.R), so Figure 1,
+# appendix Section 9 and Section 10 classify OTUs identically.
+COPRO_GENERA <- c("Sordaria","Podospora","Cercophora","Chaetomium","Schizothecium",
+                  "Preussia","Delitschia","Pilobolus","Ascobolus","Saccobolus",
+                  "Sporormiella","Coprinopsis","Thelebolus","Coniochaeta")
+guild_str <- funguild_otu$Guild[match(colnames(m), funguild_otu$OTU_ID)]
+is_copro  <- (!is.na(guild_str) & grepl("Dung Saprotroph", guild_str)) |
+             (!is.na(gen)       & gen %in% COPRO_GENERA)
+is_plant  <- !is_copro & !is.na(guild_str) &
+             grepl("Endophyte|Plant Saprotroph|Plant Pathogen|Epiphyte", guild_str)
+is_patho  <- !is_copro & !is_plant & !is.na(guild_str) & grepl("Pathogen|Parasite", guild_str)
+
+GUILD_LEVELS <- c("Dung saprotroph", "Plant-associated", "Pathotroph",
+                  "Other assigned", "Unassigned / dark")
+guild_cat <- ifelse(is_copro, "Dung saprotroph",
+             ifelse(is_plant, "Plant-associated",
+             ifelse(is_patho, "Pathotroph",
+             ifelse(!is.na(guild_str), "Other assigned", "Unassigned / dark"))))
+guild_share <- t(rowsum(t(rel), group = guild_cat))[, GUILD_LEVELS, drop = FALSE]
+stopifnot(all(abs(rowSums(guild_share) - 1) < 1e-10))
+
+# ---- shared sample order: descending dung-saprotroph share within season ----
+ord <- rownames(rel)[order(Season, -guild_share[, "Dung saprotroph"])]
+
+to_long <- function(mat, levels) data.frame(
+  SampleID = factor(rep(rownames(mat), times = ncol(mat)), levels = ord),
+  Season   = rep(Season, times = ncol(mat)),
+  Category = factor(rep(colnames(mat), each = nrow(mat)), levels = levels),
+  share    = as.vector(mat), stringsAsFactors = FALSE)
+genL <- to_long(gen_share, GEN_LEVELS); guiL <- to_long(guild_share, GUILD_LEVELS)
+stopifnot(identical(levels(genL$SampleID), levels(guiL$SampleID)))
+
+# ---- palettes --------------------------------------------------------------
+# Guilds and Season keep the repo's Okabe-Ito assignments (8_functional_guilds.R).
+# The genus scale is a separate colourblind-checked set, validated on ALL pairs
+# (worst CVD dE 7.4, worst normal-vision dE 15.6) -- which is why nine genera and
+# not more: a tenth hue pushes the normal-vision floor below the readable
+# threshold. The thin white segment borders supply the secondary encoding that a
+# CVD dE in the 6-8 band requires. Thelebolus deliberately reuses the
+# dung-saprotroph orange -- it IS panel B's dominant dung saprotroph -- and grey
+# #999999 likewise carries "no assignment" in both panels.
+genus_cols <- setNames(
+  c("#E69F00", "#8C3800", "#F0E442", "#228833", "#66CCEE",
+    "#4B0055", "#AA4499", "#003D30", "#FFAABB", "#EEEEEE", "#999999"), GEN_LEVELS)
+guild_cols <- c("Dung saprotroph" = "#E69F00", "Plant-associated" = "#009E73",
+                "Pathotroph" = "#CC79A7", "Other assigned" = "#56B4E9",
+                "Unassigned / dark" = "#999999")
+season_cols <- c(Winter = "#0072B2", Summer = "#D55E00")
+
+italicise <- function(x) ifelse(grepl("unclass\\.|^Other |^Unassigned", x), x,
+                                paste0("*", x, "*"))
+base_theme <- theme_classic(base_size = 12) +
+  theme(strip.background = element_blank(),
+        strip.text       = element_text(face = "bold"),
+        plot.tag         = element_text(face = "bold", size = 14),
+        panel.spacing    = unit(0.8, "lines"),
+        legend.key.size  = unit(0.42, "cm"),
+        legend.title     = element_text(size = 10),
+        legend.text      = ggtext::element_markdown(size = 9))
+n_lab <- setNames(paste0(levels(Season), " (n = ", table(Season), ")"), levels(Season))
+
+stacked <- function(dat, cols, title, labels = names(cols)) {
+  ggplot(dat, aes(SampleID, share, fill = Category)) +
+    geom_col(width = 1, colour = "white", linewidth = 0.12,
+             position = position_stack(reverse = TRUE)) +
+    facet_grid(~ Season, scales = "free_x", space = "free_x",
+               labeller = labeller(Season = n_lab)) +
+    scale_fill_manual(values = cols, labels = labels, name = title) +
+    scale_y_continuous(labels = scales::percent, expand = c(0, 0)) +
+    base_theme +
+    theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+}
+
+# ---- panels A and B --------------------------------------------------------
+pA <- stacked(genL, genus_cols, "Genus", italicise(GEN_LEVELS)) +
+  labs(x = NULL, y = "Read share") +
+  guides(fill = guide_legend(ncol = 1, order = 1))
+# B repeats A's sample axis exactly, so its facet strips are dropped as redundant.
+pB <- stacked(guiL, guild_cols, "Functional guild") +
+  labs(x = "Dung sample (ordered within season by dung-saprotroph share)",
+       y = "Read share") +
+  guides(fill = guide_legend(ncol = 1, order = 2)) +
+  theme(strip.text = element_blank())
+
+# ---- panel C: guild read share by season, BH-adjusted Wilcoxon -------------
+season_stats <- do.call(rbind, lapply(GUILD_LEVELS, function(g) {
+  wt <- suppressWarnings(wilcox.test(guild_share[Season == "Summer", g],
+                                     guild_share[Season == "Winter", g]))
+  data.frame(Guild = g, p_value = wt$p.value, stringsAsFactors = FALSE)
+}))
+season_stats$q_value <- p.adjust(season_stats$p_value, method = "BH")
+sig_lab <- function(q) ifelse(q < 0.001, "***", ifelse(q < 0.01, "**",
+                       ifelse(q < 0.05, "*", "ns")))
+ann <- data.frame(Category = factor(GUILD_LEVELS, levels = GUILD_LEVELS),
+                  y = 1.04, lab = sig_lab(season_stats$q_value))
+wrap_lab <- setNames(c("Dung\nsaprotroph", "Plant-\nassociated", "Pathotroph",
+                       "Other\nassigned", "Unassigned\n/ dark"), GUILD_LEVELS)
+
+pC <- ggplot(guiL, aes(Category, share, fill = Season)) +
+  geom_boxplot(outlier.shape = NA, width = 0.65, alpha = 0.85,
+               position = position_dodge(width = 0.75)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.12, dodge.width = 0.75),
+             size = 0.9, alpha = 0.5, show.legend = FALSE) +
+  geom_text(data = ann, aes(Category, y, label = lab), inherit.aes = FALSE,
+            size = 3.6, fontface = "bold") +
+  scale_fill_manual(values = season_cols, name = "Season") +
+  scale_x_discrete(labels = wrap_lab) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1.09),
+                     breaks = seq(0, 1, 0.25)) +
+  labs(x = NULL, y = "Per-sample read share") +
+  base_theme +
+  theme(axis.text.x = element_text(size = 9)) +
+  guides(fill = guide_legend(ncol = 1, order = 3))
+
+# ---- assemble and write ----------------------------------------------------
+fig1 <- (pA / pB / pC) +
+  plot_layout(heights = c(1, 1, 1.15), guides = "collect") +
+  plot_annotation(tag_levels = "A") &
+  theme(legend.position = "right", legend.justification = "top")
+
+save_png <- function(path, obj, width, height, res = 600) {
+  grDevices::png(path, width = width, height = height, units = "in", res = res)
+  on.exit(grDevices::dev.off()); print(obj)
+}
+save_pdf <- function(path, obj, width, height) {
+  dev_fun <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
+  dev_fun(path, width = width, height = height)
+  on.exit(grDevices::dev.off()); print(obj)
+}
+save_png(file.path(out_dir, "Fig1_composition_function.png"), fig1, 10, 11)
+save_pdf(file.path(out_dir, "Fig1_composition_function.pdf"), fig1, 10, 11)
+
+cat(sprintf("Top %d genera (mean per-sample read share, %%):\n", N_GENERA))
+print(round(100 * colMeans(gen_share), 2))
+cat("\nGuild read share by season (mean %) and BH q:\n")
+print(data.frame(Guild  = GUILD_LEVELS,
+                 summer = round(100 * colMeans(guild_share[Season == "Summer", ]), 1),
+                 winter = round(100 * colMeans(guild_share[Season == "Winter", ]), 1),
+                 q      = signif(season_stats$q_value, 3)), row.names = FALSE)
+```
+
+### 11.2 Figure 2 — *(placeholder)*
+
+::: callout-warning
+**To be built.** Follow the Section 11.1 template: a provenance cross-reference line, the embedded `figures/main/Fig2_<slug>.png`, a **Figure 2** caption, a short main-text-register paragraph, and a `{r fig2-build}` chunk carrying the complete build code (`eval: false`, `code-fold: true`). Build it with `Rscript build_main_figure.R fig2-build`.
+:::
+
 ------------------------------------------------------------------------
 
 ::: {.callout-note appearance="minimal"}
-Sections 2–5 were regenerated end-to-end from the corrected canonical dataset (`4_data_prep.R`), which fixed a depth-filter bug in a previously saved workspace (three sub-10,000-read samples had been retained and rarefaction depth had silently collapsed to 2,975 reads). All finalized figures and tables use the corrected 52-sample canonical object (`alldat$nopool`), except the Section 3 taxonomic barplots, which use script 5's 57-sample unfiltered PCR-collapsed object as noted. Section 6, Sections 7.1–7.2 and Section 10 (HMSC) are integrated; Sections 8–9 are placeholders for analyses awaiting final review.
+Sections 2–5 were regenerated end-to-end from the corrected canonical dataset (`4_data_prep.R`), which fixed a depth-filter bug in a previously saved workspace (three sub-10,000-read samples had been retained and rarefaction depth had silently collapsed to 2,975 reads). All finalized figures and tables use the corrected 52-sample canonical object (`alldat$nopool`), except the Section 3 taxonomic barplots, which use script 5's 57-sample unfiltered PCR-collapsed object as noted. Sections 6, 7.1–7.3, 9 (functional guilds), 10 (HMSC) and 11 (main-text figures) are integrated; Section 8 is a placeholder for analyses awaiting final review.
 :::
