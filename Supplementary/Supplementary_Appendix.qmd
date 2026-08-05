@@ -381,6 +381,8 @@ H1 predicts seasonal compositional turnover of the dung mycobiome that is reprod
 
 **Figure S6**: PCoA on robust Aitchison distances (unconstrained), canonical object, coloured by Season and shaped by Year. Crosses mark Season centroids; thin segments connect each sample to its Season centroid.
 
+This is the same ordination as main-text **Fig. 2A** (Section 11.2) — the same object and the same distance — redrawn there to the main-figure specification and paired with the centroid-distance panel. Figure S7 below has no main-text counterpart.
+
 A constrained (dbRDA) view of the same contrast, conditioned on the collapsed design, is provided as a support panel:
 
 ![](figures/dbRDA_collapsed.png)
@@ -420,6 +422,8 @@ names(cen) <- c("Term", "Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)")
 kable(cen, digits = 3,
       caption = "Table S7. Linear model of each sample's distance to its Season centroid (robust CLR space) ~ Season * Year.")
 ```
+
+Main-text **Fig. 2B** (Section 11.2) plots the distances behind this table, split by Season and Year; it reads its p-values from `tables/report_centroid_lm.csv`, so the figure and Table S7 are guaranteed to agree.
 
 ::: {.callout-note appearance="minimal"}
 **H1 interpretation.** Season is a significant predictor of community composition (PERMANOVA R² = 0.11, F = 6.10, p = 0.001) with **no** Season × Year interaction (p ≈ 0.95) — the seasonal effect is consistent across all three years, as H1 predicts. The distance-to-centroid model agrees: Season affects how far a sample sits from its own seasonal centroid (p \< 0.001) with no Season × Year interaction (p = 0.79), so the turnover pattern is reproducible year to year. **Caveat:** beta-dispersion is significantly higher for summer than winter samples (F = 15.3, p = 0.001) — part of the PERMANOVA R² reflects this difference in within-group spread rather than a pure centroid shift (Anderson 2001). This previews Section 5's finding that summer communities are individually more dominance-skewed and heterogeneous.
@@ -1201,6 +1205,7 @@ Sections 2–10 document the analyses in full. This section collects the figures
 **How this section works.**
 
 -   Each main figure appears **once**, embedded from `figures/main/`, with its **full build code in the collapsible drop-down** beneath it (HTML version).
+-   Every figure is written in three formats to the same stem: **`.png` and `.jpg` at 600 dpi** (raster, for whichever a submission system demands) and **`.pdf`** (vector, for print). The appendix embeds the PNG.
 -   That code chunk **is the source of truth** for the figure. There is no parallel copy in `Scripts/`; nothing else generates these files.
 -   The chunks are `eval: false`, so rendering this appendix never rebuilds a figure. To rebuild one after editing its chunk, run the runner from the `Supplementary/` directory:
 
@@ -1398,17 +1403,18 @@ fig1 <- (pA / pB / pC) +
   plot_annotation(tag_levels = "A") &
   theme(legend.position = "right", legend.justification = "top")
 
-save_png <- function(path, obj, width, height, res = 600) {
-  grDevices::png(path, width = width, height = height, units = "in", res = res)
-  on.exit(grDevices::dev.off()); print(obj)
+# Every main figure is written three ways: PNG and JPG (600 dpi raster, for
+# submission systems that demand one or the other) and PDF (vector, for print).
+save_fig <- function(stem, obj, width, height, res = 600) {
+  one <- function(open_dev) { open_dev(); on.exit(grDevices::dev.off()); print(obj) }
+  one(function() grDevices::png(paste0(stem, ".png"), width = width, height = height,
+                                units = "in", res = res))
+  one(function() grDevices::jpeg(paste0(stem, ".jpg"), width = width, height = height,
+                                 units = "in", res = res, quality = 95))
+  pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
+  one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
 }
-save_pdf <- function(path, obj, width, height) {
-  dev_fun <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
-  dev_fun(path, width = width, height = height)
-  on.exit(grDevices::dev.off()); print(obj)
-}
-save_png(file.path(out_dir, "Fig1_composition_function.png"), fig1, 10, 11)
-save_pdf(file.path(out_dir, "Fig1_composition_function.pdf"), fig1, 10, 11)
+save_fig(file.path(out_dir, "Fig1_composition_function"), fig1, 10, 11)
 
 cat(sprintf("Top %d genera (mean per-sample read share, %%):\n", N_GENERA))
 print(round(100 * colMeans(gen_share), 2))
@@ -1419,10 +1425,156 @@ print(data.frame(Guild  = GUILD_LEVELS,
                  q      = signif(season_stats$q_value, 3)), row.names = FALSE)
 ```
 
-### 11.2 Figure 2 — *(placeholder)*
+### 11.2 Figure 2 — Seasonal turnover is reproducible across years (H1)
+
+*Provenance: Fig. 2A is the ordination of Section 4.1; Fig. 2B the distance-to-Season-centroid model of Section 4.3. Test statistics are read from the committed `tables/report_permanova.csv` and `tables/report_centroid_lm.csv`, so the figure cannot drift from Section 4.*
+
+![](figures/main/Fig2_seasonal_turnover.png)
+
+**Figure 2**: The seasonal shift in dung mycobiome composition is large and repeats in every year. **(A)** Unconstrained principal coordinates analysis of robust Aitchison distances among the 52 canonical samples, coloured by season and shaped by year. Thin lines join each sample to its season centroid (×). **(B)** Distance of each sample to its own season centroid in robust-CLR space, split by season and year; boxes show the median and interquartile range and points are individual samples. Subtitles give the PERMANOVA effect of Season (A) and the ANOVA terms of the `distance ~ Season × Year` model (B).
+
+Winter and summer communities separate along the first ordination axis, and the separation is a genuine centroid shift rather than a year effect: Season explains 11% of compositional variance (PERMANOVA p = 0.001) while Year and the Season × Year interaction explain essentially none (p = 0.88 and p = 0.95; Table S5). Panel B makes the "reproducible across years" half of H1 explicit — summer samples sit consistently further from their own centroid than winter samples do (p \< 0.001), and that contrast does not itself depend on year (Season × Year p = 0.79). Two caveats belong with this figure and are treated in Section 4.2: summer samples are significantly more dispersed than winter ones, so part of the PERMANOVA R² reflects spread rather than location alone (Anderson 2001), and the axis percentages come from a PCoA in which negative eigenvalues are clipped at zero, which inflates them.
+
+```{r fig2-build}
+#| eval: false
+#| echo: !expr knitr::is_html_output()
+#| code-fold: true
+#| code-summary: "Full build code for Figure 2 — the source of truth for figures/main/Fig2_seasonal_turnover.{png,jpg,pdf}"
+
+# Figure 2 -- Seasonal turnover is reproducible across years (H1).
+# Both panels reuse the Section 4 analysis verbatim (working/report_prep_permanova.R):
+# panel A the unconstrained robust-Aitchison PCoA, panel B the distance-to-
+# Season-centroid in rCLR space. Test statistics are READ from the committed
+# tables/ CSVs so the figure and Section 4 can never drift apart.
+# Rebuild:  conda run -n r_env Rscript build_main_figure.R fig2-build
+
+suppressPackageStartupMessages({
+  library(phyloseq); library(vegan); library(ggplot2); library(patchwork)
+})
+
+rdata <- if (file.exists("eco_analysis.RData")) "eco_analysis.RData" else
+         "/home/daniel/Ptarmigan/trimmed/mergedPlates/eco_analysis.RData"
+load(rdata)
+tab_dir <- if (dir.exists("tables")) "tables" else
+           "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
+out_dir <- "figures/main"
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+grDevices::pdf(NULL)                                  # headless: no X11 fallback
+
+season_cols <- c(Winter = "#0072B2", Summer = "#D55E00")   # repo standard
+# Fillable shapes (21/24/22, not 16/17/15) so BOTH panels map Season to `fill`
+# and the two panels can share one Season key.
+year_shapes <- c(`2022` = 21, `2023` = 24, `2024` = 22)
+base_theme  <- theme_classic(base_size = 12) +
+  theme(plot.tag        = element_text(face = "bold", size = 14),
+        plot.subtitle   = element_text(size = 9, colour = "grey30"),
+        legend.key.size = unit(0.42, "cm"),
+        legend.title    = element_text(size = 10),
+        legend.text     = element_text(size = 9))
+
+# ---- data ------------------------------------------------------------------
+ps      <- alldat$nopool                              # canonical, 52 samples
+otu_mat <- as(otu_table(ps), "matrix"); if (taxa_are_rows(ps)) otu_mat <- t(otu_mat)
+meta    <- data.frame(sample_data(ps), stringsAsFactors = FALSE, check.names = FALSE)
+stopifnot(identical(rownames(otu_mat), rownames(meta)))
+Season  <- factor(c(winter = "Winter", summer = "Summer")[meta$Season],
+                  levels = c("Winter", "Summer"))
+Year    <- factor(meta$Year)
+stopifnot(!anyNA(Season), !anyNA(Year))
+
+# ---- panel A: unconstrained PCoA on robust Aitchison distances -------------
+d_ait <- vegdist(otu_mat, method = "robust.aitchison")
+attr(d_ait, "Labels") <- rownames(otu_mat)   # vegdist drops Labels for robust.aitchison
+ord   <- capscale(d_ait ~ 1)
+eig   <- pmax(ord$CA$eig, 0)                 # negative eigenvalues clipped (see caveat)
+ax1p  <- round(100 * eig[1] / sum(eig), 1); ax2p <- round(100 * eig[2] / sum(eig), 1)
+
+sc <- as.data.frame(scores(ord, display = "sites", choices = 1:2, scaling = 1))
+colnames(sc)[1:2] <- c("Axis1", "Axis2")
+sc$Season <- Season[match(rownames(sc), rownames(meta))]
+sc$Year   <- Year[match(rownames(sc), rownames(meta))]
+cent <- aggregate(cbind(Axis1, Axis2) ~ Season, data = sc, FUN = mean)
+names(cent) <- c("Season", "cX", "cY")
+sc <- merge(sc, cent, by = "Season")
+
+perm <- read.csv(file.path(tab_dir, "report_permanova.csv"), check.names = FALSE)
+pr   <- perm[perm$term == "Season", ]
+
+pA <- ggplot(sc, aes(Axis1, Axis2)) +
+  geom_segment(aes(xend = cX, yend = cY, colour = Season),
+               alpha = 0.4, linewidth = 0.3, show.legend = FALSE) +
+  geom_point(aes(fill = Season, shape = Year), size = 2.8,
+             colour = "grey25", stroke = 0.3) +
+  geom_point(data = cent, aes(cX, cY, colour = Season), inherit.aes = FALSE,
+             size = 4.5, shape = 4, stroke = 1.4, show.legend = FALSE) +
+  scale_fill_manual(values = season_cols) +
+  scale_colour_manual(values = season_cols, guide = "none") +
+  scale_shape_manual(values = year_shapes) +
+  coord_equal() +
+  labs(x = paste0("PCoA1 (", ax1p, "%)"), y = paste0("PCoA2 (", ax2p, "%)"),
+       subtitle = sprintf("PERMANOVA: Season R² = %.2f, p = %.3f",
+                          pr$R2, pr$`Pr(>F)`)) +
+  base_theme +
+  guides(fill  = guide_legend(order = 1, override.aes = list(shape = 21, size = 3)),
+         shape = guide_legend(order = 2, override.aes = list(fill = "grey45", size = 3)))
+
+# ---- panel B: distance to Season centroid, by Season x Year ----------------
+rclr <- decostand(otu_mat, "rclr", MARGIN = 1)
+dimnames(rclr) <- dimnames(otu_mat)          # vegan's rclr path drops dimnames
+centroids <- rowsum(rclr, group = meta$Season) / as.vector(table(meta$Season))
+euclid <- function(x, y) sqrt(sum((x - y)^2))
+dcent <- data.frame(
+  Season = Season, Year = Year,
+  dist   = vapply(seq_len(nrow(rclr)),
+                  function(k) euclid(rclr[k, ], centroids[meta$Season[k], ]), numeric(1)))
+
+lmres <- read.csv(file.path(tab_dir, "report_centroid_lm.csv"), check.names = FALSE)
+pfmt  <- function(p) if (p < 0.001) "p < 0.001" else sprintf("p = %.2f", p)
+p_sea <- lmres$`Pr(>F)`[lmres$term == "Season"]
+p_int <- lmres$`Pr(>F)`[lmres$term == "Season:Year"]
+
+pB <- ggplot(dcent, aes(Year, dist, fill = Season)) +
+  geom_boxplot(outlier.shape = NA, width = 0.65, alpha = 0.85,
+               position = position_dodge(width = 0.75)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.75),
+             size = 1.3, alpha = 0.7, colour = "grey20") +
+  scale_fill_manual(values = season_cols) +
+  labs(x = NULL, y = "Distance to season centroid (rCLR)",
+       subtitle = sprintf("Season %s; Season × Year %s", pfmt(p_sea), pfmt(p_int))) +
+  base_theme +
+  # Panel A already carries the Season key; a second one would not merge with it
+  # (different key glyph) and would just be printed twice.
+  guides(fill = "none")
+
+# ---- assemble and write ----------------------------------------------------
+fig2 <- (pA | pB) +
+  plot_layout(widths = c(1.25, 1), guides = "collect") +
+  plot_annotation(tag_levels = "A") &
+  theme(legend.position = "bottom", legend.box = "horizontal")
+
+# Every main figure is written three ways: PNG and JPG (600 dpi raster, for
+# submission systems that demand one or the other) and PDF (vector, for print).
+save_fig <- function(stem, obj, width, height, res = 600) {
+  one <- function(open_dev) { open_dev(); on.exit(grDevices::dev.off()); print(obj) }
+  one(function() grDevices::png(paste0(stem, ".png"), width = width, height = height,
+                                units = "in", res = res))
+  one(function() grDevices::jpeg(paste0(stem, ".jpg"), width = width, height = height,
+                                 units = "in", res = res, quality = 95))
+  pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
+  one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
+}
+save_fig(file.path(out_dir, "Fig2_seasonal_turnover"), fig2, 10, 5.4)
+
+cat(sprintf("PCoA axes: %.1f%% / %.1f%%\n", ax1p, ax2p))
+cat(sprintf("PERMANOVA Season R2 = %.3f, p = %.3f\n", pr$R2, pr$`Pr(>F)`))
+cat("Mean distance to season centroid:\n")
+print(round(tapply(dcent$dist, list(dcent$Season, dcent$Year), mean), 1))
+```
+
+### 11.3 Figure 3 — *(placeholder)*
 
 ::: callout-warning
-**To be built.** Follow the Section 11.1 template: a provenance cross-reference line, the embedded `figures/main/Fig2_<slug>.png`, a **Figure 2** caption, a short main-text-register paragraph, and a `{r fig2-build}` chunk carrying the complete build code (`eval: false`, `code-fold: true`). Build it with `Rscript build_main_figure.R fig2-build`.
+**To be built.** Follow the Section 11.1–11.2 template: a provenance cross-reference line, the embedded `figures/main/Fig3_<slug>.png`, a **Figure 3** caption, a short main-text-register paragraph, and a `{r fig3-build}` chunk carrying the complete build code (`eval: false`, `code-fold: true`). Build it with `Rscript build_main_figure.R fig3-build`.
 :::
 
 ------------------------------------------------------------------------
