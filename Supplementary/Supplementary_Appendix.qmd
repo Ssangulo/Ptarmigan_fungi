@@ -61,7 +61,7 @@ All figures (PNG) and result tables (CSV) are stored within the project reposito
 ::: callout-note
 ## Status of this appendix
 
-The analyses in **Sections 2–5** are finalized: they were regenerated end-to-end from the corrected canonical dataset and independently checked. **Section 6** (GLLVM, OTU-resolved H1) is integrated, with one flagged caveat — its fitted models predate the depth-filter correction (see the callout there). **Sections 7.1** (the Bayesian diet-richness mechanism for H2) and **7.2** (H3 OTU–plant covariation) are integrated. **Sections 8–9** (phylogenetic community structure, functional guilds) remain placeholders for analyses that are computed but not yet finalized for the manuscript; each is flagged as such and will be integrated after review.
+The analyses in **Sections 2–5** are finalized: they were regenerated end-to-end from the corrected canonical dataset and independently checked. **Section 6** (GLLVM, OTU-resolved H1) is integrated, with one flagged caveat — its fitted models predate the depth-filter correction (see the callout there). **Sections 7.1** (the Bayesian diet-richness mechanism for H2) and **7.2** (H3 OTU–plant covariation) are integrated. **Section 9** (functional guilds) is integrated and was regenerated from the corrected canonical dataset. **Section 8** (phylogenetic community structure) remains a placeholder for analyses that are computed but not yet finalized for the manuscript; it is flagged as such and will be integrated after review.
 :::
 
 **Data availability.**
@@ -922,27 +922,99 @@ kable(data.frame(
 **Regenerate before use.** Phylogenetic supplementary analyses (NRI/NTI, βNTI, weighted/unweighted UniFrac PERMANOVA; outputs prefixed `models/PhyloSupp_*` and `plots/PhyloSupp_*`) were last computed **before** the depth-filter fix to the canonical dataset and therefore reflect the earlier, superseded object. They must be re-run against the corrected `alldat`/`alldat.rfy` before any values are quoted here. This section is a structural placeholder only.
 :::
 
-## Section 9: Functional guilds — FUNGuild *(placeholder)* {.page-break-before}
+## Section 9: Functional guilds — FUNGuild {.page-break-before}
 
-::: callout-warning
-**To be integrated.** Functional-guild assignment (e.g. FUNGuild / FungalTraits) and per-Season guild read-abundance summaries are scripted in `Scripts/8_functional_guilds.R`. A guild-composition figure and summary table will be inserted here once the guild annotation is finalized.
+Sections 3–6 characterise the seasonal shift *taxonomically* — which lineages turn over between winter and summer. This section asks what that community **does**: each OTU is assigned to a functional guild, and the guild composition of the dung mycobiome is compared across seasons. It is the descriptive counterpart to Section 10, which puts the same trait → season link inside a joint species distribution model. The two are deliberately built on the **same classification rule** so their results are directly comparable, but they differ in scope: Section 9 works on read shares across **all 1129 OTUs** of the canonical 52-sample object (no prevalence filter, because this is a description of where the reads go), whereas Section 10 models the 226 OTUs that pass its prevalence threshold. All results here are produced by `Scripts/8_functional_guilds.R`.
+
+### 9.1 Guild assignment and the classification rule
+
+Guild annotation uses **FUNGuild** (Nguyen et al. 2016), run through its command-line tool against each OTU's own taxonomy string, so that assignments are made at the finest rank available per OTU (species, genus, family or order) rather than by a single-rank lookup. **693 of the 1129 canonical OTUs (61.4%) receive a guild call** at a usable confidence ranking; the remaining 436 return no assignment — either because no matching taxonomy record exists in the FUNGuild database or because the match carries no ranked guild.
+
+FUNGuild returns *compound* guild strings rather than a single label — for example `|Dung Saprotroph|-Endophyte-Plant Saprotroph-Undefined Saprotroph`, where the pipe-delimited token marks its highest-confidence call. These strings cannot be tabulated directly, so OTUs are collapsed to a single class by a **priority rule** (first match wins): dung saprotroph → plant-associated → pathotroph, with anything else falling to *other assigned* (a FUNGuild call that is none of the above) or *unassigned* (no FUNGuild call at all). Coprophily takes precedence deliberately: it is the guild the study is about, and it would otherwise be absorbed into a generic saprotroph category. An OTU counts as a dung saprotroph if FUNGuild lists `Dung Saprotroph` **or** its genus is one of the recognised coprophilous genera used throughout this appendix (Section 3.2). This is the identical rule used for the Section-10 guild trait.
+
+One difference from Section 10 is introduced for display. Section 10's residual `other` class mixes OTUs that *do* carry a FUNGuild call with 46 that have a taxonomic genus but **no** guild annotation at all; the latter carry roughly a tenth of winter reads. That conflation is harmless for a model trait but misleading in a read-share figure, so the two are separated here into **Other assigned** and folded into **Unassigned / dark** respectively. Table S-GUILDa reconciles the two schemes.
+
+```{r tab-guild-crosswalk}
+#| echo: false
+library(knitr)
+cw <- read.csv("tables/guild_scheme_crosswalk.csv", stringsAsFactors = FALSE)
+lv <- c("Dung saprotroph", "Plant-associated", "Pathotroph",
+        "Other assigned", "Unassigned / dark")
+cw <- cw[order(match(cw$guild_display, lv)), ]
+kable(data.frame(
+  `Guild (Section 9)`      = cw$guild_display,
+  `Class (Section 10)`     = cw$guild_class,
+  `n OTUs`                 = cw$n_OTUs,
+  Note                     = cw$note,
+  check.names = FALSE),
+  row.names = FALSE,
+  caption = "Table S-GUILDa. Crosswalk between the Section 9 display guilds and the Section 10 model trait, with OTU counts (1129 canonical OTUs). The two schemes are the same priority rule; they differ only in that Section 10's `other` class is split here according to whether the OTU carries a FUNGuild annotation at all.")
+```
+
+::: {.callout-note appearance="minimal"}
+**Why FUNGuild and not FungalTraits.** Both annotation sources were built and compared. `fungaltraits_otu` (genus-level lookup via the `fungaltraits` package) covers 195 of 1129 OTUs (17%) and is a **strict subset** of the FUNGuild annotation (700 OTUs, 62%) — it contributes no unique coverage. On the 195 OTUs both annotate they agree on the exact `Guild` string only 37% of the time (49% on trophic mode), because collapsing to one record per genus discards the species-level resolution FUNGuild's per-OTU run retains. FUNGuild is therefore used as the sole guild source; FungalTraits is retained only as a coarse sensitivity check, and guild calls are never merged between the two for the same OTU.
 :::
 
+### 9.2 Guild composition shifts sharply between seasons
+
+![](figures/Fig1_guild_season.png)
+
+**Figure S-GUILDa**: Functional-guild composition of the dung mycobiome. **(A)** Per-sample guild read share, one stacked bar per dung sample, faceted by season and ordered within each season by dung-saprotroph share. **(B)** Per-sample read share by guild and season; boxes show the median and interquartile range, points are individual samples, and marks give the Benjamini–Hochberg-adjusted Wilcoxon rank-sum result (\* q \< 0.05, \*\* q \< 0.01, ns = not significant). **(C)** Mean guild read share by season and year, showing that the shift recurs in all three years. Colours are the Okabe–Ito colourblind-safe palette throughout.
+
+The seasonal contrast is large and concerns primarily two of the five guilds. **Dung saprotrophs rise from 13.6% of winter reads to 51.5% in summer**, while the **unassigned/dark fraction falls from 51.1% to 21.0%** — that is, roughly half of a typical winter sample consists of reads that FUNGuild cannot place at all, whereas a typical summer sample is dominated by recognised coprophilous fungi. Equivalently, the proportion of reads landing on a guild-annotated OTU rises from **49% in winter to 79% in summer**.
+
+```{r tab-guild-season}
+#| echo: false
+library(knitr)
+g <- read.csv("tables/guild_season_readshare.csv", stringsAsFactors = FALSE)
+pc <- function(x) sprintf("%.1f", 100 * x)
+kable(data.frame(
+  Guild            = g$Guild,
+  `Summer mean %`  = pc(g$mean_summer),
+  `Winter mean %`  = pc(g$mean_winter),
+  `Summer median %`= pc(g$median_summer),
+  `Winter median %`= pc(g$median_winter),
+  `Detected (S/W)` = paste0(g$prevalence_summer, "/", g$prevalence_winter),
+  `p`              = signif(g$p_value, 2),
+  `q (BH)`         = ifelse(is.na(g$q_value), "—", signif(g$q_value, 2)),
+  check.names = FALSE),
+  row.names = FALSE,
+  caption = "Table S-GUILDb. Per-sample guild read shares by season (26 samples per season), with Wilcoxon rank-sum tests and Benjamini–Hochberg adjustment across the five guilds. 'Detected' gives the number of samples in which the guild occurs at all. The final row is a robustness check, not part of the BH family: it restricts the dung-saprotroph guild to OTUs matching a recognised coprophilous genus, discarding those assigned on the FUNGuild string alone.")
+```
+
+**Means and medians tell different parts of this story, and both are reported.** For the plant-associated and pathotroph guilds the seasonal *means* are nearly identical (18.0% vs 23.4%, and 4.7% vs 5.8%) while the *medians* differ several-fold (2.1% vs 18.4%, and 0.1% vs 3.8%). The rank-based tests follow the medians and are significant for both. The reason is compositional rather than ecological: because dung saprotrophs occupy so much of a typical summer sample, every other guild is compressed toward zero in most summer samples, while a small number of summer samples in which coprophiles are absent carry large plant-associated or pathotroph fractions and pull the summer means back up. These guilds are better described as **relatively displaced in summer** than as absolute winter specialists — a limitation inherent to read shares, which are constrained to sum to one.
+
+**The dung-saprotroph result does not depend on how generously that guild is defined.** The rule counts an OTU as coprophilous if FUNGuild lists `Dung Saprotroph` *or* its genus is a recognised coprophilous genus. Restricting it to the genus criterion alone drops 24 of the 37 OTUs and still gives **45.7% summer versus 8.5% winter** (p = 0.00094; final row of Table S-GUILDb). The signal is concentrated in a few abundant taxa — OTU1 (*Thelebolus*), OTU636 (*Sporormiella*) and OTU1225 (*Coniochaeta*) are the three largest contributors — which is consistent with the dominance analysis of Section 5.4 and with the differential-abundance results of Section 6, where *Sporormiella* OTU636 and *Coniochaeta* OTU1225 are both significantly summer-elevated. It also bears directly on **E2** (Section 3.2): the palynological *Sporormiella* herbivore-presence proxy is calibrated on mammals, and these data show its avian dung signal to be strongly seasonal rather than constant.
+
+### 9.3 The guild shift recurs in all three years
+
+```{r tab-guild-year}
+#| echo: false
+library(knitr)
+sy <- read.csv("tables/guild_season_year_readshare.csv", stringsAsFactors = FALSE)
+lv <- c("Dung saprotroph", "Plant-associated", "Pathotroph",
+        "Other assigned", "Unassigned / dark")
+cells <- c("Winter 2022","Winter 2023","Winter 2024","Summer 2022","Summer 2023","Summer 2024")
+sy$cell <- factor(paste(sy$Season, sy$Year), levels = cells)
+mat <- tapply(sy$mean_share, list(factor(sy$Guild, levels = lv), sy$cell),
+              function(z) z[1])
+kable(cbind(Guild = lv, as.data.frame(round(100 * mat, 1), check.names = FALSE)),
+      row.names = FALSE,
+      caption = "Table S-GUILDc. Mean per-sample guild read share (%) by season and year. Cell sizes: winter 10/9/7 and summer 9/9/8 samples for 2022/2023/2024.")
+```
+
+Panel C of Figure S-GUILDa and Table S-GUILDc show the same ordering in every year: **the dung-saprotroph share is higher in summer than in winter in 2022, 2023 and 2024** (41.3% vs 24.5%, 68.3% vs 10.9%, and 44.0% vs 1.7% respectively). Within-year tests are significant for 2023 (q = 0.027) and marginal for 2024 (q = 0.053) but not for 2022 (q = 0.74), where two unusually coprophile-rich winter samples raise the winter mean and its variance. The direction is therefore consistent across all three years while the magnitude varies — the functional-guild analogue of the H1 result in Section 4.2, where the Season × Year interaction was likewise not significant. Given three years and modest per-cell sample sizes, this should be read as *no evidence of year-dependence* rather than as positive evidence of a constant effect size.
+
 ::: callout-note
-**Preliminary read (2026-07-10) — which object to use.** Two guild-assignment tables live in `eco_analysis.RData`: `funguild_otu` (FUNGuild CLI, matched per-OTU on its own taxonomy string; 700/1129 OTUs, 62% coverage) and `fungaltraits_otu` (genus-level lookup via the `fungaltraits` package; 195/1129 OTUs, 17% coverage). **`fungaltraits_otu` is a strict subset of `funguild_otu`** — every OTU it covers is already covered by FUNGuild, so it contributes no unique coverage — and on the 195 OTUs both annotate, they agree only 37% of the time on the exact `Guild` string (49% on `Trophic_Mode`), because the genus-level "first non-NA" collapsing behind `fungaltraits_otu` loses the species-level specificity FUNGuild's own per-OTU CLI run captures.
+**Interpretation and caveats.**
 
-**Takeaway to remember: use `funguild_otu` as the primary/only guild source for analysis; treat `fungaltraits_otu` at most as a coarse genus-level sensitivity check, and never merge/union guild calls between the two for the same OTU.**
+**What this adds.** The guild layer reproduces the seasonal signal independently of taxonomy and gives it a functional reading: summer dung supports an actively coprophilous community, winter dung does not. Section 10 tests the same link within a joint model and reaches a concordant conclusion — guild predicts seasonal *occurrence*, with dung saprotrophs more likely to occur in summer (posterior support 0.96) — so the descriptive and model-based views agree.
 
-A quick check of the seasonal pattern (canonical `alldat$nopool`, 52 samples) already reproduces the same summer/winter shift seen via taxonomy and differential abundance (the H1 seasonal story of Sections 3–6: dung-saprotroph summer dominance, dark-taxa winter dominance):
+**Relation to the dark taxa (E1).** The winter unassigned share here (51.1%) closely tracks the dark-taxa share reported in Section 3.4 (51.3% of winter reads), but the two are **not the same set**: "unassigned" here means no FUNGuild annotation (436 OTUs), while "dark" in Section 3.4 means no confident genus in the canonical taxonomy (493 OTUs). They share 390 OTUs, and 103 OTUs lack a genus yet still receive a FUNGuild call at family or order level. The definitions coincide in winter but diverge in summer (21.0% unassigned versus 31.2% dark), so the two figures should not be used interchangeably. Section 3.4 establishes that a substantial part of this winter fraction is genuinely novel rather than merely absent from reference databases; the functional consequence is that **winter guild composition is the least well characterised part of this dataset**, and its apparent depletion of coprophiles is partly a statement about annotation coverage.
 
-|                                  | Summer | Winter |
-|----------------------------------|--------|--------|
-| \% reads on a guild-assigned OTU | 79%    | 49%    |
-| Dung Saprotroph guild share      | 58%    | 19%    |
-| Unassigned share                 | 21%    | 51%    |
-| Pathotroph share                 | 9.0%   | 16.3%  |
+**Limitations.** (i) Read share is not biomass: PCR and copy-number biases mean these proportions describe sequence abundance, not fungal abundance. (ii) FUNGuild assignments are database-derived and inherit its taxonomic and geographic biases; assignments made at family or order level are necessarily coarser than species-level ones, and confidence rankings (Table S-GUILDb does not stratify by them) are `Probable` for the majority of assigned OTUs. (iii) The compositional constraint discussed above means that a guild's decline in relative terms need not imply any absolute decline. (iv) A guild label describes an ecological capability inferred from relatives, not a verified activity in this substrate.
 
-The winter pathotroph share (\~2x summer) hadn't been flagged before and is worth a closer look. Caveat: this table was computed as a direct workspace check, not produced by `8_functional_guilds.R` itself — that script still builds its FUNGuild input from `alldat_full[[1]]` (114 PCR reps) rather than the canonical `alldat$nopool`, and still carries the reference `habitat` grouping instead of `Season`/`Year`, so it needs the same adaptation as scripts 6/7 before its own outputs supersede this preliminary table.
+**Supersedes.** The preliminary guild percentages previously recorded in this section were an interim workspace check that predated the finalized script; they were not reproducible from any committed code. The values above are produced by `Scripts/8_functional_guilds.R` and are reproducible from the staged CSVs in `tables/`.
 :::
 
 ## Section 10: Joint species distribution model — HMSC (H1 synthesis) {.page-break-before}
@@ -960,10 +1032,10 @@ og <- read.csv("tables/hmsc_otu_guild.csv", stringsAsFactors = FALSE)
 gt <- as.data.frame(table(factor(og$guild_class,
         levels = c("dung_saprotroph","plant_associated","pathotroph","dark_unassigned","other"))))
 kable(data.frame(`Guild group` = gt$Var1, `n OTUs` = gt$Freq, check.names = FALSE),
-      caption = "Table S-HMSCa. Functional-guild composition of the 226 modelled OTUs (FUNGuild, hierarchical priority assignment). Dark/unassigned and 'other' together dominate the count — the modest coprophilous set (14 OTUs) nonetheless carries the strongest seasonal signal (Section 10.3–10.4).")
+      caption = "Table S-HMSCa. Functional-guild composition of the 226 modelled OTUs. FUNGuild returns a compound guild string per OTU; these are resolved to one class by the hierarchical priority rule in `Scripts/10_hmsc.R`, shared verbatim with Section 9. Dark/unassigned and 'other' together dominate the count — the modest coprophilous set (14 OTUs) nonetheless carries the strongest seasonal signal (Section 10.3–10.4).")
 ```
 
-An **individual-bird** random level was deliberately **not** included. Microsatellite genotyping succeeded for only a handful of repeat birds, so a bird level (with unidentified droppings entered as singletons) would have ~51 units against 55 biological samples — effectively one-to-one with the sample level, confounding the two sets of latent factors. In the three-level version this stopped the CLR community-level parameters from converging and made the variance partition unstable; dropping it (leaving sample + PCR, mirroring the GLLVM's `(1 | Sample_ID_field)`) resolved both. Each model was fitted with four chains (1000 samples, thinning 50, 25,000 transient iterations); the phylogeny-augmented variant used a dedicated, coarser rho-grid budget.
+An **individual-bird** random level was deliberately **not** included. Microsatellite genotyping succeeded for only a handful of repeat birds, so a bird level (with unidentified droppings entered as singletons) would have \~51 units against 55 biological samples — effectively one-to-one with the sample level, confounding the two sets of latent factors. In the three-level version this stopped the CLR community-level parameters from converging and made the variance partition unstable; dropping it (leaving sample + PCR, mirroring the GLLVM's `(1 | Sample_ID_field)`) resolved both. Each model was fitted with four chains (1000 samples, thinning 50, 25,000 transient iterations); the phylogeny-augmented variant used a dedicated, coarser rho-grid budget.
 
 ```{r tab-hmsc-conv}
 #| echo: false
@@ -976,7 +1048,8 @@ kable(data.frame(
   `Beta % < 1.1` = cv$beta_pct_below_1.1,
   `Gamma PSRF (median)` = cv$gamma_psrf_med,
   `Gamma PSRF (max)` = cv$gamma_psrf_max,
-  check.names = FALSE, row.names = FALSE),
+  check.names = FALSE),
+  row.names = FALSE,
   caption = "Table S-HMSCb. Gelman–Rubin convergence (potential scale reduction factor, PSRF) for the per-OTU niches (Beta) and the trait → response link (Gamma). The probit and phylogenetic models converge well; the CLR-Gaussian community-level Gamma does not (median 1.46). We therefore read the guild → Season inference (Section 10.3) from the probit model, and use the CLR model only for the variance partition and per-OTU niches, where it is well behaved.")
 ```
 
@@ -986,7 +1059,7 @@ kable(data.frame(
 
 ### 10.2 Variance partitioning: a reproducible seasonal axis within large individual heterogeneity
 
-For every OTU the model decomposes the explained variance in CLR abundance into contributions from Season, Year, and the two random levels. Averaged across OTUs, **Season and Year together account for ~20% of per-OTU variance** (Season ~11%, Year ~8%), with the remainder carried by among-sample (biological dropping) and among-replicate structure.
+For every OTU the model decomposes the explained variance in CLR abundance into contributions from Season, Year, and the two random levels. Averaged across OTUs, **Season and Year together account for \~20% of per-OTU variance** (Season \~11%, Year \~8%), with the remainder carried by among-sample (biological dropping) and among-replicate structure.
 
 ![](figures/hmsc_variance_partition.png)
 
@@ -1006,7 +1079,7 @@ kable(tabb, row.names = FALSE,
       caption = "Table S-HMSCc. Mean percentage of per-OTU variance attributed to each component, community-wide and by guild. The Season share is consistent across guilds and, at the community level (~11%), closely matches the Season effect size from the PERMANOVA in Section 4.2 (R² = 0.11) — two very different models converging on the same magnitude of seasonal turnover.")
 ```
 
-The ecological reading is deliberately two-sided but coherent. The **seasonal axis is real and reproducible** — its community-mean magnitude (~11%) independently recovers the PERMANOVA R² of 0.11 from Section 4.2 — yet at the level of an individual OTU it is *modest relative to how much dung communities differ from one dropping to the next*. In other words, HMSC formalises what the ordination and dominance analyses already suggested: season shifts the community in a consistent direction, on top of large individual-level variability.
+The ecological reading is deliberately two-sided but coherent. The **seasonal axis is real and reproducible** — its community-mean magnitude (\~11%) independently recovers the PERMANOVA R² of 0.11 from Section 4.2 — yet at the level of an individual OTU it is *modest relative to how much dung communities differ from one dropping to the next*. In other words, HMSC formalises what the ordination and dominance analyses already suggested: season shifts the community in a consistent direction, on top of large individual-level variability.
 
 ### 10.3 Guild predicts seasonal occurrence — the coprophilous summer signature, formalised
 
@@ -1028,7 +1101,8 @@ kable(data.frame(
   `Gamma (summer)` = round(g$mean, 2),
   `95% CrI` = sprintf("[%.2f, %.2f]", g$CrI_2.5, g$CrI_97.5),
   `Support P(>0)` = round(g$support, 2),
-  check.names = FALSE, row.names = FALSE),
+  check.names = FALSE),
+  row.names = FALSE,
   caption = "Table S-HMSCd. Probit Gamma — guild trait → probability of summer occurrence. The reference row is the dung-saprotroph guild's own Season effect; the other rows are deviations from it. Support is the posterior probability that the coefficient exceeds zero (values near 1 = summer, near 0 = winter).")
 ```
 
@@ -1083,11 +1157,12 @@ kable(data.frame(
   `ρ (median)` = round(rh$median, 2),
   `95% CrI` = sprintf("[%.2f, %.2f]", rh$CrI_2.5, rh$CrI_97.5),
   `P(ρ>0)` = rh$P_gt0, ESS = rh$ess, PSRF = round(rh$psrf, 2),
-  check.names = FALSE, row.names = FALSE),
+  check.names = FALSE),
+  row.names = FALSE,
   caption = "Table S-HMSCf. Phylogenetic signal parameter ρ from the phylogeny-augmented CLR model. Adding the phylogeny leaves the per-OTU niches and trait link essentially unchanged (Beta / Gamma correlation with the main model ≈ 0.94 / 0.90), so ρ is a genuine additional signal rather than a re-description of the fixed effects.")
 ```
 
-With **ρ ≈ 0.72 (95% CrI [0.60, 0.80], P(ρ > 0) = 1)**, seasonal niches are **phylogenetically conserved**: related lineages tend to shift together between winter and summer. This dovetails with the guild result — because guild is itself partly phylogenetically structured, the coprophilous summer signature is echoed as a broader phylogenetic pattern. It is reported as a secondary, exploratory result (the phylogeny-augmented model is a supplementary variant), but it is a clean, non-trivial one.
+With **ρ ≈ 0.72 (95% CrI \[0.60, 0.80\], P(ρ \> 0) = 1)**, seasonal niches are **phylogenetically conserved**: related lineages tend to shift together between winter and summer. This dovetails with the guild result — because guild is itself partly phylogenetically structured, the coprophilous summer signature is echoed as a broader phylogenetic pattern. It is reported as a secondary, exploratory result (the phylogeny-augmented model is a supplementary variant), but it is a clean, non-trivial one.
 
 ### 10.7 What the model predicts — and its honest limit
 
@@ -1106,7 +1181,8 @@ kable(data.frame(
   Model = lab[r2$model],
   `Explanatory R²` = round(r2$mean_expl_R2, 3),
   `2-fold CV R²` = ifelse(is.na(r2$mean_cv_R2), "—", round(r2$mean_cv_R2, 3)),
-  check.names = FALSE, row.names = FALSE),
+  check.names = FALSE),
+  row.names = FALSE,
   caption = "Table S-HMSCg. Community-mean explanatory vs cross-validated fit. Explanatory R² is moderate; cross-validated R² is near zero.")
 ```
 
