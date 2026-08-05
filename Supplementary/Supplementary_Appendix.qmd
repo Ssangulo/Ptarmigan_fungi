@@ -62,6 +62,8 @@ All figures (PNG) and result tables (CSV) are stored within the project reposito
 ## Status of this appendix
 
 The analyses in **Sections 2–5** are finalized: they were regenerated end-to-end from the corrected canonical dataset and independently checked. **Section 6** (GLLVM, OTU-resolved H1) is integrated, with one flagged caveat — its fitted models predate the depth-filter correction (see the callout there). **Sections 7.1** (the Bayesian diet-richness mechanism for H2) and **7.2** (H3 OTU–plant covariation) are integrated. **Section 9** (functional guilds) is integrated and was regenerated from the corrected canonical dataset. **Section 10** (HMSC joint species distribution model) is integrated. **Section 11** collects the main-text figures and holds the authoritative build code for each; it is being populated as the main text is written. **Section 8** (phylogenetic community structure) remains a placeholder for analyses that are computed but not yet finalized for the manuscript; it is flagged as such and will be integrated after review.
+
+**Correction of 2026-08-05 (affects a headline result).** The Section 4.2 PERMANOVA previously fitted `Year` as a numeric covariate rather than a factor, which tested only a linear trend across 2022–2024 and reported *no* Season × Year interaction. With `Year` correctly fitted as a factor the interaction is **significant** (R² = 0.10, p = 0.011): seasonal turnover is real and directionally consistent, but its magnitude differs among years. The Season main effect is unchanged. See the "Supersedes" note in Section 4.2, the new Table S5b, and Figure 2.
 :::
 
 **Data availability.**
@@ -373,7 +375,7 @@ kable(w_disp, digits = 1,
 
 ## Section 4: Community composition — H1 {.page-break-before}
 
-H1 predicts seasonal compositional turnover of the dung mycobiome that is reproducible across years. Ordination and tests use **robust Aitchison distance** on the canonical depth-filtered object (`alldat$nopool`, 52 samples). Three complementary analyses are reported: an unconstrained PCoA (visualization), a PERMANOVA with beta-dispersion check (Season × Year), and a distance-to-Season-centroid linear model (does the turnover magnitude itself depend on year?).
+H1 predicts seasonal compositional turnover of the dung mycobiome that is reproducible across years. Ordination and tests use **robust Aitchison distance** on the canonical depth-filtered object (`alldat$nopool`, 52 samples). Four complementary analyses are reported: an unconstrained PCoA (visualization), a PERMANOVA with beta-dispersion check (Season × Year), a per-year breakdown of the seasonal contrast, and a distance-to-Season-centroid linear model (does within-season heterogeneity itself depend on year?).
 
 ### 4.1 Ordination
 
@@ -398,7 +400,27 @@ perm <- read.csv("tables/report_permanova.csv", check.names = FALSE)
 perm <- perm[, c("term", "Df", "SumOfSqs", "R2", "F", "Pr(>F)")]
 names(perm) <- c("Term", "Df", "SumOfSqs", "R2", "F", "Pr(>F)")
 kable(perm, digits = 3,
-      caption = "Table S5. PERMANOVA (adonis2) on robust Aitchison distances, Season x Year, by terms.")
+      caption = "Table S5. PERMANOVA (adonis2) on robust Aitchison distances, Season x Year, by terms. Year is fitted as a FACTOR (2 df), so the interaction tests genuine year-to-year differences in the seasonal contrast rather than a linear trend across the three years.")
+```
+
+Because the Season × Year term is significant, the seasonal contrast is also tested separately within each year:
+
+```{r tab-permanova-by-year}
+#| echo: false
+library(knitr)
+py <- read.csv("tables/report_permanova_by_year.csv", check.names = FALSE)
+kable(data.frame(
+  Year               = py$Year,
+  `n (W/S)`          = paste0(py$n_winter, "/", py$n_summer),
+  `R²`               = round(py$R2, 3),
+  F                  = round(py$F, 2),
+  `p`                = py$p_value,
+  `Centroid distance`= round(py$centroid_distance, 1),
+  `Spread W`         = round(py$dispersion_winter, 1),
+  `Spread S`         = round(py$dispersion_summer, 1),
+  check.names = FALSE),
+  row.names = FALSE,
+  caption = "Table S5b. Season effect tested within each year separately (PERMANOVA on robust Aitchison distances). 'Centroid distance' is the Euclidean distance between the winter and summer centroids in robust-CLR space that year — the magnitude of the seasonal shift. 'Spread' is the mean distance to the cell's own centroid.")
 ```
 
 ```{r tab-betadisper}
@@ -426,7 +448,17 @@ kable(cen, digits = 3,
 Main-text **Fig. 2B** (Section 11.2) plots the distances behind this table, split by Season and Year; it reads its p-values from `tables/report_centroid_lm.csv`, so the figure and Table S7 are guaranteed to agree.
 
 ::: {.callout-note appearance="minimal"}
-**H1 interpretation.** Season is a significant predictor of community composition (PERMANOVA R² = 0.11, F = 6.10, p = 0.001) with **no** Season × Year interaction (p ≈ 0.95) — the seasonal effect is consistent across all three years, as H1 predicts. The distance-to-centroid model agrees: Season affects how far a sample sits from its own seasonal centroid (p \< 0.001) with no Season × Year interaction (p = 0.79), so the turnover pattern is reproducible year to year. **Caveat:** beta-dispersion is significantly higher for summer than winter samples (F = 15.3, p = 0.001) — part of the PERMANOVA R² reflects this difference in within-group spread rather than a pure centroid shift (Anderson 2001). This previews Section 5's finding that summer communities are individually more dominance-skewed and heterogeneous.
+**H1 interpretation — the two clauses separate.** Season is a significant predictor of community composition (PERMANOVA R² = 0.11, F = 6.92, p = 0.002), so the **first clause of H1 (seasonal turnover exists) is supported**. The **second clause (magnitude consistent across years) is not**: the Season × Year interaction is significant and substantial (R² = 0.10, F = 3.20, p = 0.011), meaning the size of the seasonal contrast genuinely differs between years.
+
+Table S5b localises that interaction. The seasonal shift is strong in **2023** (R² = 0.24, p = 0.005; between-season centroid distance 35.7), much weaker in **2024** (R² = 0.14, p = 0.127; distance 10.3) and effectively absent in **2022** (R² = 0.02, p = 0.789; distance 6.9). The *direction* of the shift is the same in all three years — it is the *magnitude* that varies, dominated by an unusually well-separated 2023. This is exactly the pattern the functional-guild analysis finds independently (Section 9.3: dung-saprotroph share summer versus winter is significant in 2023, marginal in 2024 and not significant in 2022).
+
+The interaction is a difference in *location*, not merely in spread: the distance-to-Season-centroid model (Table S7) finds a strong Season effect on within-season spread (p \< 0.001) but **no** Season × Year interaction in that spread (p = 0.79). In other words, summer communities are consistently more heterogeneous than winter ones in every year, while how far apart the two seasons sit changes from year to year.
+
+**Caveats.** (i) Beta-dispersion is significantly higher for summer than winter samples (F = 15.3, p = 0.001), so part of the PERMANOVA R² reflects this difference in within-group spread rather than a pure centroid shift (Anderson 2001); this previews Section 5's finding that summer communities are individually more dominance-skewed. (ii) With three years and 15–19 samples per year, a single atypical year moves the interaction substantially; the per-year tests in Table S5b are correspondingly low-powered (no year has more than 10 samples per season). The safe reading is *"seasonal turnover is real and directionally consistent, but its magnitude is not established as constant across years"* rather than a positive claim about year-specific ecology.
+
+::: callout-important
+**Supersedes.** Earlier versions of this section reported no Season × Year interaction (p ≈ 0.95). That came from an error in `working/report_prep_permanova.R`, where `Year` was passed to `adonis2()` straight from `sample_data()` and so entered the model as a **numeric covariate (1 df)**, testing only a linear trend across 2022–2024 rather than the factorial interaction. `Year` is now fitted as a factor (2 df), as it always was in the distance-to-centroid model of Section 4.3. The Season main effect is essentially unchanged (R² = 0.112 in both); only the Year and Season × Year terms are affected. Corrected 2026-08-05; the same fix was applied to `Scripts/5_community_composition.R`, whose PERMANOVA is print-only.
+:::
 :::
 
 ```{r}
@@ -1011,7 +1043,7 @@ kable(cbind(Guild = lv, as.data.frame(round(100 * mat, 1), check.names = FALSE))
       caption = "Table S-GUILDc. Mean per-sample guild read share (%) by season and year. Cell sizes: winter 10/9/7 and summer 9/9/8 samples for 2022/2023/2024.")
 ```
 
-Panel C of Figure S-GUILDa and Table S-GUILDc show the same ordering in every year: **the dung-saprotroph share is higher in summer than in winter in 2022, 2023 and 2024** (41.3% vs 24.5%, 68.3% vs 10.9%, and 44.0% vs 1.7% respectively). Within-year tests are significant for 2023 (q = 0.027) and marginal for 2024 (q = 0.053) but not for 2022 (q = 0.74), where two unusually coprophile-rich winter samples raise the winter mean and its variance. The direction is therefore consistent across all three years while the magnitude varies — the functional-guild analogue of the H1 result in Section 4.2, where the Season × Year interaction was likewise not significant. Given three years and modest per-cell sample sizes, this should be read as *no evidence of year-dependence* rather than as positive evidence of a constant effect size.
+Panel C of Figure S-GUILDa and Table S-GUILDc show the same ordering in every year: **the dung-saprotroph share is higher in summer than in winter in 2022, 2023 and 2024** (41.3% vs 24.5%, 68.3% vs 10.9%, and 44.0% vs 1.7% respectively). Within-year tests are significant for 2023 (q = 0.027) and marginal for 2024 (q = 0.053) but not for 2022 (q = 0.74), where two unusually coprophile-rich winter samples raise the winter mean and its variance. The direction is therefore consistent across all three years while the magnitude varies. This is the functional-guild analogue of the corrected H1 result in Section 4.2, and the two agree closely: the compositional Season × Year interaction is significant there (p = 0.011), and the per-year breakdown ranks the years in the same order as the guild data — 2023 strongest, 2024 intermediate, 2022 weakest (Table S5b). Given three years and modest per-cell sample sizes, the safe reading is that the seasonal shift is *directionally reproducible but of year-varying magnitude*, not that it has a constant effect size.
 
 ::: callout-note
 **Interpretation and caveats.**
@@ -1425,15 +1457,15 @@ print(data.frame(Guild  = GUILD_LEVELS,
                  q      = signif(season_stats$q_value, 3)), row.names = FALSE)
 ```
 
-### 11.2 Figure 2 — Seasonal turnover is reproducible across years (H1)
+### 11.2 Figure 2 — Seasonal turnover and its year-to-year variation (H1)
 
 *Provenance: Fig. 2A is the ordination of Section 4.1; Fig. 2B the distance-to-Season-centroid model of Section 4.3. Test statistics are read from the committed `tables/report_permanova.csv` and `tables/report_centroid_lm.csv`, so the figure cannot drift from Section 4.*
 
 ![](figures/main/Fig2_seasonal_turnover.png)
 
-**Figure 2**: The seasonal shift in dung mycobiome composition is large and repeats in every year. **(A)** Unconstrained principal coordinates analysis of robust Aitchison distances among the 52 canonical samples, coloured by season and shaped by year. Thin lines join each sample to its season centroid (×). **(B)** Distance of each sample to its own season centroid in robust-CLR space, split by season and year; boxes show the median and interquartile range and points are individual samples. Subtitles give the PERMANOVA effect of Season (A) and the ANOVA terms of the `distance ~ Season × Year` model (B).
+**Figure 2**: Winter and summer dung mycobiomes differ in composition, and the size of that difference varies among years. **(A)** Unconstrained principal coordinates analysis of robust Aitchison distances among the 52 canonical samples, coloured by season and shaped by year. Thin lines join each sample to its season centroid (×). **(B)** Distance of each sample to its own season centroid in robust-CLR space, split by season and year; boxes show the median and interquartile range and points are individual samples. Subtitles give the PERMANOVA terms (A) and the ANOVA terms of the `distance ~ Season × Year` model of within-season spread (B).
 
-Winter and summer communities separate along the first ordination axis, and the separation is a genuine centroid shift rather than a year effect: Season explains 11% of compositional variance (PERMANOVA p = 0.001) while Year and the Season × Year interaction explain essentially none (p = 0.88 and p = 0.95; Table S5). Panel B makes the "reproducible across years" half of H1 explicit — summer samples sit consistently further from their own centroid than winter samples do (p \< 0.001), and that contrast does not itself depend on year (Season × Year p = 0.79). Two caveats belong with this figure and are treated in Section 4.2: summer samples are significantly more dispersed than winter ones, so part of the PERMANOVA R² reflects spread rather than location alone (Anderson 2001), and the axis percentages come from a PCoA in which negative eigenvalues are clipped at zero, which inflates them.
+Winter and summer communities separate along the first ordination axis: Season explains 11% of compositional variance (PERMANOVA p = 0.002; Table S5). The seasonal contrast is not, however, of constant size — the Season × Year interaction is significant (R² = 0.10, p = 0.011), and the per-year tests in Table S5b place almost all of the separation in 2023 (R² = 0.24, p = 0.005) with 2022 showing essentially none (R² = 0.02, p = 0.789). Panel B shows that this is a difference in *where* the seasons sit rather than in how tightly each clusters: summer samples are consistently further from their own centroid than winter samples in every year (Season p \< 0.001), with no Season × Year interaction in that spread (p = 0.79). Two caveats belong with this figure and are treated in Section 4.2: summer samples are significantly more dispersed than winter ones, so part of the PERMANOVA R² reflects spread rather than location alone (Anderson 2001), and the axis percentages come from a PCoA in which negative eigenvalues are clipped at zero, which inflates them.
 
 ```{r fig2-build}
 #| eval: false
@@ -1441,7 +1473,7 @@ Winter and summer communities separate along the first ordination axis, and the 
 #| code-fold: true
 #| code-summary: "Full build code for Figure 2 — the source of truth for figures/main/Fig2_seasonal_turnover.{png,jpg,pdf}"
 
-# Figure 2 -- Seasonal turnover is reproducible across years (H1).
+# Figure 2 -- Seasonal turnover and its year-to-year variation (H1).
 # Both panels reuse the Section 4 analysis verbatim (working/report_prep_permanova.R):
 # panel A the unconstrained robust-Aitchison PCoA, panel B the distance-to-
 # Season-centroid in rCLR space. Test statistics are READ from the committed
@@ -1499,6 +1531,8 @@ sc <- merge(sc, cent, by = "Season")
 
 perm <- read.csv(file.path(tab_dir, "report_permanova.csv"), check.names = FALSE)
 pr   <- perm[perm$term == "Season", ]
+pi   <- perm[perm$term == "Season:Year", ]
+by_y <- read.csv(file.path(tab_dir, "report_permanova_by_year.csv"), check.names = FALSE)
 
 pA <- ggplot(sc, aes(Axis1, Axis2)) +
   geom_segment(aes(xend = cX, yend = cY, colour = Season),
@@ -1512,8 +1546,8 @@ pA <- ggplot(sc, aes(Axis1, Axis2)) +
   scale_shape_manual(values = year_shapes) +
   coord_equal() +
   labs(x = paste0("PCoA1 (", ax1p, "%)"), y = paste0("PCoA2 (", ax2p, "%)"),
-       subtitle = sprintf("PERMANOVA: Season R² = %.2f, p = %.3f",
-                          pr$R2, pr$`Pr(>F)`)) +
+       subtitle = sprintf("PERMANOVA  Season: R² = %.2f, p = %.3f\nSeason × Year: R² = %.2f, p = %.3f",
+                          pr$R2, pr$`Pr(>F)`, pi$R2, pi$`Pr(>F)`)) +
   base_theme +
   guides(fill  = guide_legend(order = 1, override.aes = list(shape = 21, size = 3)),
          shape = guide_legend(order = 2, override.aes = list(fill = "grey45", size = 3)))
@@ -1540,7 +1574,8 @@ pB <- ggplot(dcent, aes(Year, dist, fill = Season)) +
              size = 1.3, alpha = 0.7, colour = "grey20") +
   scale_fill_manual(values = season_cols) +
   labs(x = NULL, y = "Distance to season centroid (rCLR)",
-       subtitle = sprintf("Season %s; Season × Year %s", pfmt(p_sea), pfmt(p_int))) +
+       subtitle = sprintf("Within-season spread\nSeason: %s;  Season × Year: %s",
+                          pfmt(p_sea), pfmt(p_int))) +
   base_theme +
   # Panel A already carries the Season key; a second one would not merge with it
   # (different key glyph) and would just be printed twice.

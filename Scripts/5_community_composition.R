@@ -174,6 +174,10 @@ save_png(gp_ait, "PCoA_Aitchison_Season.png", width=12, height=8, dpi=800)
 
 ps <- ps_collapsed
 sampledf <- data.frame(sample_data(ps))
+# Year is stored NUMERIC in sample_data; unfactored it enters adonis2 as a
+# continuous covariate (1 df) and Season:Year tests only a linear year trend.
+sampledf$Season <- factor(sampledf$Season)
+sampledf$Year   <- factor(sampledf$Year)
 otu_mat <- as(otu_table(ps), "matrix");  if (taxa_are_rows(ps)) otu_mat <- t(otu_mat)
 dists <- vegdist(otu_mat, binary=FALSE, method="robust.aitchison")
 
