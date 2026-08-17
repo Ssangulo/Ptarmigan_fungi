@@ -28,7 +28,7 @@
 #
 # Requires objects from 4_data_prep.R: alldat_full (list nopool/pool/pspool),
 #       alldat (for the tax_table), funguild_otu (guild trait; a script-4 re-run
-#       WIPES it -- restore via scratchpad/restore_funguild.R if missing).
+#       WIPES it -- re-run 8_functional_guilds.R to rebuild it if missing).
 #
 # Reference: no reference-script counterpart -- this is a new JSDM step with no
 # equivalent in Root_fungi_DADA2 @ 65fbffa. It reuses this study's own
@@ -41,8 +41,10 @@
 #            hmsc_clr_phylo_fit.rds
 #   tables/  hmsc_otu_guild.csv, hmsc_convergence_psrf.csv,
 #            hmsc_variance_partition.csv, hmsc_gamma_CrI.csv,
-#            hmsc_beta_season.csv, hmsc_vs_gllvm_season.csv,
-#            hmsc_omega_sample.csv, hmsc_predictive_R2.csv, hmsc_rho_phylo.csv
+#            hmsc_probit_gamma_CrI.csv, hmsc_beta_season.csv,
+#            hmsc_probit_beta_season.csv, hmsc_vs_gllvm_season.csv,
+#            hmsc_omega_sample.csv, hmsc_predictive_R2.csv,
+#            hmsc_predictive_R2_summary.csv, hmsc_rho_phylo.csv
 #   plots/   hmsc_variance_partition.png, hmsc_gamma.png, hmsc_beta_season.png,
 #            hmsc_vs_gllvm_season.png, hmsc_omega_sample.png,
 #            hmsc_R2_explanatory_vs_cv.png, hmsc_trace_*.png
@@ -408,6 +410,45 @@ p_beta <- ggplot(bshow, aes(beta_season_mean, lab, colour = guild)) +
   theme_bw(base_size = 10)
 save_png(file.path(plot_dir, "hmsc_beta_season.png"), p_beta, width = 8, height = 9, res = 800)
 
+# -----------------------------------------------------------------------------
+# SECTION 6.3b -- the SAME per-OTU Season niche from the PROBIT model
+# Mirrors 6.3 exactly (same columns, same CrI parse), on m_pa instead of m_clr.
+# Reason it exists: the CLR Beta is the weaker-converging of the two (see the
+# convergence table -- median PSRF ~1.17, 40% of parameters below 1.1) whereas
+# the probit Beta converges cleanly (median ~1.01, 99.6% below 1.1). The CLR
+# table stays the Section 10.4 headline (it is an ABUNDANCE niche); this one is
+# the occurrence-scale counterpart, and is what the main-text figure plots.
+# -----------------------------------------------------------------------------
+geBp <- getPostEstimate(m_pa, parName = "Beta")
+season_row_pa <- which(colnames(m_pa$X) == "Seasonsummer")   # NOT xcn2: that is the CLR design
+stopifnot(length(season_row_pa) == 1L)
+beta_pa <- data.frame(
+  OTU_ID   = colnames(m_pa$Y),
+  Genus    = otu_gen,
+  guild    = guild_class,
+  beta_season_mean    = round(geBp$mean[season_row_pa, ],    3),
+  beta_season_support = round(geBp$support[season_row_pa, ], 3),
+  stringsAsFactors = FALSE
+)
+bqp   <- summary(mpost_pa$Beta)$quantiles
+srowp <- grep("Seasonsummer", rownames(bqp))
+otu_of_pa <- sub("^B\\[Seasonsummer \\([^)]*\\), (\\S+) \\(S[0-9]+\\)\\]$", "\\1", rownames(bqp)[srowp])
+# Fail loudly if a coda naming change breaks the parse, rather than silently
+# writing a table of NA intervals.
+stopifnot(length(srowp) == ncol(m_pa$Y), setequal(otu_of_pa, beta_pa$OTU_ID))
+crip <- data.frame(OTU_ID = otu_of_pa,
+                   beta_season_CrI2.5  = round(bqp[srowp, "2.5%"],  3),
+                   beta_season_CrI97.5 = round(bqp[srowp, "97.5%"], 3),
+                   stringsAsFactors = FALSE)
+beta_pa <- merge(beta_pa, crip, by = "OTU_ID", all.x = TRUE)
+beta_pa <- beta_pa[order(-beta_pa$beta_season_mean), ]
+stopifnot(!anyNA(beta_pa$beta_season_CrI2.5), !anyNA(beta_pa$beta_season_CrI97.5))
+write_tab(beta_pa, "hmsc_probit_beta_season.csv")
+cat(sprintf("Probit Beta(Season): %d OTUs, %d with a 95%% CrI excluding 0, %d at support >= 0.95 or <= 0.05\n",
+            nrow(beta_pa),
+            sum(beta_pa$beta_season_CrI2.5 > 0 | beta_pa$beta_season_CrI97.5 < 0),
+            sum(beta_pa$beta_season_support >= 0.95 | beta_pa$beta_season_support <= 0.05)))
+
 gllvm_path <- file.path(out_dir, "gllvm_perOTU_season_coef.csv")
 if (file.exists(gllvm_path)) {
   gl <- read.csv(gllvm_path, stringsAsFactors = FALSE)
@@ -544,7 +585,8 @@ if (dir.exists(dirname(supp_fig))) {
             "hmsc_R2_explanatory_vs_cv.png")
   tabs <- c("hmsc_otu_guild.csv","hmsc_convergence_psrf.csv","hmsc_variance_partition.csv",
             "hmsc_gamma_CrI.csv","hmsc_probit_gamma_CrI.csv","hmsc_beta_season.csv",
-            "hmsc_vs_gllvm_season.csv","hmsc_predictive_R2.csv","hmsc_predictive_R2_summary.csv",
+            "hmsc_probit_beta_season.csv","hmsc_vs_gllvm_season.csv",
+            "hmsc_predictive_R2.csv","hmsc_predictive_R2_summary.csv",
             "hmsc_rho_phylo.csv")
   figs <- figs[file.exists(file.path(plot_dir, figs))]
   tabs <- tabs[file.exists(file.path(out_dir,  tabs))]
