@@ -418,8 +418,12 @@ supp_tab <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
 invisible(file.copy(file.path(plot_dir, c("E1_SH_similarity_hist.png",
                                           "E1_dark_taxa_novel_vs_placeable.png")),
                     supp_fig, overwrite = TRUE))
+# dark_taxa_SH_matching.csv is staged too: it is the only per-OTU source of
+# similarity_percentage x is_dark, which main-text Fig. 4A (appendix Section 11.4)
+# needs. The two E1_* summaries below serve Fig. 4B and 4C.
 invisible(file.copy(file.path(out_dir, c("E1_SH_assignment_summary.csv",
-                                         "E1_winter_dominant_dark_taxa_SH.csv")),
+                                         "E1_winter_dominant_dark_taxa_SH.csv",
+                                         "dark_taxa_SH_matching.csv")),
                     supp_tab, overwrite = TRUE))
 cat("Staged E1 figures/tables into Supplementary/figures|tables\n")
 
