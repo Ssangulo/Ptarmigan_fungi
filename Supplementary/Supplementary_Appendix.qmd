@@ -34,41 +34,40 @@ header-includes:
 editor: visual
 ---
 
-<!-- ===========================================================================
-     THIS FILE RENDERS TWO WAYS.
-
-       submission version (default)   ->  Appendix_HTML.html
-         cd Scripts_server/Supplementary
-         conda run -n r_env quarto render Supplementary_Appendix.qmd --to html
-
-       documentation version          ->  Appendix_documentation.html
-         conda run -n r_env quarto render Supplementary_Appendix.qmd --to html \
-           --profile docs --output Appendix_documentation.html
-
-     Anything wrapped like this appears ONLY in the documentation version:
-
-       :::: {.content-visible when-profile="docs"}
-       ...paragraphs, callouts, tables, code chunks...
-       ::::
-
-     Conventions, so this stays easy to hand-edit:
-       * Always open the wrapper with FOUR colons, even with nothing nested
-         inside it. Pandoc closes the innermost open div on ANY line of three
-         or more colons, so a normal ::: callout can then be pasted straight in
-         without counting fences.
-       * Every section ends with an empty "Documentation notes" block. Move a
-         paragraph in there to keep it out of the submitted appendix.
-       * For a clause rather than a whole paragraph, use an inline span:
-         [only in the docs build]{.content-visible when-profile="docs"}
-       * Chunks inside a hidden block still EXECUTE; only their output is
-         dropped. Hiding something does not make the render faster.
-
-     Check after editing: a mis-counted fence does not fail the build, it
-     renders as literal ":::" in the HTML. Search the output for ':::'.
-     =========================================================================== -->
 
 ```{r}
 #| include: false
+# THIS FILE RENDERS TWO WAYS.
+#
+#   submission version (default)   ->  Appendix_HTML.html
+#     cd Scripts_server/Supplementary
+#     conda run -n r_env quarto render Supplementary_Appendix.qmd --to html
+#
+#   documentation version          ->  Appendix_documentation.html
+#     conda run -n r_env quarto render Supplementary_Appendix.qmd --to html \
+#       --profile docs --output Appendix_documentation.html
+#
+# Anything wrapped like this appears ONLY in the documentation version:
+#
+#   :::: {.content-visible when-profile="docs"}
+#   ...paragraphs, callouts, tables, code chunks...
+#   ::::
+#
+# Conventions, so this stays easy to hand-edit:
+#   * Always open the wrapper with FOUR colons, even with nothing nested
+#     inside it. Pandoc closes the innermost open div on ANY line of three
+#     or more colons, so a normal ::: callout can then be pasted straight in
+#     without counting fences.
+#   * Every section ends with an empty "Documentation notes" block. Move a
+#     paragraph in there to keep it out of the submitted appendix.
+#   * For a clause rather than a whole paragraph, use an inline span:
+#     [only in the docs build]{.content-visible when-profile="docs"}
+#   * Chunks inside a hidden block still EXECUTE; only their output is
+#     dropped. Hiding something does not make the render faster.
+#
+# Check after editing: a mis-counted fence does not fail the build, it
+# renders as literal ":::" in the HTML. Search the output for ':::'.
+
 if (knitr::is_html_output()) {
   knitr::opts_chunk$set(echo = TRUE)
 }
