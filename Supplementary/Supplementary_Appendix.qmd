@@ -387,6 +387,12 @@ H1 predicts seasonal compositional turnover of the dung mycobiome that is reprod
 
 This is the same ordination as main-text **Fig. 2A** (Section 11.2) — the same object and the same distance — redrawn there to the main-figure specification and paired with the centroid-distance panel. Figure S7 below has no main-text counterpart.
 
+::: {.callout-note appearance="minimal"}
+**Reading the axis percentages.** The percentages on the PCoA axes are far larger than is usual for a microbiome ordination, and they must not be read as "the plot captures 89% of the community variation". They follow from how `vegan` constructs robust Aitchison distances. `decostand(x, "rclr")` treats zero counts as missing rather than as observed zeros and, whenever any are present — always true of an OTU table — completes the matrix with a **rank-3 OptSpace approximation** (`vegan:::.calc_rclr`, argument `ropt = 3`). The robust CLR matrix from which the distance is computed therefore has rank 3 *by construction*, and the resulting PCoA has exactly three non-zero eigenvalues rather than the 51 that 52 samples would otherwise allow. PCoA1 and PCoA2 take 58.0% and 31.3% of that three-dimensional reconstruction and PCoA3 the remaining 10.7%, so the two plotted axes cover most of a space that had already been truncated to three dimensions before the ordination began. The same table under a full-rank Aitchison distance (CLR after a pseudocount) gives the ordinary figures instead: 13.7% and 9.5%, or 23.2% for the two axes together. **The percentages describe the display, not an effect size.** Every inferential statement about H1 comes from the PERMANOVA of Section 4.2, and none of it depends on them.
+
+**Why 58% on the first axis and 11% for Season are not in conflict.** The axis percentages and the PERMANOVA R² of Section 4.2 are computed from the same distance matrix and the same total inertia, but they answer different questions and are not comparable as effect sizes. A principal coordinate is *fitted* to absorb as much variance as possible along a single direction, with no reference to any grouping, and is therefore the largest share obtainable; Season is a fixed, externally specified two-group split, which has no reason to align with that direction. Decomposed axis by axis, Season accounts for 15.3% of the variance along PCoA1, 4.0% along PCoA2 and 10.3% along PCoA3 — that is 8.9%, 1.2% and 1.1% of the total, summing to the 11.2% that `adonis2()` reports for the Season term. A dominant first axis that is mostly *not* seasonal is the expected result rather than a contradiction: most of what separates these samples is something other than season.
+:::
+
 A constrained (dbRDA) view of the same contrast, conditioned on the collapsed design, is provided as a support panel:
 
 ![](figures/dbRDA_collapsed.png)
@@ -452,11 +458,49 @@ Main-text **Fig. 2B** (Section 11.2) plots the distances behind this table, spli
 ::: {.callout-note appearance="minimal"}
 **H1 interpretation — the two clauses separate.** Season is a significant predictor of community composition (PERMANOVA R² = 0.11, F = 6.92, p = 0.002), so the **first clause of H1 (seasonal turnover exists) is supported**. The **second clause (magnitude consistent across years) is not**: the Season × Year interaction is significant and substantial (R² = 0.10, F = 3.20, p = 0.011), meaning the size of the seasonal contrast genuinely differs between years.
 
-Table S5b localises that interaction. The seasonal shift is strong in **2023** (R² = 0.24, p = 0.005; between-season centroid distance 35.7), much weaker in **2024** (R² = 0.14, p = 0.127; distance 10.3) and effectively absent in **2022** (R² = 0.02, p = 0.789; distance 6.9). The *direction* of the shift is the same in all three years — it is the *magnitude* that varies, dominated by an unusually well-separated 2023. This is exactly the pattern the functional-guild analysis finds independently (Section 9.3: dung-saprotroph share summer versus winter is significant in 2023, marginal in 2024 and not significant in 2022).
+Table S5b localises that interaction. The seasonal shift is strong in **2023** (R² = 0.24, p = 0.005; between-season centroid distance 35.7), much weaker in **2024** (R² = 0.14, p = 0.127; distance 10.3) and effectively absent in **2022** (R² = 0.02, p = 0.789; distance 6.9) — though this last figure is the one part of the breakdown that is sensitive to the distance measure, see caveat (iii) below. The *direction* of the shift is the same in all three years — it is the *magnitude* that varies, dominated by an unusually well-separated 2023. This is exactly the pattern the functional-guild analysis finds independently (Section 9.3: dung-saprotroph share summer versus winter is significant in 2023, marginal in 2024 and not significant in 2022).
 
 The interaction is a difference in *location*, not merely in spread: the distance-to-Season-centroid model (Table S7) finds a strong Season effect on within-season spread (p \< 0.001) but **no** Season × Year interaction in that spread (p = 0.79). In other words, summer communities are consistently more heterogeneous than winter ones in every year, while how far apart the two seasons sit changes from year to year.
 
 **Caveats.** (i) Beta-dispersion is significantly higher for summer than winter samples (F = 15.3, p = 0.001), so part of the PERMANOVA R² reflects this difference in within-group spread rather than a pure centroid shift (Anderson 2001); this previews Section 5's finding that summer communities are individually more dominance-skewed. (ii) With three years and 15–19 samples per year, a single atypical year moves the interaction substantially; the per-year tests in Table S5b are correspondingly low-powered (no year has more than 10 samples per season). The safe reading is *"seasonal turnover is real and directionally consistent, but its magnitude is not established as constant across years"* rather than a positive claim about year-specific ecology.
+
+(iii) The distance itself carries an assumption, and one specific claim above depends on it. As set out in Section 4.1, `vegan`'s robust Aitchison distance is computed from a rank-3 completion of the robust CLR matrix, so this PERMANOVA — like the ordination — is run on a three-dimensional reconstruction of the community rather than on its full dimensionality. Refitting the identical `Season * Year` model on full-rank distances gives the same qualitative verdict with smaller effect sizes:
+
+```{r tab-permanova-sens}
+#| echo: false
+library(knitr)
+sn <- read.csv("tables/report_permanova_sensitivity.csv", check.names = FALSE)
+kable(data.frame(
+  Distance            = sn$distance,
+  Rank                = sn$rank,
+  `Season R²`         = round(sn$season_R2, 3),
+  `Season p`          = sn$season_p,
+  `Year R²`           = round(sn$year_R2, 3),
+  `Year p`            = sn$year_p,
+  `Season × Year R²`  = round(sn$interaction_R2, 3),
+  `Season × Year p`   = sn$interaction_p,
+  check.names = FALSE),
+  row.names = FALSE,
+  caption = "Table S7b. Sensitivity of the H1 PERMANOVA to the distance measure. All four rows are adonis2(d ~ Season * Year, by = 'terms') on the same canonical 52-sample object, 999 permutations, seed 20260805. 'Rank' is the number of non-negligible positive eigenvalues the distance admits: robust Aitchison is capped at 3 by vegan's rclr completion, the others are full-rank. The first row is the one reported in Table S5.")
+```
+
+The per-year breakdown is exposed to the same choice, and more sharply:
+
+```{r tab-permanova-sens-year}
+#| echo: false
+#| warning: false
+library(knitr); library(tidyr)
+sy <- read.csv("tables/report_permanova_sensitivity_by_year.csv", check.names = FALSE)
+sy$cell <- sprintf("%.3f (p = %.3f)", sy$R2, sy$p_value)
+wide <- pivot_wider(sy[, c("distance", "Year", "cell")], names_from = Year, values_from = cell)
+names(wide)[1] <- "Distance"
+kable(wide, row.names = FALSE,
+      caption = "Table S7c. Season effect within each year, under each distance measure (R² with permutation p). Same models as Table S5b, refitted on each distance. The robust-Aitchison row is the identical test to Table S5b; its p-values differ in the third decimal (0.775 / 0.009 / 0.116 here against 0.789 / 0.005 / 0.127 there) only because each cell here is seeded independently, so the two draw different permutation sets. R² values are exact and match.")
+```
+
+Both H1 verdicts are robust to the choice of distance — Season is significant at p ≤ 0.002 under every measure and the Season × Year interaction at p ≤ 0.011 — but the reported R² values sit at the optimistic end of their range: the Season term is better read as 0.07–0.11 and the interaction as 0.05–0.10 rather than as precise variance shares. The Year main effect is the one term whose *significance* changes (p = 0.309 under robust Aitchison, p = 0.004–0.027 under the full-rank measures), which is a further reason not to lean on it.
+
+**One statement in this section needs qualifying.** The per-year breakdown's finding that 2022 shows essentially no seasonal shift (R² = 0.02, p = 0.789) is an artefact of the rank-3 distance. Under all three full-rank measures the 2022 contrast is modest but unambiguously present (R² = 0.09–0.10, p ≤ 0.010; Table S7c). What survives every distance is the *ordering* — 2023 strongest (R² = 0.21–0.24), then 2024, then 2022 — and it is the size of the gap, not its direction, that the rank-3 distance exaggerates. The defensible reading is that the seasonal shift occurred in **all three years and was largest in 2023**, rather than that it was absent in 2022. Section 9.3's independent guild result should be read the same way: it shares this ranking, but its non-significant 2022 cell is a question of power, not of a missing effect.
 
 ::: callout-important
 **Supersedes.** Earlier versions of this section reported no Season × Year interaction (p ≈ 0.95). That came from an error in `working/report_prep_permanova.R`, where `Year` was passed to `adonis2()` straight from `sample_data()` and so entered the model as a **numeric covariate (1 df)**, testing only a linear trend across 2022–2024 rather than the factorial interaction. `Year` is now fitted as a factor (2 df), as it always was in the distance-to-centroid model of Section 4.3. The Season main effect is essentially unchanged (R² = 0.112 in both); only the Year and Season × Year terms are affected. Corrected 2026-08-05; the same fix was applied to `Scripts/5_community_composition.R`, whose PERMANOVA is print-only.
@@ -479,6 +523,8 @@ otu_mat <- as(otu_table(ps), "matrix"); if (taxa_are_rows(ps)) otu_mat <- t(otu_
 d_ait <- vegdist(otu_mat, method = "robust.aitchison")
 attr(d_ait, "Labels") <- rownames(otu_mat)   # vegdist drops Labels for robust.aitchison
 ord   <- capscale(d_ait ~ 1)
+# NB: rank 3, not 51 -- vegan's rclr completes the matrix at rank 3 (Section 4.1),
+# so these percentages are shares of a 3-D reconstruction, not of the full data.
 eig   <- pmax(ord$CA$eig, 0)
 ax1p  <- round(100 * eig[1] / sum(eig), 1); ax2p <- round(100 * eig[2] / sum(eig), 1)
 
@@ -1488,7 +1534,7 @@ print(data.frame(Guild  = GUILD_LEVELS,
 
 **Figure 2**: Winter and summer dung mycobiomes differ in composition, and the size of that difference varies among years. **(A)** Unconstrained principal coordinates analysis of robust Aitchison distances among the 52 canonical samples, coloured by season and shaped by year. Thin lines join each sample to its season centroid (×). **(B)** Distance of each sample to its own season centroid in robust-CLR space, split by season and year; boxes show the median and interquartile range and points are individual samples. Subtitles give the PERMANOVA terms (A) and the ANOVA terms of the `distance ~ Season × Year` model of within-season spread (B).
 
-Winter and summer communities separate along the first ordination axis: Season explains 11% of compositional variance (PERMANOVA p = 0.002; Table S5). The seasonal contrast is not, however, of constant size — the Season × Year interaction is significant (R² = 0.10, p = 0.011), and the per-year tests in Table S5b place almost all of the separation in 2023 (R² = 0.24, p = 0.005) with 2022 showing essentially none (R² = 0.02, p = 0.789). Panel B shows that this is a difference in *where* the seasons sit rather than in how tightly each clusters: summer samples are consistently further from their own centroid than winter samples in every year (Season p \< 0.001), with no Season × Year interaction in that spread (p = 0.79). Two caveats belong with this figure and are treated in Section 4.2: summer samples are significantly more dispersed than winter ones, so part of the PERMANOVA R² reflects spread rather than location alone (Anderson 2001), and the axis percentages come from a PCoA in which negative eigenvalues are clipped at zero, which inflates them.
+Winter and summer communities separate along the first ordination axis: Season explains 11% of compositional variance (PERMANOVA p = 0.002; Table S5). The seasonal contrast is not, however, of constant size — the Season × Year interaction is significant (R² = 0.10, p = 0.011), and the per-year tests in Table S5b place almost all of the separation in 2023 (R² = 0.24, p = 0.005) with 2022 showing essentially none (R² = 0.02, p = 0.789 — a figure that is itself sensitive to the distance measure, see Section 4.2 caveat iii). Panel B shows that this is a difference in *where* the seasons sit rather than in how tightly each clusters: summer samples are consistently further from their own centroid than winter samples in every year (Season p \< 0.001), with no Season × Year interaction in that spread (p = 0.79). Two caveats belong with this figure and are treated in Section 4.2: summer samples are significantly more dispersed than winter ones, so part of the PERMANOVA R² reflects spread rather than location alone (Anderson 2001), and the axis percentages are inflated because `vegan`'s robust Aitchison distance is built from a rank-3 completion of the robust CLR matrix, so panel A plots two of only three available dimensions (Section 4.1).
 
 ```{r fig2-build}
 #| eval: false
@@ -1541,7 +1587,9 @@ stopifnot(!anyNA(Season), !anyNA(Year))
 d_ait <- vegdist(otu_mat, method = "robust.aitchison")
 attr(d_ait, "Labels") <- rownames(otu_mat)   # vegdist drops Labels for robust.aitchison
 ord   <- capscale(d_ait ~ 1)
-eig   <- pmax(ord$CA$eig, 0)                 # negative eigenvalues clipped (see caveat)
+# Defensive only: this distance yields exactly 3 positive eigenvalues and no
+# negative ones, because vegan's rclr completes the matrix at rank 3 (Section 4.1).
+eig   <- pmax(ord$CA$eig, 0)
 ax1p  <- round(100 * eig[1] / sum(eig), 1); ax2p <- round(100 * eig[2] / sum(eig), 1)
 
 sc <- as.data.frame(scores(ord, display = "sites", choices = 1:2, scaling = 1))
