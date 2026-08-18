@@ -87,3 +87,90 @@ name only.
 
 **Not urgent because:** it is cosmetic, and both figures are already unambiguously labelled in the
 prose (Figure S-GUILDa vs Figure 1) and separated by directory.
+
+---
+
+## 3. Guild-call count disagrees with itself inside Section 9
+
+**Status:** deferred 2026-08-05, raised by the user. Not investigated — recorded as found.
+
+Two different totals for "OTUs with a FUNGuild call" appear a few paragraphs apart:
+
+- **§9.1** (`Supplementary_Appendix.qmd:969`) — "**693** of the 1129 canonical OTUs (**61.4%**)
+  receive a guild call at a usable confidence ranking; the remaining 436 return no assignment".
+- **§9.1 FungalTraits callout** (`:993`) — "a **strict subset** of the FUNGuild annotation
+  (**700** OTUs, **62%**)".
+
+**693 is the number used** in the analysis (it is what `8_functional_guilds.R` produces from the
+canonical object, and 693 + 436 = 1129 is internally consistent). The 700 figure is inherited from
+the earlier preliminary comparison (CLAUDE.md 2026-07-10 bullet, which reports FUNGuild covering
+"700 OTUs"), computed on a different OTU pool.
+
+**Decide before submission:** reconcile the two so the appendix and the manuscript quote one
+number. Most likely the 700 is stale and should become 693, but confirm which pool each was
+computed on before changing it — the 2026-07-10 comparison may have run against
+`alldat_full[[1]]` (1144 OTUs in, 700 assigned) rather than the canonical 1129.
+
+---
+
+## 4. "37 dung-saprotroph OTUs" versus HMSC's 14 will read as a contradiction
+
+**Status:** deferred 2026-08-05, raised by the user.
+
+- **§9.2** (`:1027`) — "Restricting it to the genus criterion alone drops 24 of the **37** OTUs".
+- **§10 / Table S-HMSCa** (and TODO item 1 above) — "All **14** dung saprotrophs matched via the
+  FUNGuild string".
+
+These are **not** in conflict: they count the same rule applied to different OTU pools — all
+**1129** canonical OTUs in Section 9 (a descriptive read-share layer, deliberately unfiltered)
+versus the **226** that pass Section 10's prevalence >= 5 filter (a model design matrix). That is
+defensible and already stated in the Section 9 preamble, but the numbers sit far apart in the
+document and a reader who meets 14 first will read 37 as an error.
+
+**Decide before submission:** state the prevalence filter explicitly at the *first* mention of a
+guild OTU count, so the two figures are self-explaining wherever the reader enters. The user's
+note refers to this as "§3.5" — there is no §3.5 in this appendix (Section 3 runs 3.1–3.4), so
+this presumably means the corresponding **main-text** section; check whether the fix is needed in
+the manuscript, the appendix, or both.
+
+---
+
+## 5. Submission render skips Section 8 and Section 11, leaving a numbering gap
+
+**Status:** deferred 2026-08-18, when the appendix was split into two profile-driven renders.
+
+The submitted appendix omits §8 (phylogenetic placeholder) and §11 (main-text figure build code),
+so its visible section numbers run **7 -> 9 -> 10**. Section headings carry hardcoded numbers
+(`## Section 8: ...`), so they do not renumber themselves.
+
+**Fix when ready:** move the §8 placeholder into the front-matter documentation bin and renumber
+§9 -> §8, §10 -> §9. There are 139 `Section N` cross-references in the .qmd; the two affected
+sections account for ~40. Run the passes in this order so they cannot collide (old §8 refs must be
+gone first): `Section 9.x` -> `8.x`, `Section 9` -> `8`, then `Section 10.x` -> `9.x`,
+`Section 10` -> `9`. Table labels are unaffected -- §9/§10 use prefixed names (`Table S-GUILDa`,
+`Table S-HMSCa`) and `Table S1`-`S11` all live in §2-§5.
+
+**Check first:** the main manuscript for "Appendix Section 9/10" citations, so both renumber
+together.
+
+**Not urgent because:** it is cosmetic, and §11 sits last so its absence leaves no gap at all --
+only §8 does. If the phylogenetic analyses (script 6 Part B) are finished before submission the
+gap closes on its own.
+
+---
+
+## 6. Section 6's pre-depth-fix caveat is currently documentation-only
+
+**Status:** raised 2026-08-18. **Needs a decision, not just a rename.**
+
+When all warning boxes were moved into documentation-only blocks, the §6 `callout-warning`
+**"Fitted on the pre-depth-fix object"** went with them. Unlike the other four, that one is a
+genuine *scientific* limitation rather than a project-status note: the GLLVM fits in
+`models/fit_nb_2*.rds` were trained on the pre-correction 57-sample / 114-PCR-rep / 327-OTU object,
+not the 52-sample / 278-OTU canonical one, and Section 6's results are internally consistent only
+on that Jul-2 snapshot (see the 2026-07-11 CLAUDE.md entry).
+
+**Decide before submission:** either refit the GLLVMs on corrected data (which also lets script 7
+revert to `load("eco_analysis.RData")` and drop its backup-recovery block), or write one plain
+sentence of disclosure into §6.1 that survives into the submitted appendix. Leaving it visible only
+in the documentation build is not defensible for a reviewer.
