@@ -1,0 +1,227 @@
+"OTU_ID","Genus","guild_class","FUNGuild"
+"OTU1","Thelebolus","dung_saprotroph","|Dung Saprotroph|-Endophyte-Plant Saprotroph-Undefined Saprotroph"
+"OTU2","Myriangiales_gen_Incertae_sedis","other",NA
+"OTU9","Cladosporium","plant_associated","Animal Pathogen-Endophyte-Lichen Parasite-Plant Pathogen-|Plant Saprotroph|-Wood Saprotroph"
+"OTU14",NA,"dark_unassigned",NA
+"OTU15",NA,"dark_unassigned",NA
+"OTU19","Malassezia","pathotroph","Animal Pathogen-|Undefined Saprotroph|"
+"OTU21","Venturia","plant_associated","|Plant Pathogen|-Plant Saprotroph"
+"OTU22",NA,"dung_saprotroph","Dung Saprotroph-Plant Saprotroph"
+"OTU26",NA,"dark_unassigned",NA
+"OTU27",NA,"dark_unassigned",NA
+"OTU30",NA,"dark_unassigned",NA
+"OTU32","Phenoliferia","other","|Undefined Saprotroph|"
+"OTU38","Spizellomycetales_gen_Incertae_sedis","other",NA
+"OTU41","Goffeauzyma","plant_associated","Plant Saprotroph-|Undefined Saprotroph|"
+"OTU43",NA,"dark_unassigned",NA
+"OTU45","Coleophoma","plant_associated","Endophyte-|Plant Pathogen|-Undefined Saprotroph"
+"OTU46",NA,"dark_unassigned",NA
+"OTU47",NA,"dark_unassigned",NA
+"OTU51",NA,"dark_unassigned",NA
+"OTU55","Venturia","plant_associated","|Plant Pathogen|-Plant Saprotroph"
+"OTU62","Tausonia","other","|Undefined Saprotroph|"
+"OTU72","Krasilnikovozyma","other","|Undefined Saprotroph|"
+"OTU74",NA,"dark_unassigned",NA
+"OTU80",NA,"dark_unassigned",NA
+"OTU90",NA,"plant_associated","Animal Pathogen-Plant Pathogen-Undefined Saprotroph"
+"OTU92",NA,"dung_saprotroph","Animal Pathogen-Dung Saprotroph-Endophyte-Lichen Parasite-Plant Pathogen-Undefined Saprotroph"
+"OTU93","Candida","plant_associated","Animal Pathogen-Endophyte-Endosymbiont-Epiphyte-|Undefined Saprotroph|"
+"OTU97",NA,"dark_unassigned",NA
+"OTU104",NA,"dark_unassigned",NA
+"OTU108","Coccomyces","plant_associated","Endophyte-Plant Pathogen-|Plant Saprotroph|"
+"OTU113",NA,"pathotroph","Fungal Parasite-Undefined Saprotroph"
+"OTU121",NA,"dark_unassigned",NA
+"OTU132",NA,"dark_unassigned",NA
+"OTU136","Candida","plant_associated","Animal Pathogen-Endophyte-Endosymbiont-Epiphyte-|Undefined Saprotroph|"
+"OTU137",NA,"dark_unassigned",NA
+"OTU147","Bryochiton","plant_associated","|Plant Pathogen|-Plant Saprotroph"
+"OTU150",NA,"dark_unassigned",NA
+"OTU153",NA,"dark_unassigned",NA
+"OTU159","Rhodotorula","plant_associated","Animal Pathogen-Animal Symbiotroph-Endophyte-Plant Pathogen-|Undefined Saprotroph|"
+"OTU167",NA,"dark_unassigned",NA
+"OTU175","Mrakiaceae_gen_Incertae_sedis","other",NA
+"OTU176","Dothiora","other","Undefined Saprotroph-|Wood Saprotroph|"
+"OTU190","Dothideales_gen_Incertae_sedis","other",NA
+"OTU192","Kabatiella","plant_associated","Endophyte-|Plant Pathogen|-Plant Saprotroph-Undefined Saprotroph"
+"OTU194","Trichoderma","plant_associated","Animal Pathogen-Endophyte-Epiphyte-|Fungal Parasite|-Plant Pathogen-Wood Saprotroph"
+"OTU199","Sympodiella","plant_associated","|Plant Saprotroph|-Undefined Saprotroph"
+"OTU207","Microcyclospora","plant_associated","|Plant Pathogen|"
+"OTU209","Fellozyma","other","|Undefined Saprotroph|"
+"OTU213","Thelebolus","dung_saprotroph","|Dung Saprotroph|-Endophyte-Plant Saprotroph-Undefined Saprotroph"
+"OTU216","Hypogymnia","other","|Lichenized|"
+"OTU232",NA,"plant_associated","Endophyte-Plant Pathogen-Undefined Saprotroph"
+"OTU245",NA,"dark_unassigned",NA
+"OTU252",NA,"plant_associated","Animal Pathogen-Plant Pathogen-Undefined Saprotroph"
+"OTU253","Tylospora","other","|Ectomycorrhizal|"
+"OTU258",NA,"dark_unassigned",NA
+"OTU265",NA,"dark_unassigned",NA
+"OTU267","Malassezia","pathotroph","Animal Pathogen-|Undefined Saprotroph|"
+"OTU272",NA,"dark_unassigned",NA
+"OTU275",NA,"dark_unassigned",NA
+"OTU285","Dioszegia","plant_associated","|Plant Saprotroph|-Undefined Saprotroph"
+"OTU290",NA,"dark_unassigned",NA
+"OTU291",NA,"other","Wood Saprotroph"
+"OTU295",NA,"dark_unassigned",NA
+"OTU300","Phaeotremella","pathotroph","|Fungal Parasite|"
+"OTU305","Sistotrema","plant_associated","Ectomycorrhizal-|Plant Saprotroph|-Wood Saprotroph"
+"OTU320",NA,"dark_unassigned",NA
+"OTU323",NA,"dark_unassigned",NA
+"OTU337","Melanohalea","other","|Lichenized|"
+"OTU340","Cladosporium","plant_associated","Animal Pathogen-Endophyte-Lichen Parasite-Plant Pathogen-|Plant Saprotroph|-Wood Saprotroph"
+"OTU356","Godronia","plant_associated","|Plant Pathogen|-Undefined Saprotroph-Wood Saprotroph"
+"OTU357",NA,"dark_unassigned",NA
+"OTU367","Itersonilia","plant_associated","|Plant Pathogen|-Plant Saprotroph"
+"OTU373",NA,"dark_unassigned",NA
+"OTU381",NA,"dark_unassigned",NA
+"OTU383",NA,"dark_unassigned",NA
+"OTU392","Pycnora","other","|Lichenized|"
+"OTU400","Phenoliferia","other","|Undefined Saprotroph|"
+"OTU409","Solicoccozyma","plant_associated","Epiphyte-|Undefined Saprotroph|"
+"OTU419",NA,"dark_unassigned",NA
+"OTU420",NA,"other","Undefined Saprotroph"
+"OTU429","Cladophialophora","plant_associated","Animal Pathogen-Endophyte-Fungal Parasite-|Undefined Saprotroph|"
+"OTU430","Sporormiella","dung_saprotroph","Dung Saprotroph-Endophyte-Lichen Parasite-|Plant Saprotroph|"
+"OTU431",NA,"plant_associated","Plant Saprotroph-Wood Saprotroph"
+"OTU441","Venturia","plant_associated","|Plant Pathogen|-Plant Saprotroph"
+"OTU445",NA,"dark_unassigned",NA
+"OTU457","Penicillium","dung_saprotroph","Animal Parasite-Dung Saprotroph-Endophyte-Fungal Parasite-Plant Pathogen-|Undefined Saprotroph|-Wood Saprotroph"
+"OTU475",NA,"dark_unassigned",NA
+"OTU478",NA,"dark_unassigned",NA
+"OTU483",NA,"plant_associated","Endophyte-Plant Pathogen-Undefined Saprotroph"
+"OTU502","Parmelia","other","|Lichenized|"
+"OTU509","Teunia","plant_associated","Epiphyte-|Undefined Saprotroph|"
+"OTU519","Yunzhangia","other",NA
+"OTU523",NA,"plant_associated","Endophyte-Plant Pathogen-Undefined Saprotroph"
+"OTU527","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU537",NA,"pathotroph","Fungal Parasite-Undefined Saprotroph"
+"OTU538","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU542","Exobasidium","plant_associated","|Plant Pathogen|"
+"OTU549",NA,"dark_unassigned",NA
+"OTU552",NA,"dark_unassigned",NA
+"OTU554","Exobasidium","plant_associated","|Plant Pathogen|"
+"OTU564",NA,"dark_unassigned",NA
+"OTU573","Exobasidium","plant_associated","|Plant Pathogen|"
+"OTU589",NA,"dark_unassigned",NA
+"OTU591",NA,"pathotroph","Fungal Parasite-Undefined Saprotroph"
+"OTU594","Taphrina","plant_associated","|Plant Pathogen|"
+"OTU604",NA,"dark_unassigned",NA
+"OTU618","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU624","Parasola","other","|Undefined Saprotroph|"
+"OTU626","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU628","Frutidella","other","|Lichenized|"
+"OTU632","Parmeliopsis","other","|Lichenized|"
+"OTU636","Sporormiella","dung_saprotroph","Dung Saprotroph-Endophyte-Lichen Parasite-|Plant Saprotroph|"
+"OTU637",NA,"dark_unassigned",NA
+"OTU638","Vishniacozyma","other","|Undefined Saprotroph|"
+"OTU640",NA,"dark_unassigned",NA
+"OTU651",NA,"dark_unassigned",NA
+"OTU653","Ceratobasidium","plant_associated","Ectomycorrhizal-Endomycorrhizal-Orchid Mycorrhizal-|Plant Pathogen|-Plant Saprotroph-Undefined Saprotroph"
+"OTU661","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU672",NA,"dark_unassigned",NA
+"OTU676","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU683","Colacogloea","pathotroph","|Fungal Parasite|"
+"OTU691",NA,"dark_unassigned",NA
+"OTU715",NA,"dark_unassigned",NA
+"OTU718","Saccothecium","other","Undefined Saprotroph-|Wood Saprotroph|"
+"OTU733","Psilolechiaceae_gen_Incertae_sedis","pathotroph","Lichen Parasite-Lichenized"
+"OTU749","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU758","Meristemomyces","plant_associated","|Plant Saprotroph|"
+"OTU776","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU788",NA,"dark_unassigned",NA
+"OTU807",NA,"dark_unassigned",NA
+"OTU827",NA,"dark_unassigned",NA
+"OTU829",NA,"other","Undefined Saprotroph"
+"OTU846","Pseudohyphozyma","other","|Undefined Saprotroph|"
+"OTU874",NA,"dark_unassigned",NA
+"OTU911",NA,"dark_unassigned",NA
+"OTU1024",NA,"dark_unassigned",NA
+"OTU1026",NA,"dark_unassigned",NA
+"OTU1046",NA,"dark_unassigned",NA
+"OTU1063","Platismatia","other","|Lichenized|"
+"OTU1066",NA,"dark_unassigned",NA
+"OTU1153","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU1183","Phenoliferia","other","|Undefined Saprotroph|"
+"OTU1206","Sporormiella","dung_saprotroph","Dung Saprotroph-Endophyte-Lichen Parasite-|Plant Saprotroph|"
+"OTU1213","Phenoliferia","other","|Undefined Saprotroph|"
+"OTU1214","Pseudoleucosporidium","other","|Undefined Saprotroph|"
+"OTU1215",NA,"pathotroph","Animal Pathogen-Fungal Parasite-Undefined Saprotroph"
+"OTU1216","Ceratobasidium","plant_associated","Ectomycorrhizal-Endomycorrhizal-Orchid Mycorrhizal-|Plant Pathogen|-Plant Saprotroph-Undefined Saprotroph"
+"OTU1223","Meristemomyces","plant_associated","|Plant Saprotroph|"
+"OTU1225","Coniochaeta","dung_saprotroph","Animal Pathogen-Dung Saprotroph-Endophyte-Lichen Parasite-Plant Pathogen-|Undefined Saprotroph|"
+"OTU1226","Phenoliferia","other","|Undefined Saprotroph|"
+"OTU1227","Phaeotremella","pathotroph","|Fungal Parasite|"
+"OTU1229",NA,"dark_unassigned",NA
+"OTU1230","Sporormiella","dung_saprotroph","Dung Saprotroph-Endophyte-Lichen Parasite-|Plant Saprotroph|"
+"OTU1231","Coleophoma","plant_associated","Endophyte-|Plant Pathogen|-Undefined Saprotroph"
+"OTU1234","Mrakia","other","|Undefined Saprotroph|"
+"OTU1237",NA,"dark_unassigned",NA
+"OTU1239","Paraphaeomoniella","plant_associated","|Plant Pathogen|"
+"OTU1242","Spirographa","pathotroph","|Lichen Parasite|"
+"OTU1245",NA,"dark_unassigned",NA
+"OTU1248","Neophaeomoniella","plant_associated","|Plant Pathogen|"
+"OTU1250","Vishniacozyma","other","|Undefined Saprotroph|"
+"OTU1257","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU1261",NA,"dark_unassigned",NA
+"OTU1265",NA,"dark_unassigned",NA
+"OTU1267",NA,"dark_unassigned",NA
+"OTU1271","Aureobasidium","plant_associated","Animal Pathogen-Endophyte-Epiphyte-|Plant Pathogen|-Plant Saprotroph-Undefined Saprotroph"
+"OTU1272","Epibryon","plant_associated","|Plant Pathogen|"
+"OTU1273","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU1275","Bergerella","pathotroph","|Lichen Parasite|"
+"OTU1276",NA,"dark_unassigned",NA
+"OTU1277","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU1279",NA,"dark_unassigned",NA
+"OTU1280","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU1283",NA,"dark_unassigned",NA
+"OTU1288","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU1289","Dothideales_gen_Incertae_sedis","other",NA
+"OTU1298","Parmeliopsis","other","|Lichenized|"
+"OTU1300",NA,"dark_unassigned",NA
+"OTU1301",NA,"dark_unassigned",NA
+"OTU1305",NA,"dung_saprotroph","Animal Pathogen-Dung Saprotroph-Endophyte-Lichen Parasite-Plant Pathogen-Undefined Saprotroph"
+"OTU1306","Stipitochalara","other",NA
+"OTU1307",NA,"dark_unassigned",NA
+"OTU1316","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU1317",NA,"dark_unassigned",NA
+"OTU1320",NA,"dung_saprotroph","Dung Saprotroph-Plant Saprotroph"
+"OTU1322","Heterocephalacria","pathotroph","|Lichen Parasite|"
+"OTU1328",NA,"other","Wood Saprotroph"
+"OTU1329","Mucor","other","|Undefined Saprotroph|"
+"OTU1330",NA,"plant_associated","Plant Pathogen"
+"OTU1336",NA,"dung_saprotroph","Dung Saprotroph-Plant Saprotroph"
+"OTU1337","Calycellina","plant_associated","|Plant Saprotroph|-Undefined Saprotroph"
+"OTU1340",NA,"dark_unassigned",NA
+"OTU1342","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU1345",NA,"dark_unassigned",NA
+"OTU1353","Sistotrema","plant_associated","Ectomycorrhizal-|Plant Saprotroph|-Wood Saprotroph"
+"OTU1357",NA,"pathotroph","Fungal Parasite-Undefined Saprotroph"
+"OTU1359",NA,"dark_unassigned",NA
+"OTU1360","Filobasidiales_gen_Incertae_sedis","other",NA
+"OTU1362","Bannozyma","other","|Undefined Saprotroph|"
+"OTU1364","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU1365","Perusta","other","|Undefined Saprotroph|"
+"OTU1366","Vishniacozyma","other","|Undefined Saprotroph|"
+"OTU1369",NA,"dark_unassigned",NA
+"OTU1370",NA,"dark_unassigned",NA
+"OTU1373","Antarctolichenia","other",NA
+"OTU1376","Phaeotremella","pathotroph","|Fungal Parasite|"
+"OTU1384","Myriangiales_gen_Incertae_sedis","other",NA
+"OTU1388","Pseudohyphozyma","other","|Undefined Saprotroph|"
+"OTU1390","Mrakia","other","|Undefined Saprotroph|"
+"OTU1392","Bannozyma","other","|Undefined Saprotroph|"
+"OTU1396","Venturia","plant_associated","|Plant Pathogen|-Plant Saprotroph"
+"OTU1400",NA,"dark_unassigned",NA
+"OTU1410","Venturia","plant_associated","|Plant Pathogen|-Plant Saprotroph"
+"OTU1412","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU1416",NA,"dark_unassigned",NA
+"OTU1421","Sistotrema","plant_associated","Ectomycorrhizal-|Plant Saprotroph|-Wood Saprotroph"
+"OTU1424","Lophium","plant_associated","|Plant Saprotroph|-Undefined Saprotroph"
+"OTU1427",NA,"dark_unassigned",NA
+"OTU1432",NA,"plant_associated","Endophyte-Plant Pathogen-Undefined Saprotroph"
+"OTU1449",NA,"dark_unassigned",NA
+"OTU1450","Ascocoryne","other","Undefined Saprotroph-|Wood Saprotroph|"
+"OTU1452",NA,"dung_saprotroph","Dung Saprotroph-Endophyte-Plant Pathogen-Undefined Saprotroph"
+"OTU1453","Piskurozyma","other","|Undefined Saprotroph|"
+"OTU1455",NA,"dark_unassigned",NA
+"OTU1457",NA,"pathotroph","Fungal Parasite-Undefined Saprotroph"
+"OTU1463","Piskurozyma","other","|Undefined Saprotroph|"
