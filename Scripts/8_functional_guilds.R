@@ -465,8 +465,13 @@ season_year <- data.frame(sy[, c("Guild", "Season", "Year")],
 season_year <- season_year[order(season_year$Guild, season_year$Year, season_year$Season), ]
 
 # Per-year winter-vs-summer test on the dung-saprotroph share: does the guild
-# shift repeat in all three years (the functional analogue of H1's null
-# Season x Year interaction)?
+# shift repeat in all three years? This is the functional analogue of H1's
+# Season x Year interaction -- which is SIGNIFICANT (R2 = 0.10, p = 0.011),
+# not null, since the 2026-08-05 Year-coding fix in
+# working/report_prep_permanova.R. (An earlier version of this comment called
+# it null; that predated the fix.) The two layers agree: the seasonal shift is
+# directionally consistent across years but varies in magnitude, and 2023 is
+# the strongest year in both.
 per_year <- do.call(rbind, lapply(levels(Year), function(y) {
   i  <- Year == y
   xs <- share[i & Season == "Summer", "Dung saprotroph"]
