@@ -245,24 +245,50 @@ kable(trk_out,
 
 ![](figures/report_library_depth.png)
 
-```{r}
+```{r sec2-build}
 #| eval: false
 #| echo: !expr knitr::is_html_output()
 #| code-fold: true
-#| code-summary: "Code used to build the read/OTU tracking table and library-depth figure (report_prep_readtracking.R, executed on server)"
+#| code-summary: "Full code for Table S2 and Figure S1 — the source of truth for the read/OTU tracking table and library-depth figure"
 
+# ---------------------------------------------------------------------------
+# Table S2 (read/OTU tracking) and Figure S1 (library depth).
+#
+# This chunk is the source of truth for both: there is no parallel script.
+# Nothing is re-run here -- every count is read from workspaces the pipeline
+# already wrote. Raw-fastq and post-demultiplexing counts (script 1) are out of
+# scope: no counts were logged for that step and recovering them means
+# rescanning ~39 GB of FASTQ. The earliest quantified checkpoint is therefore
+# "post-cutadapt reads entering DADA2 quality filtering".
+#
+# Sources (all read-only):
+#   merged_ITS.RData                 2_DADA2_lulu.R, saved after LULU curation
+#   phyloseq_comparison_summary.csv  4_data_prep.R Section 8
+#   eco_analysis.RData               4_data_prep.R
+# ---------------------------------------------------------------------------
 library(phyloseq)
 library(dplyr)
 library(ggplot2)
 
-# ---- Post-cutadapt / filter / merge / chimera / LULU counts, read from the
-#      untouched script-2 workspace (nothing is rerun) --------------------------
-e <- new.env(); load("merged_ITS.RData", envir = e)
+# Data live outside the repo; set this to the directory holding the workspaces.
+data_dir <- "/home/daniel/Ptarmigan/trimmed/mergedPlates"
+tab_dir  <- "tables"; fig_dir <- "figures"   # relative to this .qmd
+
+grDevices::pdf(NULL)                          # headless: no X11 fallback
+save_png <- function(obj, filename, width, height, dpi = 800) {
+  png(file.path(fig_dir, filename), width = width, height = height,
+      units = "in", res = dpi)
+  print(obj); dev.off()
+}
+
+# ---- Scripts 1-2: post-cutadapt / filter / merge / chimera / LULU ----------
+e <- new.env(); load(file.path(data_dir, "merged_ITS.RData"), envir = e)
 out_df <- e$out_df
 reads_postcutadapt <- sum(out_df$reads.in)
 reads_postfilter   <- sum(out_df$reads.out)
 
-dims_of <- function(m) data.frame(n_samples = nrow(m), n_taxa = ncol(m), total_reads = sum(m))
+dims_of <- function(m) data.frame(n_samples = nrow(m), n_taxa = ncol(m),
+                                  total_reads = sum(m))
 
 step_merge <- dplyr::bind_rows(
   data.frame(step = "post_merge_denoise", strategy = "nopool", dims_of(e$merged_seqtab)),
@@ -277,48 +303,77 @@ step_lulu <- dplyr::bind_rows(
   data.frame(step = "post_LULU_curation", strategy = "pool",   dims_of(e$pool.lulu)),
   data.frame(step = "post_LULU_curation", strategy = "pspool", dims_of(e$pspool.lulu)))
 
+# Sample count at the pre-DADA2 steps is the number of PCR wells: out_df rows
+# are per read-direction (r1/r2), so strip that suffix before counting.
 n_pcr_wells <- length(unique(sub("r[12]$", "", rownames(out_df))))
-step_filter  <- dplyr::bind_rows(lapply(c("nopool","pool","pspool"), function(s)
+step_filter <- dplyr::bind_rows(lapply(c("nopool","pool","pspool"), function(s)
   data.frame(step = "post_cutadapt_input_to_filter", strategy = s,
              n_samples = n_pcr_wells, n_taxa = NA, total_reads = reads_postcutadapt)))
 step_qfilter <- dplyr::bind_rows(lapply(c("nopool","pool","pspool"), function(s)
   data.frame(step = "post_quality_filter", strategy = s,
              n_samples = n_pcr_wells, n_taxa = NA, total_reads = reads_postfilter)))
 
-# ---- PCR-collapsed / decontaminated -> non-fungal removal -> depth filter,
-#      from the freshly-regenerated comparison table (4_data_prep.R Section 8) --
-cmp <- read.csv("phyloseq_comparison_summary.csv", stringsAsFactors = FALSE)
+rm(e); gc()
+
+# ---- Scripts 3-4: PCR-collapsed/decontaminated -> non-fungal removal ->
+#      depth filter, from 4_data_prep.R Section 8's comparison table ---------
+cmp <- read.csv(file.path(data_dir, "phyloseq_comparison_summary.csv"),
+                stringsAsFactors = FALSE)
 cmp <- cmp[cmp$object %in% c("nopool","pool","pspool"), ]
-relabel <- function(df, label) data.frame(step = label, strategy = df$object,
-  n_samples = df$n_samples, n_taxa = df$n_taxa, total_reads = df$total_reads)
+relabel <- function(df, label)
+  data.frame(step = label, strategy = df$object, n_samples = df$n_samples,
+             n_taxa = df$n_taxa, total_reads = df$total_reads,
+             stringsAsFactors = FALSE)
 
 tracking <- dplyr::bind_rows(
   step_filter, step_qfilter, step_merge, step_chimera, step_lulu,
-  relabel(cmp[cmp$step == "initial", ],             "pcr_collapsed_decontaminated_taxassigned"),
-  relabel(cmp[cmp$step == "post_PlutoF_filter", ],  "non_fungal_OTU_removal"),
-  relabel(cmp[cmp$step == "post_depth_filter", ],   "depth_filter_final (>=10,000 reads)"))
-write.csv(tracking, "report_read_otu_tracking.csv", row.names = FALSE)
+  relabel(cmp[cmp$step == "initial", ],            "pcr_collapsed_decontaminated_taxassigned"),
+  relabel(cmp[cmp$step == "post_PlutoF_filter", ], "non_fungal_OTU_removal"),
+  relabel(cmp[cmp$step == "post_depth_filter", ],  "depth_filter_final (>=10,000 reads)")) %>%
+  mutate(n_samples   = as.numeric(n_samples),
+         n_taxa      = as.numeric(n_taxa),
+         total_reads = as.numeric(total_reads)) %>%
+  mutate(step = factor(step, levels = c(
+    "post_cutadapt_input_to_filter", "post_quality_filter", "post_merge_denoise",
+    "post_chimera_removal", "post_LULU_curation",
+    "pcr_collapsed_decontaminated_taxassigned", "non_fungal_OTU_removal",
+    "depth_filter_final (>=10,000 reads)"))) %>%
+  arrange(step, strategy)
 
-# ---- Library-depth figure: 57-sample post-non-fungal-removal depths, with the
-#      10,000-read threshold and dropped samples marked --------------------------
-load("eco_analysis.RData")  # nonfungal_ids_by_strategy, nopoolps.dada2
-keep_taxa <- setdiff(taxa_names(nopoolps.dada2), nonfungal_ids_by_strategy$nopool)
-ps_pp <- prune_taxa(keep_taxa, nopoolps.dada2)
+write.csv(tracking, file.path(tab_dir, "report_read_otu_tracking.csv"), row.names = FALSE)
+
+# ---- Figure S1: per-sample depth at the post-non-fungal-removal checkpoint --
+# That intermediate object is not saved in its own right, but is reconstructed
+# exactly from two objects that are: the 57-sample pre-removal phyloseq and the
+# already-computed non-fungal OTU id list.
+load(file.path(data_dir, "eco_analysis.RData"))   # nopoolps.dada2, nonfungal_ids_by_strategy
+ps_pp <- prune_taxa(setdiff(taxa_names(nopoolps.dada2),
+                            nonfungal_ids_by_strategy$nopool), nopoolps.dada2)
 
 depth_df <- data.frame(sample = sample_names(ps_pp), depth = sample_sums(ps_pp))
 depth_df$Season <- as.data.frame(sample_data(ps_pp))$Season
-depth_df$status <- ifelse(depth_df$depth >= 10000, "kept (>= 10,000 reads)", "dropped (< 10,000 reads)")
+depth_df$status <- ifelse(depth_df$depth >= 10000,
+                          "kept (>= 10,000 reads)", "dropped (< 10,000 reads)")
 
-ggplot(depth_df, aes(reorder(sample, depth), depth, fill = status)) +
+p_depth <- ggplot(depth_df, aes(reorder(sample, depth), depth, fill = status)) +
   geom_col() +
-  geom_hline(yintercept = 10000, linetype = "dashed") +
+  geom_hline(yintercept = 10000, linetype = "dashed", colour = "black") +
   scale_y_log10(labels = scales::comma) +
-  scale_fill_manual(values = c("kept (>= 10,000 reads)" = "#4C72B0",
-                               "dropped (< 10,000 reads)" = "#C44E52")) +
-  labs(x = NULL, y = "Reads per sample (log scale)", fill = NULL) +
+  scale_fill_manual(values = c("kept (>= 10,000 reads)"    = "#4C72B0",
+                               "dropped (< 10,000 reads)"  = "#C44E52")) +
+  labs(x = NULL, y = "Reads per sample (log scale)",
+       title = "Library depth per sample (post non-fungal removal, pre depth filter, nopool)",
+       fill = NULL) +
   theme_minimal(base_size = 11) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6),
         legend.position = "top")
+
+save_png(p_depth, "report_library_depth.png", width = 10, height = 5)
+
+cat(sprintf("%d samples, %d dropped (<10,000 reads): %s\n",
+            nrow(depth_df), sum(depth_df$status != "kept (>= 10,000 reads)"),
+            paste(depth_df$sample[depth_df$status != "kept (>= 10,000 reads)"],
+                  collapse = ", ")))
 ```
 
 ::: {.content-visible when-profile="docs"}
@@ -353,7 +408,9 @@ Per-sample relative read abundance at four taxonomic ranks, with samples grouped
 
 This subsection addresses exploratory aim **E2**: documenting the occurrence and relative abundance of *Sporormiella*-type and other Sordariales taxa used in palynological herbivore-presence reconstructions, to provide a modern avian reference point for a proxy currently calibrated almost entirely on mammalian dung.
 
-The canonical tax table was screened against a standard list of coprophilous genera: *Sordaria, Podospora, Cercophora, Chaetomium, Schizothecium, Preussia, Sporormiella, Delitschia, Pilobolus, Ascobolus, Coprinopsis, Saccobolus, Sporormia*. Only ***Sporormiella*** (multiple OTUs) and a single trace ***Coprinopsis*** OTU were detected; none of the other genera appear in this dataset. Per-OTU winter/summer mean read shares and occurrences (number of samples per season, of 26 each) are shown below.
+The canonical tax table was screened against a list of coprophilous genera comprising the standard palynological set — *Sordaria, Podospora, Cercophora, Chaetomium, Schizothecium, Preussia, Sporormiella, Delitschia, Pilobolus, Ascobolus, Coprinopsis, Saccobolus, Sporormia* — extended with four further dung-associated genera recovered here: *Thelebolus, Coniochaeta, Psathyrella* and *Stropharia*. This is the list used throughout this subsection, for both Table S3 and the read-share test below.
+
+Six of the seventeen genera were detected, across 17 OTUs: ***Sporormiella*** (7 OTUs), ***Thelebolus*** (4), ***Psathyrella*** (2), ***Stropharia*** (2), and single OTUs of ***Coniochaeta*** and ***Coprinopsis***. The eleven remaining genera — including *Sordaria*, *Podospora* and *Cercophora*, the taxa most often counted in palynological work — do not appear in this dataset at all. Per-OTU winter/summer mean read shares and occurrences (number of samples per season, of 26 each) are shown below.
 
 ```{r tab-copro}
 #| echo: false
@@ -363,7 +420,7 @@ kable(copro, digits = 3,
       caption = "Table S3. Coprophilous-genus OTUs: mean read share (%) and occurrence per Season (canonical object, 52 samples; 26 winter / 26 summer).")
 ```
 
-Total per-sample coprophilous read share is **higher in summer** than winter (Wilcoxon p = 0.006). Code for this table is shared with the dominance analysis and shown in Section 5.
+Total per-sample coprophilous read share is **markedly higher in summer** than winter — 45.7% versus 8.7% of reads on average (medians 47.5% and 0.02%; Wilcoxon rank-sum p = 0.0012). The contrast is carried by *Thelebolus*, *Coniochaeta* and *Sporormiella*, the three summer-dominant OTUs of Section 5.4; *Psathyrella*, *Stropharia* and *Coprinopsis* occur only at trace level. Code for this table is shared with the dominance analysis and shown in Section 5.
 
 ::: {.content-visible when-profile="docs"}
 <!-- placeholder subsection; not yet vetted for the manuscript -->
@@ -459,7 +516,7 @@ H1 predicts seasonal compositional turnover of the dung mycobiome that is reprod
 
 ![](figures/PCoA_Aitchison_Season_canonical.png)
 
-**Figure S6**: PCoA on robust Aitchison distances (unconstrained), canonical object, coloured by Season and shaped by Year. Crosses mark Season centroids; thin segments connect each sample to its Season centroid.
+**Figure S6**: PCoA on robust Aitchison distances (unconstrained), canonical object, coloured by Season and shaped by Year. Crosses mark Season centroids; thin segments connect each sample to its Season centroid. The axis percentages are shares of the rank-3 reconstruction from which `vegan` computes this distance, not of the full community variation, which is why the axis titles name that denominator; under a full-rank Aitchison distance (CLR after a pseudocount) the same two axes take **13.7% and 9.5%** (23.2% together), and those are the closer approximation to the variance actually explained. See Section 4.1.
 
 This is the same ordination as main-text **Fig. 2A** (Section 10.2).
 
@@ -576,72 +633,201 @@ Both H1 verdicts are robust to the choice of distance — Season is significant 
 <!-- records a correction to an earlier draft -->
 
 ::: callout-important
-**Supersedes.** Earlier versions of this section reported no Season × Year interaction (p ≈ 0.95). That came from an error in `working/report_prep_permanova.R`, where `Year` was passed to `adonis2()` straight from `sample_data()` and so entered the model as a **numeric covariate (1 df)**, testing only a linear trend across 2022–2024 rather than the factorial interaction. `Year` is now fitted as a factor (2 df), as it always was in the distance-to-centroid model of Section 4.3. The Season main effect is essentially unchanged (R² = 0.112 in both); only the Year and Season × Year terms are affected. Corrected 2026-08-05; the same fix was applied to `Scripts/5_community_composition.R`, whose PERMANOVA is print-only.
+**Supersedes.** Earlier versions of this section reported no Season × Year interaction (p ≈ 0.95). That came from an error in the Section 4 analysis code, where `Year` was passed to `adonis2()` straight from `sample_data()` and so entered the model as a **numeric covariate (1 df)**, testing only a linear trend across 2022–2024 rather than the factorial interaction. `Year` is now fitted as a factor (2 df), as it always was in the distance-to-centroid model of Section 4.3. The Season main effect is essentially unchanged (R² = 0.112 in both); only the Year and Season × Year terms are affected. Corrected 2026-08-05; the same fix was applied to `Scripts/5_community_composition.R`, whose PERMANOVA is print-only.
 :::
 :::
 :::
 
-```{r}
+```{r sec4-build}
 #| eval: false
 #| echo: !expr knitr::is_html_output()
 #| code-fold: true
-#| code-summary: "Code used to generate the PCoA, PERMANOVA, beta-dispersion, and centroid tables (report_prep_permanova.R, executed on server)"
+#| code-summary: "Full code for Section 4 — the source of truth for Figure S6 and Tables S5, S5b, S6, S7, S7b and S7c"
 
+# ---------------------------------------------------------------------------
+# Section 4 (H1): PCoA, PERMANOVA, beta-dispersion, per-year breakdown,
+# distance-to-centroid model, and the distance-measure sensitivity check.
+#
+# This chunk is the source of truth for every figure and table in Section 4;
+# there is no parallel script. It reruns the Section 3-6 logic of
+# 5_community_composition.R against the CANONICAL depth-filtered object
+# (alldat$nopool, 52 samples) rather than that script's own unfiltered
+# 57-sample object, and captures to CSV the statistics script 5 only prints.
+# ---------------------------------------------------------------------------
 library(phyloseq); library(vegan); library(ggplot2); library(dplyr)
-load("eco_analysis.RData")
-ps <- alldat$nopool  # canonical, 52 samples, >= 10,000 reads
 
+data_dir <- "/home/daniel/Ptarmigan/trimmed/mergedPlates"   # data live outside the repo
+tab_dir  <- "tables"; fig_dir <- "figures"                  # relative to this .qmd
+load(file.path(data_dir, "eco_analysis.RData"))
+
+grDevices::pdf(NULL)                                        # headless: no X11 fallback
+save_png <- function(obj, filename, width, height, dpi = 800) {
+  png(file.path(fig_dir, filename), width = width, height = height,
+      units = "in", res = dpi)
+  print(obj); dev.off()
+}
+
+ps <- alldat$nopool    # canonical: 52 samples, >= 10,000 reads
 otu_mat <- as(otu_table(ps), "matrix"); if (taxa_are_rows(ps)) otu_mat <- t(otu_mat)
 
-# ---- Unconstrained PCoA on robust Aitchison distances ----
-d_ait <- vegdist(otu_mat, method = "robust.aitchison")
+# ---- Figure S6: unconstrained PCoA on robust Aitchison distances -----------
+d_ait <- vegdist(otu_mat, binary = FALSE, method = "robust.aitchison")
 attr(d_ait, "Labels") <- rownames(otu_mat)   # vegdist drops Labels for robust.aitchison
 ord   <- capscale(d_ait ~ 1)
-# NB: rank 3, not 51 -- vegan's rclr completes the matrix at rank 3 (Section 4.1),
-# so these percentages are shares of a 3-D reconstruction, not of the full data.
-eig   <- pmax(ord$CA$eig, 0)
-ax1p  <- round(100 * eig[1] / sum(eig), 1); ax2p <- round(100 * eig[2] / sum(eig), 1)
+
+# NB: rank 3, not 51. vegan's decostand(x, "rclr") treats zeros as missing and
+# completes the matrix with a rank-3 OptSpace approximation (vegan:::.calc_rclr,
+# ropt = 3), so this distance is Euclidean distance in a 3-D reconstruction and
+# the PCoA has exactly three non-zero eigenvalues. There are NO negative
+# eigenvalues -- the pmax() is a defensive no-op -- and the axis percentages are
+# shares of that reconstruction, not of the full data. See Section 4.1.
+eig  <- pmax(ord$CA$eig, 0)
+ax1p <- round(100 * eig[1] / sum(eig), 1); ax2p <- round(100 * eig[2] / sum(eig), 1)
 
 sc <- as.data.frame(scores(ord, display = "sites", choices = 1:2, scaling = 1))
 colnames(sc)[1:2] <- c("Axis1", "Axis2"); sc$sample <- rownames(sc)
 meta_p <- as.data.frame(sample_data(ps)); meta_p$sample <- rownames(meta_p)
 sc$Season <- droplevels(factor(meta_p$Season[match(sc$sample, meta_p$sample)]))
 sc$Year   <- droplevels(factor(meta_p$Year[match(sc$sample, meta_p$sample)]))
-cent <- aggregate(cbind(Axis1, Axis2) ~ Season, sc, mean); names(cent) <- c("Season","cX","cY")
-sc <- merge(sc, cent, by = "Season")
+cent <- aggregate(cbind(Axis1, Axis2) ~ Season, data = sc, FUN = mean)
+names(cent) <- c("Season", "cX", "cY")
+sc <- merge(sc, cent, by = "Season", all.x = TRUE)
 
-ggplot(sc, aes(Axis1, Axis2, colour = Season, shape = Year)) +
-  geom_segment(aes(xend = cX, yend = cY), alpha = 0.5, linewidth = 0.3, show.legend = FALSE) +
+gp_ait <- ggplot(sc, aes(Axis1, Axis2, colour = Season, shape = Year)) +
+  geom_segment(aes(xend = cX, yend = cY, group = interaction(Season, sample)),
+               alpha = 0.5, linewidth = 0.3, show.legend = FALSE) +
   geom_point(size = 3) +
-  geom_point(data = cent, aes(cX, cY, colour = Season), inherit.aes = FALSE,
+  geom_point(data = cent, aes(x = cX, y = cY, colour = Season), inherit.aes = FALSE,
              size = 3, shape = 4, stroke = 1) +
   coord_equal() +
-  xlab(paste0("PCoA1 (", ax1p, "%)")) + ylab(paste0("PCoA2 (", ax2p, "%)")) +
+  # Axis titles name the denominator on purpose: these percentages are shares of
+  # the rank-3 rCLR reconstruction, not of the full community variation. Bare
+  # "58.0%" reads as an effect size and invites comparison with the 11% Season R2.
+  xlab(sprintf("PCoA1 (%.1f%% of rank-3 rCLR space)", ax1p)) +
+  ylab(sprintf("PCoA2 (%.1f%% of rank-3 rCLR space)", ax2p)) +
+  labs(title = sprintf("Robust Aitchison PCoA (canonical, depth-filtered, n=%d)",
+                       nsamples(ps))) +
+  guides(colour = guide_legend(title = "Season", order = 1),
+         shape  = guide_legend(title = "Year",   order = 2)) +
   theme_classic(base_size = 12)
+save_png(gp_ait, "PCoA_Aitchison_Season_canonical.png", width = 12, height = 8)
 
-# ---- PERMANOVA + beta-dispersion (Season x Year) ----
+# ---- Table S5: PERMANOVA (Season x Year) ----------------------------------
 sampledf <- data.frame(sample_data(ps))
-dists <- vegdist(otu_mat, method = "robust.aitchison")
-perm  <- adonis2(dists ~ Season * Year, by = "terms", data = sampledf)
-write.csv(cbind(as.data.frame(perm), term = rownames(perm)), "report_permanova.csv", row.names = FALSE)
+# Year is stored NUMERIC in sample_data. Left as-is it enters adonis2 as a
+# continuous covariate (1 df), so `Season:Year` would test only a linear year
+# trend rather than the factorial interaction H1 is about -- and it would
+# disagree with the centroid model below, which factors Year. Factor both.
+sampledf$Season <- factor(sampledf$Season)
+sampledf$Year   <- factor(sampledf$Year)
+dists <- vegdist(otu_mat, binary = FALSE, method = "robust.aitchison")
 
-beta_s <- betadisper(dists, factor(sampledf$Season)); pt_s <- permutest(beta_s)
-beta_y <- betadisper(dists, factor(sampledf$Year));   pt_y <- permutest(beta_y)
+set.seed(20260805)   # permutation p-values -> reproducible committed CSV
+perm <- adonis2(dists ~ Season * Year, by = "terms", data = sampledf)
+perm_df <- as.data.frame(perm); perm_df$term <- rownames(perm_df)
+write.csv(perm_df, file.path(tab_dir, "report_permanova.csv"), row.names = FALSE)
+
+# ---- Table S5b: the seasonal contrast within each year --------------------
+# The Season x Year interaction is significant, so report WHERE the shift is
+# strong. Also record the between-season centroid distance (the magnitude the
+# interaction is about) and the per-cell mean distance to centroid.
+rclr_py <- decostand(otu_mat, "rclr", MARGIN = 1)
+dimnames(rclr_py) <- dimnames(otu_mat)   # vegan's rclr imputation drops dimnames
+bd_cell <- betadisper(dists, interaction(sampledf$Season, sampledf$Year))
+per_year <- do.call(rbind, lapply(levels(sampledf$Year), function(y) {
+  i  <- sampledf$Year == y
+  dy <- vegdist(otu_mat[i, , drop = FALSE], binary = FALSE, method = "robust.aitchison")
+  a  <- adonis2(dy ~ Season, data = sampledf[i, , drop = FALSE])
+  cw <- colMeans(rclr_py[i & sampledf$Season == "winter", , drop = FALSE])
+  cs <- colMeans(rclr_py[i & sampledf$Season == "summer", , drop = FALSE])
+  cell <- function(s) mean(bd_cell$distances[sampledf$Year == y & sampledf$Season == s])
+  data.frame(Year = y,
+             n_winter = sum(i & sampledf$Season == "winter"),
+             n_summer = sum(i & sampledf$Season == "summer"),
+             R2 = a$R2[1], F = a$F[1], p_value = a$`Pr(>F)`[1],
+             centroid_distance = sqrt(sum((cw - cs)^2)),
+             dispersion_winter = cell("winter"), dispersion_summer = cell("summer"),
+             stringsAsFactors = FALSE)
+}))
+write.csv(per_year, file.path(tab_dir, "report_permanova_by_year.csv"), row.names = FALSE)
+
+# ---- Table S6: beta-dispersion -------------------------------------------
+beta  <- betadisper(dists, factor(sampledf$Season))
+beta1 <- betadisper(dists, factor(sampledf$Year))
+pt_season <- permutest(beta); pt_year <- permutest(beta1)
 write.csv(dplyr::bind_rows(
-  data.frame(grouping = "Season", term = rownames(pt_s$tab), pt_s$tab, check.names = FALSE),
-  data.frame(grouping = "Year",   term = rownames(pt_y$tab), pt_y$tab, check.names = FALSE)),
-  "report_betadisper.csv", row.names = FALSE)
+  data.frame(grouping = "Season", term = rownames(pt_season$tab), pt_season$tab,
+             check.names = FALSE),
+  data.frame(grouping = "Year",   term = rownames(pt_year$tab),   pt_year$tab,
+             check.names = FALSE)),
+  file.path(tab_dir, "report_betadisper.csv"), row.names = FALSE)
 
-# ---- Distance-to-Season-centroid (robust CLR space) ~ Season * Year ----
-rclr <- decostand(otu_mat, "rclr", MARGIN = 1)
-dimnames(rclr) <- dimnames(otu_mat)   # vegan's rclr imputation path drops dimnames
-meta <- data.frame(sample_data(ps), check.names = FALSE)
-centroids <- rowsum(rclr, meta$Season) / as.vector(table(meta$Season))
+# ---- Table S7: distance to Season centroid (robust CLR space) ~ Season*Year -
+rfyrg2 <- decostand(otu_mat, "rclr", MARGIN = 1)
+dimnames(rfyrg2) <- dimnames(otu_mat)
+meta <- data.frame(sample_data(ps), stringsAsFactors = FALSE, check.names = FALSE)
+stopifnot(identical(rownames(rfyrg2), rownames(meta)))
+
+centroids <- rowsum(rfyrg2, group = meta$Season) / as.vector(table(meta$Season))
 euclid <- function(x, y) sqrt(sum((x - y)^2))
-meta$dist_centroid <- vapply(seq_len(nrow(rclr)),
-  function(k) euclid(rclr[k, ], centroids[meta$Season[k], ]), numeric(1))
+meta$dist_centroid <- vapply(seq_len(nrow(rfyrg2)),
+  function(k) euclid(rfyrg2[k, ], centroids[meta$Season[k], ]), numeric(1))
+meta$Season <- factor(meta$Season); meta$Year <- factor(meta$Year)
+
 mod <- lm(dist_centroid ~ Season * Year, data = meta)
-write.csv(cbind(term = rownames(anova(mod)), anova(mod)), "report_centroid_lm.csv", row.names = FALSE)
+centroid_anova <- anova(mod)
+write.csv(data.frame(term = rownames(centroid_anova), centroid_anova, check.names = FALSE),
+          file.path(tab_dir, "report_centroid_lm.csv"), row.names = FALSE)
+
+# ---- Tables S7b / S7c: sensitivity to the distance measure -----------------
+# Robust Aitchison is computed from a rank-3 completion (see the ordination note
+# above), which inflates both the axis percentages and the PERMANOVA R2. Refit
+# the identical model on full-rank alternatives so Section 4.2 can state how
+# much of the reported effect size depends on that choice.
+#
+# Placed at the END on purpose: the per-year adonis2 loop above does not reseed,
+# so its permutation p-values depend on the RNG stream. Adding work before it
+# would silently change already-committed outputs.
+sens_dists <- list(
+  "robust Aitchison (rank-3)"          = vegdist(otu_mat, method = "robust.aitchison"),
+  "CLR + pseudocount (true Aitchison)" = dist(decostand(otu_mat + 1, "clr")),
+  "Bray-Curtis"                        = vegdist(otu_mat, method = "bray"),
+  "Jaccard (presence/absence)"         = vegdist(otu_mat, method = "jaccard", binary = TRUE))
+
+# Effective dimensionality: non-negligible positive eigenvalues of the classical
+# MDS of each distance. Robust Aitchison returns 3 by construction.
+dist_rank <- function(d) sum(cmdscale(d, k = nrow(otu_mat) - 1, eig = TRUE)$eig > 1e-8)
+
+sens <- do.call(rbind, lapply(names(sens_dists), function(nm) {
+  d <- sens_dists[[nm]]
+  set.seed(20260805)
+  a <- adonis2(d ~ Season * Year, by = "terms", data = sampledf)
+  data.frame(distance = nm, rank = dist_rank(d),
+             season_R2 = a$R2[1], season_F = a$F[1], season_p = a$`Pr(>F)`[1],
+             year_R2 = a$R2[2], year_p = a$`Pr(>F)`[2],
+             interaction_R2 = a$R2[3], interaction_p = a$`Pr(>F)`[3],
+             stringsAsFactors = FALSE)
+}))
+write.csv(sens, file.path(tab_dir, "report_permanova_sensitivity.csv"), row.names = FALSE)
+
+# Same check on the per-year breakdown: the claim that 2022 shows essentially no
+# seasonal shift is the part most exposed to the rank-3 distance.
+sens_year <- do.call(rbind, lapply(names(sens_dists), function(nm) {
+  do.call(rbind, lapply(levels(sampledf$Year), function(y) {
+    i <- sampledf$Year == y
+    d <- switch(nm,
+      "robust Aitchison (rank-3)"          = vegdist(otu_mat[i, , drop = FALSE], method = "robust.aitchison"),
+      "CLR + pseudocount (true Aitchison)" = dist(decostand(otu_mat[i, , drop = FALSE] + 1, "clr")),
+      "Bray-Curtis"                        = vegdist(otu_mat[i, , drop = FALSE], method = "bray"),
+      "Jaccard (presence/absence)"         = vegdist(otu_mat[i, , drop = FALSE], method = "jaccard", binary = TRUE))
+    set.seed(20260805)
+    a <- adonis2(d ~ Season, data = sampledf[i, , drop = FALSE])
+    data.frame(distance = nm, Year = y, R2 = a$R2[1], F = a$F[1],
+               p_value = a$`Pr(>F)`[1], stringsAsFactors = FALSE)
+  }))
+}))
+write.csv(sens_year, file.path(tab_dir, "report_permanova_sensitivity_by_year.csv"),
+          row.names = FALSE)
 ```
 
 ::: {.content-visible when-profile="docs"}
@@ -724,105 +910,308 @@ kable(top5, digits = 2,
 
 Summer's dominance is driven by three strongly season-skewed OTUs: **OTU1 (*Thelebolus*)** averages 24.9% of summer reads (15/26 summer samples vs 5/26 winter at 3.2%), **OTU1225 (*Coniochaeta*)** is essentially summer-only (10.1% vs 0.2%), and **OTU636 (*Sporormiella* cf. *intermedia*)** is also summer-skewed (9.0% vs 2.5%). Winter's own top OTU, **OTU1369**, is a "dark taxon" (unclassified below Class, Dothideomycetes), present in 20/26 winter samples but only 3/26 summer, at 11.2% mean winter share.
 
-```{r}
+```{r sec5-build}
 #| eval: false
 #| echo: !expr knitr::is_html_output()
 #| code-fold: true
-#| code-summary: "Code for iNEXT3D + per-sample hillR + mixed model (report_prep_partA_diversity.R) and dominance/top-5/coprophilous (report_prep_dominance.R), executed on server"
+#| code-summary: "Full code for Section 5 — the source of truth for Figures S7 and S8, Tables S8–S11, and the coprophilous screen behind Table S3"
 
-## ---------- iNEXT3D coverage-based TD by Season ----------
+# ---------------------------------------------------------------------------
+# Section 5 (H2): coverage-based iNEXT3D diversity, per-sample and
+# per-PCR-replicate Hill numbers, the frequentist mixed model, and the
+# dominance / evenness / top-5 / coprophilous analyses.
+#
+# This chunk is the source of truth for every figure and table in Section 5,
+# and for Table S3 in Section 3.2; there is no parallel script. Sections 1-2
+# below reproduce 6_diversity_analyses.R Part A (Sections 1-2 plus the
+# per-sample hillR block) run against the corrected canonical workspace,
+# without the slow parts Section 5 does not need (the Bayesian diet-richness
+# mechanism of Section 7.1, and Part B's phylogenetic null models).
+# ---------------------------------------------------------------------------
 library(phyloseq); library(iNEXT.3D); library(hillR)
 library(lme4); library(lmerTest); library(dplyr); library(tidyr); library(ggplot2)
-load("eco_analysis.RData")
 
+data_dir <- "/home/daniel/Ptarmigan/trimmed/mergedPlates"   # data live outside the repo
+tab_dir  <- "tables"; fig_dir <- "figures"                  # relative to this .qmd
+load(file.path(data_dir, "eco_analysis.RData"))
+
+grDevices::pdf(NULL)                                        # headless: no X11 fallback
+save_png <- function(obj, filename, width, height, dpi = 800) {
+  png(file.path(fig_dir, filename), width = width, height = height,
+      units = "in", res = dpi)
+  print(obj); dev.off()
+}
+otu_mat_of <- function(ps) {
+  m <- as(otu_table(ps), "matrix"); if (taxa_are_rows(ps)) m <- t(m); m
+}
+# indivID is NA for samples without a confirmed microsatellite match; a unique
+# placeholder makes each an unshared singleton random intercept instead of
+# silently pooling unrelated unidentified individuals. Same convention as
+# indivID_glm in 7_gllvm.R.
+add_indivID_glm <- function(md) {
+  md$indivID_glm <- droplevels(factor(ifelse(is.na(md$indivID) | md$indivID == "",
+                                             paste0("unk_", md$sample), md$indivID)))
+  md
+}
+
+# ===========================================================================
+# Table S8 / Figure S7 -- iNEXT3D coverage-based taxonomic Hill diversity
+# ===========================================================================
 ps  <- alldat$nopool
 sd  <- as.data.frame(sample_data(ps))
 OTU <- as(otu_table(ps), "matrix"); if (!taxa_are_rows(ps)) OTU <- t(OTU)
 
-inc_by_season <- lapply(split(rownames(sd), sd$Season), function(samps){
-  M <- OTU[, colnames(OTU) %in% samps, drop = FALSE]; M[M > 0] <- 1L
-  storage.mode(M) <- "numeric"; M })
+# Incidence matrices (species x sampling units), one per Season
+inc_by_season_TD <- lapply(split(rownames(sd), sd$Season), function(samps) {
+  M <- OTU[, colnames(OTU) %in% samps, drop = FALSE]
+  M[M > 0] <- 1L; storage.mode(M) <- "numeric"; M
+})
+
 set.seed(1)
-out_TD <- iNEXT3D(inc_by_season, diversity = "TD", q = c(0,1,2),
+out_TD <- iNEXT3D(data = inc_by_season_TD, diversity = "TD", q = c(0, 1, 2),
                   datatype = "incidence_raw", nboot = 500)
-write.csv(as.data.frame(out_TD$TDAsyEst), "H2_iNEXT3D_TD_asymptotic.csv", row.names = FALSE)
-ggiNEXT3D(out_TD, type = 1, facet.var = "Order.q") + theme_minimal(base_size = 14)
 
-## ---------- Per-PCR-replicate hillR + frequentist mixed model ----------
-# alldat_full[[1]] = one row per PCR replicate; apply the canonical 10,000-read
-# floor at the replicate level, then rarefy to the minimum retained depth.
-ps_pcr <- prune_samples(sample_sums(alldat_full[[1]]) >= 10000, alldat_full[[1]])
+labs_map <- c(winter = "Winter", summer = "Summer"); lvl_order <- c("Winter", "Summer")
+.relabel <- function(df) {
+  if (!("Assemblage" %in% names(df))) return(df)
+  df$Assemblage <- factor(labs_map[df$Assemblage], levels = lvl_order); df
+}
+out_TD$TDInfo   <- .relabel(as.data.frame(out_TD$TDInfo))
+out_TD$TDAsyEst <- .relabel(as.data.frame(out_TD$TDAsyEst))
+if (!is.null(out_TD$TDiNextEst))
+  out_TD$TDiNextEst <- lapply(out_TD$TDiNextEst, function(d) .relabel(as.data.frame(d)))
+
+write.csv(as.data.frame(out_TD$TDAsyEst),
+          file.path(tab_dir, "H2_iNEXT3D_TD_asymptotic.csv"), row.names = FALSE)
+
+p_TD <- ggiNEXT3D(out_TD, type = 1, facet.var = "Order.q") +
+  labs(x = "Sampling units") + theme_minimal(base_size = 14) +
+  theme(plot.title = element_blank(), legend.title = element_blank())
+save_png(p_TD, "H2_iNEXT_TD_by_Season.png", width = 10, height = 6)
+
+# Coverage-standardised comparison at the shared minimum coverage, so the two
+# Seasons are compared at equal completeness rather than equal sample size.
+Cmin <- min(as.data.frame(out_TD$TDInfo)[["SC(T)"]])
+est_TD <- estimate3D(inc_by_season_TD, diversity = "TD", q = c(0, 1, 2),
+                     datatype = "incidence_raw", base = "coverage",
+                     level = Cmin, nboot = 500)
+write.csv(est_TD, file.path(tab_dir, "H2_iNEXT3D_TD_coverage_standardised.csv"),
+          row.names = FALSE)
+
+# ===========================================================================
+# Table S9 -- per-PCR-replicate Hill diversity + frequentist mixed model
+# ===========================================================================
+# alldat_full[[1]] is one row per PCR replicate and is deliberately NOT
+# depth-filtered at the object level (4_data_prep.R uses a pass-through
+# threshold, since it is built for read-count-offset models). hillR needs
+# comparable effort across rows, so the canonical 10,000-read floor is applied
+# here at the REPLICATE level, then everything is rarefied to the minimum
+# retained depth.
+PCR_MIN_DEPTH <- 10000
+ps_pcr <- prune_samples(sample_sums(alldat_full[[1]]) >= PCR_MIN_DEPTH, alldat_full[[1]])
 ps_pcr <- prune_taxa(taxa_sums(ps_pcr) > 0, ps_pcr)
-set.seed(1)
-ps_pcr_rar <- rarefy_even_depth(ps_pcr, min(sample_sums(ps_pcr)),
-                                replace = FALSE, rngseed = 1, verbose = FALSE)
-m  <- as(otu_table(ps_pcr_rar), "matrix"); if (taxa_are_rows(ps_pcr_rar)) m <- t(m)
-md <- as.data.frame(sample_data(ps_pcr_rar))
-md$Season <- factor(md$Season, levels = c("winter","summer")); md$Year <- factor(md$Year)
-md$indivID_glm      <- droplevels(factor(ifelse(is.na(md$indivID) | md$indivID == "",
-                                                paste0("unk_", md$sample), md$indivID)))
-md$pcr_replicate_id <- droplevels(factor(md$sample))
-hill_pcr <- data.frame(q0 = hillR::hill_taxa(m, 0), q1 = hillR::hill_taxa(m, 1),
-                       q2 = hillR::hill_taxa(m, 2),
-                       Season = md$Season, Year = md$Year,
-                       indivID_glm = md$indivID_glm, pcr_replicate_id = md$pcr_replicate_id)
 
-# Fit one model per q; drop random terms if singular, report what converged.
+set.seed(1)
+rar_depth_pcr <- min(sample_sums(ps_pcr))
+ps_pcr_rar <- rarefy_even_depth(ps_pcr, sample.size = rar_depth_pcr,
+                                replace = FALSE, rngseed = 1, verbose = FALSE)
+
+m_pcr  <- otu_mat_of(ps_pcr_rar)
+md_pcr <- as.data.frame(sample_data(ps_pcr_rar))
+stopifnot(identical(rownames(m_pcr), rownames(md_pcr)))
+md_pcr$Season <- factor(md_pcr$Season, levels = c("winter", "summer"))
+md_pcr$Year   <- factor(md_pcr$Year)
+md_pcr <- add_indivID_glm(md_pcr)
+# Groups the (up to) 2 technical replicates of the same dung sample.
+md_pcr$pcr_replicate_id <- droplevels(factor(md_pcr$sample))
+
+hill_pcr <- data.frame(
+  pcr_row = rownames(m_pcr),
+  q0 = hillR::hill_taxa(m_pcr, q = 0),
+  q1 = hillR::hill_taxa(m_pcr, q = 1),
+  q2 = hillR::hill_taxa(m_pcr, q = 2),
+  Season = md_pcr$Season, Year = md_pcr$Year,
+  indivID_glm = md_pcr$indivID_glm,
+  pcr_replicate_id = md_pcr$pcr_replicate_id, stringsAsFactors = FALSE)
+write.csv(hill_pcr, file.path(tab_dir, "H2_hill_per_pcr_replicate.csv"), row.names = FALSE)
+
+hl_pcr <- hill_pcr %>% pivot_longer(c(q0, q1, q2), names_to = "q", values_to = "value")
+p_hill_box <- ggplot(hl_pcr, aes(Season, value)) +
+  geom_boxplot(outlier.shape = NA, fill = "grey92") +
+  geom_jitter(aes(colour = Year), width = 0.15, size = 1.6, alpha = 0.7) +
+  facet_wrap(~q, scales = "free_y",
+             labeller = as_labeller(c(q0 = "q0 richness", q1 = "q1 Shannon",
+                                      q2 = "q2 Simpson"))) +
+  labs(title = sprintf("Per-PCR-replicate Hill diversity (rarefied to %d reads)",
+                       rar_depth_pcr), y = "Hill number", x = NULL) +
+  theme_bw(base_size = 12)
+save_png(p_hill_box, "H2_hill_boxplot_Season_pcr.png", width = 10, height = 4.5)
+
+# Fallback ladder if the full random-effects structure is singular: drop
+# (1|indivID_glm) first (many NA-individual singleton placeholders), then
+# (1|Year), then plain lm(). (1|pcr_replicate_id) is kept as long as possible.
+# Whichever structure converged is reported in `re_structure`.
 fit_h2_lmm <- function(dat, qcol) {
   ladder <- list(
     "Season + (1|Year) + (1|indivID_glm) + (1|pcr_replicate_id)",
     "Season + (1|Year) + (1|pcr_replicate_id)",
     "Season + (1|pcr_replicate_id)")
+  fit <- NULL; re_structure <- NA_character_
   for (rhs in ladder) {
     fit <- tryCatch(lmerTest::lmer(as.formula(paste(qcol, "~", rhs)), data = dat),
                     error = function(e) NULL)
+    re_structure <- rhs
     if (!is.null(fit) && !lme4::isSingular(fit)) break
   }
-  if (is.null(fit) || lme4::isSingular(fit))
+  if (is.null(fit) || lme4::isSingular(fit)) {
     fit <- lm(as.formula(paste(qcol, "~ Season")), data = dat)
-  co <- summary(fit)$coefficients
-  est <- co["Seasonsummer","Estimate"]; se <- co["Seasonsummer","Std. Error"]
-  pv  <- if ("Pr(>|t|)" %in% colnames(co)) co["Seasonsummer","Pr(>|t|)"] else NA
-  data.frame(metric = qcol, summer_minus_winter = round(est,3),
-             lwr = round(est-1.96*se,3), upr = round(est+1.96*se,3), p = round(pv,4))
+    re_structure <- "Season (lm, no random effects)"
+  }
+  co  <- summary(fit)$coefficients
+  est <- co["Seasonsummer", "Estimate"]; se <- co["Seasonsummer", "Std. Error"]
+  pv  <- if ("Pr(>|t|)" %in% colnames(co)) co["Seasonsummer", "Pr(>|t|)"]
+         else co["Seasonsummer", "Pr(>|z|)"]
+  data.frame(metric = qcol, re_structure = re_structure,
+             summer_minus_winter = round(est, 3),
+             lwr = round(est - 1.96 * se, 3), upr = round(est + 1.96 * se, 3),
+             p = round(pv, 4))
 }
-write.csv(dplyr::bind_rows(lapply(c("q0","q1","q2"), function(q) fit_h2_lmm(hill_pcr, q))),
-          "H2_lmm_season_effect.csv", row.names = FALSE)
+write.csv(dplyr::bind_rows(lapply(c("q0", "q1", "q2"), function(q) fit_h2_lmm(hill_pcr, q))),
+          file.path(tab_dir, "H2_lmm_season_effect.csv"), row.names = FALSE)
 
-## ---------- Dominance / evenness, top-5 OTUs, coprophilous share ----------
-library(phyloseq); library(dplyr)
+# ===========================================================================
+# Figure S8 -- per-sample Hill diversity (PCR-collapsed, already rarefied)
+# ===========================================================================
+# alldat.rfy$nopool is rarefied to a common depth, so hill_taxa() here is
+# deterministic and no seed is involved. This is the PER-SAMPLE level (n = 52),
+# deliberately distinct from the PCR-replicate level of Table S9 above.
+ps_rar_sample <- alldat.rfy$nopool
+m_rar_sample  <- otu_mat_of(ps_rar_sample)
+md_rar_sample <- as.data.frame(sample_data(ps_rar_sample))
+stopifnot(identical(rownames(m_rar_sample), rownames(md_rar_sample)))
+md_rar_sample$Season <- factor(md_rar_sample$Season, levels = c("winter", "summer"))
+md_rar_sample$Year   <- factor(md_rar_sample$Year)
+md_rar_sample <- add_indivID_glm(md_rar_sample)
+
+hill_sample <- data.frame(
+  sample = rownames(m_rar_sample),
+  q0 = hillR::hill_taxa(m_rar_sample, q = 0),
+  q1 = hillR::hill_taxa(m_rar_sample, q = 1),
+  q2 = hillR::hill_taxa(m_rar_sample, q = 2),
+  Season = md_rar_sample$Season, Year = md_rar_sample$Year,
+  indivID_glm = md_rar_sample$indivID_glm, stringsAsFactors = FALSE)
+write.csv(hill_sample, file.path(tab_dir, "H2_hill_per_sample.csv"), row.names = FALSE)
+
+hl_sample <- hill_sample %>% pivot_longer(c(q0, q1, q2), names_to = "q", values_to = "value")
+p_hill_sample_box <- ggplot(hl_sample, aes(Season, value)) +
+  geom_boxplot(outlier.shape = NA, fill = "grey92") +
+  geom_jitter(aes(colour = Year), width = 0.15, size = 1.6, alpha = 0.7) +
+  facet_wrap(~q, scales = "free_y",
+             labeller = as_labeller(c(q0 = "q0 richness", q1 = "q1 Shannon",
+                                      q2 = "q2 Simpson"))) +
+  labs(title = sprintf("Per-sample Hill diversity (PCR-collapsed, rarefied to %d reads)",
+                       min(rowSums(m_rar_sample))), y = "Hill number", x = NULL) +
+  theme_bw(base_size = 12)
+save_png(p_hill_sample_box, "H2_hill_boxplot_Season.png", width = 10, height = 4.5)
+
+# ===========================================================================
+# Table S10 -- dominance and evenness, per sample
+# ===========================================================================
 ps <- alldat$nopool
-otu_mat <- as(otu_table(ps), "matrix"); if (!taxa_are_rows(ps)) otu_mat <- t(otu_mat)  # taxa x samples
-sd  <- as.data.frame(sample_data(ps))
-rel <- sweep(otu_mat, 2, colSums(otu_mat), "/")
+otu_mat <- as(otu_table(ps), "matrix")
+if (!taxa_are_rows(ps)) otu_mat <- t(otu_mat)      # taxa x samples
+sd <- as.data.frame(sample_data(ps))
+stopifnot(identical(colnames(otu_mat), rownames(sd)))
+rel_mat <- sweep(otu_mat, 2, colSums(otu_mat), "/")
 
-pielou_J <- function(p) { p <- p[p > 0]; (-sum(p*log(p))) / log(length(p)) }
-dom <- data.frame(sample = colnames(otu_mat), Season = sd$Season,
-                  richness = colSums(otu_mat > 0),
-                  top1_prop = apply(rel, 2, max),
-                  pielou_J  = apply(rel, 2, pielou_J))
-dom %>% group_by(Season) %>%
-  summarise(n = n(), mean_richness = round(mean(richness),1),
-            mean_top1_prop_pct = round(100*mean(top1_prop),1),
-            mean_pielou_J = round(mean(pielou_J),2)) # + Wilcoxon tests -> report_dominance_summary.csv
+pielou_J <- function(p) { p <- p[p > 0]; (-sum(p * log(p))) / log(length(p)) }
 
-tax <- as.data.frame(as(tax_table(ps), "matrix"))
+dom_df <- data.frame(
+  sample = colnames(otu_mat), Season = sd$Season, Year = sd$Year,
+  richness  = colSums(otu_mat > 0),
+  top1_prop = apply(rel_mat, 2, max),
+  pielou_J  = apply(rel_mat, 2, pielou_J), stringsAsFactors = FALSE)
+
+season_summary <- dom_df %>% group_by(Season) %>%
+  summarise(n = n(),
+            mean_richness      = round(mean(richness), 1),
+            mean_top1_prop_pct = round(100 * mean(top1_prop), 1),
+            mean_pielou_J      = round(mean(pielou_J), 2), .groups = "drop")
+
+wilcox_rich <- wilcox.test(richness  ~ Season, data = dom_df)
+wilcox_top1 <- wilcox.test(top1_prop ~ Season, data = dom_df)
+wilcox_J    <- wilcox.test(pielou_J  ~ Season, data = dom_df)
+
+write.csv(dom_df, file.path(tab_dir, "report_dominance_per_sample.csv"), row.names = FALSE)
+write.csv(season_summary %>%
+            mutate(wilcox_p_richness  = round(wilcox_rich$p.value, 5),
+                   wilcox_p_top1_prop = round(wilcox_top1$p.value, 5),
+                   wilcox_p_pielou_J  = round(wilcox_J$p.value, 5)),
+          file.path(tab_dir, "report_dominance_summary.csv"), row.names = FALSE)
+
+# ===========================================================================
+# Table S11 -- top-5 dominant OTUs per Season
+# ===========================================================================
+tax <- as.data.frame(as(tax_table(ps), "matrix"), stringsAsFactors = FALSE)
 seasons <- levels(factor(sd$Season))
-top5 <- dplyr::bind_rows(lapply(seasons, function(s){
-  shares <- rowMeans(rel[, rownames(sd)[sd$Season == s], drop = FALSE])
-  ids <- names(sort(shares, decreasing = TRUE))[1:5]
-  data.frame(Season = s, OTU = ids, mean_pct_share = round(100*shares[ids],2),
-             tax[ids, c("Phylum","Class","Order","Family","Genus","Species")]) }))
-write.csv(top5, "report_top5_otu_by_season.csv", row.names = FALSE)
+top5_df <- dplyr::bind_rows(lapply(seasons, function(s) {
+  shares   <- rowMeans(rel_mat[, rownames(sd)[sd$Season == s], drop = FALSE])
+  top5_ids <- names(sort(shares, decreasing = TRUE))[1:5]
+  data.frame(Season = s, OTU = top5_ids,
+             mean_pct_share = round(100 * shares[top5_ids], 2),
+             tax[top5_ids, c("Phylum", "Class", "Order", "Family", "Genus", "Species")],
+             stringsAsFactors = FALSE)
+}))
+write.csv(top5_df, file.path(tab_dir, "report_top5_otu_by_season.csv"), row.names = FALSE)
 
-# Coprophilous-genus screen (COPRO_GENERA list lifted from confirmatory_analysis.R)
-COPRO_GENERA <- c("Sordaria","Podospora","Cercophora","Chaetomium","Schizothecium",
-                  "Preussia","Sporormiella","Delitschia","Pilobolus","Ascobolus",
-                  "Coprinopsis","Saccobolus","Sporormia")
-strip_pref <- function(x){ x <- sub("^[a-z]__","",x); x[x=="" | grepl("unidentified",x,TRUE)] <- NA; x }
+# ===========================================================================
+# Table S3 (Section 3.2, E2) -- coprophilous-genus screen
+# ===========================================================================
+# ONE list, used for both Table S3 and the Season test below. It is the
+# standard palynological coprophilous set extended with the four dung-
+# associated genera that actually carry the seasonal signal in this dataset:
+# Thelebolus, Coniochaeta, Psathyrella and Stropharia (Sections 5.4, 6.2, 8.2).
+# Sections 8 and 9 apply a 14-genus variant of this list to the FUNGuild guild
+# rule (it omits Sporormia, Psathyrella and Stropharia); see 8_functional_guilds.R.
+COPRO_GENERA <- c("Sordaria", "Podospora", "Cercophora", "Chaetomium",
+                  "Schizothecium", "Preussia", "Sporormiella", "Delitschia",
+                  "Pilobolus", "Ascobolus", "Coprinopsis", "Saccobolus", "Sporormia",
+                  "Thelebolus", "Coniochaeta", "Psathyrella", "Stropharia")
+
+# UNITE taxonomy carries rank prefixes ("g__Thelebolus"); strip them or the
+# %in% match silently fails. "unidentified" placeholders become NA.
+strip_pref <- function(x) {
+  x <- ifelse(is.na(x), NA_character_, sub("^[a-z]__", "", x))
+  x[x == "" | grepl("unidentified", x, ignore.case = TRUE)] <- NA
+  x
+}
 genus_clean <- strip_pref(tax$Genus)
-copro_otus  <- rownames(tax)[!is.na(genus_clean) & genus_clean %in% COPRO_GENERA]
-# per-OTU winter/summer mean share + occurrences -> report_coprophilous_by_season(_v2).csv
+copro_flag  <- !is.na(genus_clean) & genus_clean %in% COPRO_GENERA
+copro_otus  <- rownames(tax)[copro_flag]
+
+w <- sd$Season == "winter"; s <- sd$Season == "summer"
+copro_by_otu <- data.frame(
+  OTU     = copro_otus,
+  Genus   = genus_clean[copro_flag],
+  Species = strip_pref(tax$Species[copro_flag]),
+  winter_mean_pct = round(100 * rowMeans(rel_mat[copro_otus, w, drop = FALSE]), 3),
+  summer_mean_pct = round(100 * rowMeans(rel_mat[copro_otus, s, drop = FALSE]), 3),
+  occ_winter = rowSums(rel_mat[copro_otus, w, drop = FALSE] > 0),
+  occ_summer = rowSums(rel_mat[copro_otus, s, drop = FALSE] > 0),
+  stringsAsFactors = FALSE)
+copro_by_otu <- copro_by_otu[order(-(copro_by_otu$winter_mean_pct +
+                                     copro_by_otu$summer_mean_pct)), ]
+write.csv(copro_by_otu, file.path(tab_dir, "report_coprophilous_by_season_v2.csv"),
+          row.names = FALSE)
+
+# Per-sample total coprophilous read share, and the Season test quoted in
+# Section 3.2 -- same COPRO_GENERA list as Table S3 above.
+copro_df <- data.frame(sample = colnames(rel_mat), Season = sd$Season,
+                       copro_pct_share = 100 * colSums(rel_mat[copro_otus, , drop = FALSE]))
+print(copro_df %>% group_by(Season) %>%
+        summarise(mean_pct = round(mean(copro_pct_share), 2),
+                  median_pct = round(median(copro_pct_share), 2), .groups = "drop"))
+print(wilcox.test(copro_pct_share ~ Season, data = copro_df))
 ```
 
 ::: {.content-visible when-profile="docs"}
@@ -1118,7 +1507,7 @@ Sections 3–6 characterise the seasonal shift *taxonomically* — which lineage
 
 Guild annotation uses **FUNGuild** (Nguyen et al. 2016), run through its command-line tool against each OTU's own taxonomy string, so that assignments are made at the finest rank available per OTU (species, genus, family or order) rather than by a single-rank lookup. **693 of the 1129 canonical OTUs (61.4%) receive a guild call** at a usable confidence ranking; the remaining 436 return no assignment — either because no matching taxonomy record exists in the FUNGuild database or because the match carries no ranked guild.
 
-FUNGuild returns compound guild strings rather than a single label — for example `|Dung Saprotroph|-Endophyte-Plant Saprotroph-Undefined Saprotroph`. OTUs are collapsed to a single class by a priority rule (first match wins): dung saprotroph → plant-associated → pathotroph, with anything else falling to *other assigned* or *unassigned* (no FUNGuild call at all). Coprophily takes precedence deliberately: it is the guild the study is about, and it would otherwise be absorbed into a generic saprotroph category. An OTU counts as a dung saprotroph if FUNGuild lists `Dung Saprotroph` **or** its genus is one of the recognised coprophilous genera used throughout this appendix (Section 3.2). This is the identical rule used for the Section-10 guild trait.
+FUNGuild returns compound guild strings rather than a single label — for example `|Dung Saprotroph|-Endophyte-Plant Saprotroph-Undefined Saprotroph`. OTUs are collapsed to a single class by a priority rule (first match wins): dung saprotroph → plant-associated → pathotroph, with anything else falling to *other assigned* or *unassigned* (no FUNGuild call at all). Coprophily takes precedence deliberately: it is the guild the study is about, and it would otherwise be absorbed into a generic saprotroph category. An OTU counts as a dung saprotroph if FUNGuild lists `Dung Saprotroph` **or** its genus is one of fourteen recognised coprophilous genera (the Section 3.2 list, omitting *Sporormia*, *Psathyrella* and *Stropharia*). That difference is immaterial here: *Sporormia* is absent from the dataset, both *Stropharia* OTUs are already assigned by their FUNGuild string, and the two *Psathyrella* OTUs carry 0.04% of reads, so no guild share below changes at the reported precision. This is the identical rule used for the Section 9 guild trait.
 
 ```{r tab-guild-crosswalk}
 #| echo: false
@@ -1427,7 +1816,9 @@ conda run -n r_env Rscript build_main_figure.R fig1-build
 
 ### 10.1 Figure 1 — Composition and function of the dung mycobiome
 
+:::: {.content-visible when-profile="docs"}
 *Provenance: Fig. 1A uses the genus-level composition of Section 3.1; Fig. 1B–C the guild assignments of Section 8.2. All three panels are computed on the canonical 52-sample object (`alldat$nopool`), and A and B share one sample axis.*
+::::
 
 ![](figures/main/Fig1_composition_function.png)
 
@@ -1634,13 +2025,15 @@ print(data.frame(Guild  = GUILD_LEVELS,
 
 ### 10.2 Figure 2 — Seasonal turnover and its year-to-year variation (H1)
 
+:::: {.content-visible when-profile="docs"}
 *Provenance: Fig. 2A is the ordination of Section 4.1; Fig. 2B the distance-to-Season-centroid model of Section 4.3. Test statistics are read from the committed `tables/report_permanova.csv` and `tables/report_centroid_lm.csv`, so the figure cannot drift from Section 4.*
+::::
 
 ![](figures/main/Fig2_seasonal_turnover.png)
 
-**Figure 2**: Winter and summer dung mycobiomes differ in composition, and the size of that difference varies among years. **(A)** Unconstrained principal coordinates analysis of robust Aitchison distances among the 52 canonical samples, coloured by season and shaped by year. Thin lines join each sample to its season centroid (×). **(B)** Distance of each sample to its own season centroid in robust-CLR space, split by season and year; boxes show the median and interquartile range and points are individual samples. Subtitles give the PERMANOVA terms (A) and the ANOVA terms of the `distance ~ Season × Year` model of within-season spread (B).
+**Figure 2**: Winter and summer dung mycobiomes differ in composition, and the size of that difference varies among years. **(A)** Unconstrained principal coordinates analysis of robust Aitchison distances among the 52 canonical samples, coloured by season and shaped by year. Thin lines join each sample to its season centroid (×). The axis percentages are shares of the rank-3 reconstruction from which `vegan` computes robust Aitchison distances, not of the full community variation, and the axis titles name that denominator accordingly; under a full-rank Aitchison distance (CLR after a pseudocount) the same two axes take **13.7% and 9.5%**, which is the closer approximation to the variance actually explained (Appendix Section 4.1). **(B)** Distance of each sample to its own season centroid in robust-CLR space, split by season and year; boxes show the median and interquartile range and points are individual samples. Subtitles give the PERMANOVA terms (A) and the ANOVA terms of the `distance ~ Season × Year` model of within-season spread (B).
 
-Winter and summer communities separate along the first ordination axis: Season explains 11% of compositional variance (PERMANOVA p = 0.002; Table S5). The seasonal contrast is not, however, of constant size — the Season × Year interaction is significant (R² = 0.10, p = 0.011), and the per-year tests in Table S5b place almost all of the separation in 2023 (R² = 0.24, p = 0.005) with 2022 showing essentially none (R² = 0.02, p = 0.789 — a figure that is itself sensitive to the distance measure, see Section 4.2 caveat iii). Panel B shows that this is a difference in *where* the seasons sit rather than in how tightly each clusters: summer samples are consistently further from their own centroid than winter samples in every year (Season p \< 0.001), with no Season × Year interaction in that spread (p = 0.79). Two caveats belong with this figure and are treated in Section 4.2: summer samples are significantly more dispersed than winter ones, so part of the PERMANOVA R² reflects spread rather than location alone (Anderson 2001), and the axis percentages are inflated because `vegan`'s robust Aitchison distance is built from a rank-3 completion of the robust CLR matrix, so panel A plots two of only three available dimensions (Section 4.1).
+Winter and summer communities separate along the first ordination axis: Season explains 11% of compositional variance (PERMANOVA p = 0.002; Table S5). The seasonal contrast is not, however, of constant size — the Season × Year interaction is significant (R² = 0.10, p = 0.011), and the per-year tests place the shift in all three years while making it much the largest in 2023 (R² = 0.21–0.24, p ≤ 0.009), intermediate in 2024 (R² = 0.10–0.14) and smallest in 2022 (R² = 0.09–0.10, p ≤ 0.010 under the full-rank distances; Tables S5b, S7c). What survives every distance measure is the *ordering* of the three years rather than the size of the gap between them: under the rank-3 robust Aitchison distance of panel A the 2022 contrast alone collapses to R² = 0.02 (p = 0.789), an artefact of the truncated distance rather than a year without a seasonal shift (Section 4.2, caveat iii). Panel B shows that this is a difference in *where* the seasons sit rather than in how tightly each clusters: summer samples are consistently further from their own centroid than winter samples in every year (Season p \< 0.001), with no Season × Year interaction in that spread (p = 0.79). Two caveats belong with this figure and are treated in Section 4.2: summer samples are significantly more dispersed than winter ones, so part of the PERMANOVA R² reflects spread rather than location alone (Anderson 2001), and the axis percentages are shares of a rank-3 completion of the robust CLR matrix — panel A plots two of only three available dimensions, which is why its axis titles name that space rather than reporting a bare percentage (Section 4.1).
 
 ```{r fig2-build}
 #| eval: false
@@ -1649,7 +2042,7 @@ Winter and summer communities separate along the first ordination axis: Season e
 #| code-summary: "Full build code for Figure 2 — the source of truth for figures/main/Fig2_seasonal_turnover.{png,jpg,pdf}"
 
 # Figure 2 -- Seasonal turnover and its year-to-year variation (H1).
-# Both panels reuse the Section 4 analysis verbatim (working/report_prep_permanova.R):
+# Both panels reuse the Section 4 analysis verbatim (its build chunk in §4):
 # panel A the unconstrained robust-Aitchison PCoA, panel B the distance-to-
 # Season-centroid in rCLR space. Test statistics are READ from the committed
 # tables/ CSVs so the figure and Section 4 can never drift apart.
@@ -1722,7 +2115,10 @@ pA <- ggplot(sc, aes(Axis1, Axis2)) +
   scale_colour_manual(values = season_cols, guide = "none") +
   scale_shape_manual(values = year_shapes) +
   coord_equal() +
-  labs(x = paste0("PCoA1 (", ax1p, "%)"), y = paste0("PCoA2 (", ax2p, "%)"),
+  # See Section 4.1: these are shares of the rank-3 rCLR reconstruction, so the
+  # denominator is named in the axis title rather than left to the caption.
+  labs(x = sprintf("PCoA1 (%.1f%% of rank-3 rCLR space)", ax1p),
+       y = sprintf("PCoA2 (%.1f%% of rank-3 rCLR space)", ax2p),
        subtitle = sprintf("PERMANOVA  Season: R² = %.2f, p = %.3f\nSeason × Year: R² = %.2f, p = %.3f",
                           pr$R2, pr$`Pr(>F)`, pi$R2, pi$`Pr(>F)`)) +
   base_theme +
@@ -1785,7 +2181,9 @@ print(round(tapply(dcent$dist, list(dcent$Season, dcent$Year), mean), 1))
 
 ### 10.3 Figure 3 — Richness rises, evenness collapses (H2)
 
+:::: {.content-visible when-profile="docs"}
 *Provenance: Fig. 3A is the coverage-based iNEXT3D analysis of Section 5.1 (Table S8); Fig. 3B the per-sample Hill numbers of Section 5.2 (Figure S8), annotated with the mixed-model contrasts of Table S9; Fig. 3C the dominance and evenness metrics of Section 5.3 (Table S10); Fig. 3D the top-5 dominant OTUs of Section 5.4 (Table S11), coloured by the guild rule of Section 8.1. Panels B–D are computed on the canonical 52-sample object (`alldat$nopool`, rarefied for B); panel A's estimates and every test statistic are read from the committed `tables/` CSVs, so the figure cannot drift from Section 5.*
+::::
 
 ![](figures/main/Fig3_richness_evenness_crossover.png)
 
@@ -2192,7 +2590,9 @@ print(data.frame(Season = chk$Season, OTU = chk$OTU, share_pct = round(chk$share
 
 ### 10.4 Figure 4 — Dark and partly novel lineages dominate winter dung (E1)
 
+:::: {.content-visible when-profile="docs"}
 *Provenance: all three panels come from Section 3.4. Fig. 4A and 4B are the main-text versions of Figures S-E1a and S-E1b; Fig. 4C plots Table S-E1b. Every value is read from the committed `tables/` CSVs written by `9_dark_taxa_SH_matching.R` — nothing is recomputed from sequence data, because the Species Hypothesis assignment is an external pipeline step (a containerised run of the TU-NHM `sh_matching` workflow against the UNITE reference).*
+::::
 
 ![](figures/main/Fig4_dark_taxa_SH.png)
 
@@ -2434,7 +2834,9 @@ print(data.frame(OTU = wd$OTU_ID[o], class = sub("^c__", "", wd$Class[o]),
 
 ### 10.5 Figure 5 — A reproducible seasonal axis inside large among-individual variation (HMSC synthesis)
 
+:::: {.content-visible when-profile="docs"}
 *Provenance: Fig. 5A is the occurrence-scale per-OTU niche of Section 9.4 (Table S-HMSCe(iii)), with the guild means that reproduce the trait → environment link of Section 9.3 (Table S-HMSCd); Fig. 5B is the variance partition of Section 9.2 (Table S-HMSCc). Both panels read the committed `tables/hmsc_*.csv` written by `10_hmsc.R`, so the figure cannot drift from Section 9.*
+::::
 
 ![](figures/main/Fig5_hmsc_synthesis.png)
 
