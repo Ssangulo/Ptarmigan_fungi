@@ -1792,7 +1792,7 @@ The explanatory fit is moderate (community-mean R² ≈ 0.46 for the abundance m
 *Documentation build only; omitted from the submitted appendix. Move any paragraph, callout or table here that belongs in the full record rather than in the supplement.*
 :::
 
-## Section 10: Main-test figures {.page-break-before}
+## Section 10: Main-text figures {.page-break-before}
 
 ::: {.content-visible when-profile="docs"}
 Sections 2–9 document the analyses in full. This section collects the figures that appear in the **main manuscript**, which present a deliberately reduced selection of those results for a general readership. It exists so that every main-text figure has exactly one authoritative definition.
