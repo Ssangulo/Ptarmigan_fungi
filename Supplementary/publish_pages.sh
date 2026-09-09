@@ -93,7 +93,9 @@ git clone --quiet --depth 1 --branch main "file://$REPO" "$CLONE"
 cd "$CLONE"
 git checkout --quiet --orphan gh-pages
 git rm -rq --cached .
-rm -rf ./*
+# Clear the checkout, dotfiles included -- a plain `rm -rf ./*` would leave the
+# repo's .gitattributes/.gitignore behind and publish them as part of the site.
+find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
 cp -a "$BUILD"/. .
 git add -A
 git -c user.name="$(git -C "$REPO" config user.name)" \
