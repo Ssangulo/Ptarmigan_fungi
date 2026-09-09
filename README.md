@@ -10,10 +10,7 @@ Lifjellet, Lierne, Norway; winter and summer, 2022–2024.
 - `Scripts/` — the pipeline, numbered 1–10: demultiplexing, DADA2 + LULU, UNITE taxonomy,
   data preparation, community composition, diversity, GLLVM, functional guilds, UNITE
   species-hypothesis matching, HMSC.
-- `Supplementary/` — `Supplementary_Appendix.qmd` (appendix source, and the source of truth
-  for the main-text figures) with the `figures/` and `tables/` it reads.
-
-Sequence data and intermediate workspaces are not in this repository.
+- `Supplementary/` — `Supplementary_Appendix.qmd` (appendix source) with the `figures/` and `tables/` it reads.
 
 ## Rendering the appendix
 
