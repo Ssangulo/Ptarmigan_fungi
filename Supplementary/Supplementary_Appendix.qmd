@@ -638,11 +638,41 @@ Both H1 verdicts are robust to the choice of distance — Season is significant 
 :::
 :::
 
+### 4.4 Turnover is compositional, not a shift in dominance
+
+The PERMANOVA of Section 4.2 establishes that the two seasons differ, but not *how*: the same set of taxa redistributed among themselves would produce a significant Season term just as a genuine replacement of membership would. Table S7d separates the two readings in raw detections rather than through a distance, by asking how often the OTUs that shift most between seasons are found in the other season at all.
+
+```{r tab-occupancy}
+#| echo: false
+library(knitr)
+oc <- read.csv("tables/report_season_occupancy.csv", check.names = FALSE)
+pct <- function(x) ifelse(x == 0, "0",
+                   ifelse(100 * x < 0.01, "<0.01", sprintf("%.2f", 100 * x)))
+kable(data.frame(
+  `Enriched in`      = oc$direction,
+  OTU                = oc$OTU_ID,
+  Taxon              = oc$Taxon,
+  `Winter detections`= paste0(oc$prev_winter, "/", oc$n_winter),
+  `Summer detections`= paste0(oc$prev_summer, "/", oc$n_summer),
+  `Winter reads (%)` = pct(oc$share_winter),
+  `Summer reads (%)` = pct(oc$share_summer),
+  check.names = FALSE),
+  row.names = FALSE, align = "lllccrr",
+  caption = "Table S7d. Season occupancy of the twenty most seasonally-shifted OTUs, canonical object (alldat$nopool, 26 winter / 26 summer samples). Ranked by the difference in mean within-season relative read share; an OTU must be detected in at least 5 of the 26 samples of the season it is enriched in, so no single-sample bloom can enter the table. 'Detections' is the number of samples in which the OTU has a non-zero count; 'reads' is its mean share of a sample's reads within that season. Taxonomy is the finest confident UNITE rank, with the parent rank given in brackets where no genus was assigned.")
+```
+
+The two blocks are close to mutually exclusive. The ten winter-enriched OTUs account for **40.6%** of the reads of an average winter sample but **3.1%** of an average summer one; the ten summer-enriched OTUs account for **54.7%** of summer but **6.1%** of winter. Their cross-season detections are correspondingly sparse — a median of 3.5 of 26 summer samples for the winter-enriched set, and 1 of 26 winter samples for the summer-enriched set — and six of the twenty are never recovered in the opposite season at all. Across the whole object the same pattern holds at the level of bare presence: of 1,129 OTUs, only **171 (15%)** are detected in both seasons, against 265 winter-only and 693 summer-only.
+
+This is corroborated by the distance-based tests, which do not depend on the ranking above. Recomputing the identical `Season * Year` PERMANOVA on presence/absence alone — discarding every abundance — leaves the seasonal effect essentially intact (Jaccard R² = 0.074, p = 0.001; Sørensen R² = 0.113, p = 0.001) against R² = 0.086 for the full-rank abundance-based Aitchison distance. Season explains as much of *who is there* as of *how much of each there is*.
+
+Two qualifications. The blocks are defined by relative read share, so a taxon that is genuinely present but rare in the other season can still appear here as near-absent; the claim these numbers support is that the **dominant membership** of the two seasons is largely disjoint, not that the seasons share no taxa. And the winter-only/summer-only counts above are inflated by rare OTUs seen in a single sample: restricting to OTUs detected in at least five samples of a season leaves 9 winter-only, 51 summer-only and 11 shared, which preserves the asymmetry but on much smaller numbers.
+
+
 ```{r sec4-build}
 #| eval: false
 #| echo: !expr knitr::is_html_output()
 #| code-fold: true
-#| code-summary: "Full code for Section 4 — the source of truth for Figure S6 and Tables S5, S5b, S6, S7, S7b and S7c"
+#| code-summary: "Full code for Section 4 — the source of truth for Figure S6 and Tables S5, S5b, S6, S7, S7b, S7c and S7d"
 
 # ---------------------------------------------------------------------------
 # Section 4 (H1): PCoA, PERMANOVA, beta-dispersion, per-year breakdown,
@@ -828,6 +858,64 @@ sens_year <- do.call(rbind, lapply(names(sens_dists), function(nm) {
 }))
 write.csv(sens_year, file.path(tab_dir, "report_permanova_sensitivity_by_year.csv"),
           row.names = FALSE)
+
+# ---- Table S7d: season occupancy of the most seasonally-shifted OTUs -------
+# Section 4.2 establishes that the seasons differ; it does not distinguish a
+# genuine replacement of membership from the same taxa redistributed among
+# themselves. This table answers that in raw detections rather than through a
+# distance. No RNG is involved, so it is safe at the end of the chunk.
+#
+# Ranked on the difference in mean within-season relative read share, with a
+# floor of 5 detections in the enriched season so a single-sample bloom cannot
+# enter the table.
+is_w <- sampledf$Season == "winter"; is_s <- sampledf$Season == "summer"
+rel  <- sweep(otu_mat, 1, rowSums(otu_mat), "/")
+
+occ <- data.frame(
+  OTU_ID       = colnames(otu_mat),
+  share_winter = colMeans(rel[is_w, , drop = FALSE]),
+  share_summer = colMeans(rel[is_s, , drop = FALSE]),
+  prev_winter  = colSums(otu_mat[is_w, , drop = FALSE] > 0),
+  prev_summer  = colSums(otu_mat[is_s, , drop = FALSE] > 0),
+  n_winter     = sum(is_w), n_summer = sum(is_s),
+  stringsAsFactors = FALSE, row.names = NULL)
+occ$share_diff <- occ$share_winter - occ$share_summer
+
+# Finest confident rank. UNITE carries rank prefixes ("g__Thelebolus"); strip
+# them or the lookup silently fails, and treat "unidentified" as missing.
+tx <- as.data.frame(as(tax_table(ps), "matrix"), stringsAsFactors = FALSE)
+tx[] <- lapply(tx, function(x) sub("^[a-z]__", "", x))
+tx[tx == "unidentified"] <- NA
+k <- match(occ$OTU_ID, rownames(as(tax_table(ps), "matrix")))
+occ$Taxon <- ifelse(!is.na(tx$Genus[k]), tx$Genus[k],
+             ifelse(!is.na(tx$Order[k]), paste0("unassigned (", tx$Order[k], ")"),
+             ifelse(!is.na(tx$Class[k]), paste0("unassigned (", tx$Class[k], ")"),
+                    "unassigned")))
+occ$Class <- tx$Class[k]
+
+top_w <- occ[occ$prev_winter >= 5, ]; top_w <- head(top_w[order(-top_w$share_diff), ], 10)
+top_s <- occ[occ$prev_summer >= 5, ]; top_s <- head(top_s[order( top_s$share_diff), ], 10)
+write.csv(rbind(cbind(direction = "Winter-enriched", top_w),
+                cbind(direction = "Summer-enriched", top_s)),
+          file.path(tab_dir, "report_season_occupancy.csv"), row.names = FALSE)
+
+# Community-wide occupancy counts quoted in the Section 4.4 text.
+det_w <- colSums(otu_mat[is_w, , drop = FALSE] > 0)
+det_s <- colSums(otu_mat[is_s, , drop = FALSE] > 0)
+cat(sprintf("Detected both seasons: %d | winter only: %d | summer only: %d\n",
+            sum(det_w > 0 & det_s > 0), sum(det_w > 0 & det_s == 0),
+            sum(det_s > 0 & det_w == 0)))
+cat(sprintf("At >= 5 detections in a season -- winter only %d, summer only %d, both %d\n",
+            sum(det_w >= 5 & det_s == 0), sum(det_s >= 5 & det_w == 0),
+            sum(det_w >= 5 & det_s >= 5)))
+
+# The Sorensen figure quoted alongside Jaccard in Section 4.4. Same design,
+# seed and permutation count as Tables S7b/S7c above.
+set.seed(20260805)
+a_sor <- adonis2(vegdist(otu_mat, method = "bray", binary = TRUE) ~ Season * Year,
+                 by = "terms", data = sampledf)
+cat(sprintf("Sorensen (presence/absence): Season R2 = %.3f, p = %.3f\n",
+            a_sor$R2[1], a_sor$`Pr(>F)`[1]))
 ```
 
 ::: {.content-visible when-profile="docs"}
