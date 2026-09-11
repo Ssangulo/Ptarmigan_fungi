@@ -1,0 +1,209 @@
+"sample","Season","stratum","read_share"
+"S_1_1_P2_1C","summer","Named",0.633698495612782
+"S_1_2_P1_8D","summer","Named",0.911278689721913
+"S_1_3_P2_1D","summer","Named",0.502341886489816
+"S_1_4_P1_1B","summer","Named",0.884946776573837
+"S_1_5_P2_1E","summer","Named",0.661196472358182
+"S_1_6_P1_1C","summer","Named",0.959685016190756
+"S_1_7_P1_8E","summer","Named",0.422637092907012
+"S_1_9_P2_1F","summer","Named",0.335519843711436
+"S_2_1_P1_1E","summer","Named",0.963620955839332
+"S_2_10_P1_2E","summer","Named",0.980638685548061
+"S_2_2_P1_8G","summer","Named",0.298867924528302
+"S_2_3_P1_1F","summer","Named",0.83009137744174
+"S_2_4_P1_1G","summer","Named",0.866022135322722
+"S_2_5_P1_1H","summer","Named",0.804529630327441
+"S_2_6_P1_2D","summer","Named",0.859066672530448
+"S_2_7_P1_8H","summer","Named",0.992522192374381
+"S_2_8_P1_9A","summer","Named",0.0349206672505448
+"S_3_10_P1_9G","summer","Named",0.668651720693433
+"S_3_2_P1_9B","summer","Named",0.248529990475593
+"S_3_3_P1_3A","summer","Named",0.664271981301599
+"S_3_4_P2_1H","summer","Named",0.982741903838498
+"S_3_5_P1_9C","summer","Named",0.0133243921946654
+"S_3_6_P1_3B","summer","Named",0.565835876751184
+"S_3_7_P2_2D","summer","Named",0.999682917162109
+"S_3_8_P1_3G","summer","Named",0.989713986913714
+"S_3_9_P1_3H","summer","Named",0.807601556023213
+"W_1_1_P1_10A","winter","Named",0.657813016187645
+"W_1_10_P2_2E","winter","Named",0.568330008434977
+"W_1_2_P1_10B","winter","Named",0.59536101758324
+"W_1_5_P1_11A","winter","Named",0.810455019103856
+"W_1_7_P1_11C","winter","Named",0.219738039650192
+"W_1_8_P1_11D","winter","Named",0.258519239723998
+"W_1_9_P1_11E","winter","Named",0.583784511784512
+"W_2_1_P2_2F","winter","Named",0.201500398932037
+"W_2_10_P2_3H","winter","Named",0.401314980321417
+"W_2_2_P1_12A","winter","Named",0.25301116333725
+"W_2_3_P2_2G","winter","Named",0.50582608299549
+"W_2_4_P2_2H","winter","Named",0.184868979491252
+"W_2_5_P2_3A","winter","Named",0.363593072218743
+"W_2_6_P2_3B","winter","Named",0.47671556314679
+"W_2_7_P2_3F","winter","Named",0.345268633424983
+"W_2_9_P2_3G","winter","Named",0.542681701462543
+"W_3_1_P2_4F","winter","Named",0.581898036513951
+"W_3_10_P2_5H","winter","Named",0.330832058518401
+"W_3_2_P1_4A","winter","Named",0.991028722433257
+"W_3_3_P2_4G","winter","Named",0.679292590787229
+"W_3_4_P2_4H","winter","Named",0.381121644006794
+"W_3_5_P1_12C","winter","Named",0.855110670984664
+"W_3_6_P2_5A","winter","Named",0.402182416599325
+"W_3_7_P2_5B","winter","Named",0.595434226765163
+"W_3_8_P2_5C","winter","Named",0.43749932783412
+"W_3_9_P2_5G","winter","Named",0.437311882045404
+"S_1_1_P2_1C","summer","Dark: placeable",0.201151800798382
+"S_1_2_P1_8D","summer","Dark: placeable",0.0875770689161965
+"S_1_3_P2_1D","summer","Dark: placeable",0.143051438823641
+"S_1_4_P1_1B","summer","Dark: placeable",0.106385127741834
+"S_1_5_P2_1E","summer","Dark: placeable",0.280844240538069
+"S_1_6_P1_1C","summer","Dark: placeable",0.0389755666764792
+"S_1_7_P1_8E","summer","Dark: placeable",0.249497305688533
+"S_1_9_P2_1F","summer","Dark: placeable",0.245111637171372
+"S_2_1_P1_1E","summer","Dark: placeable",0.0245716615267308
+"S_2_10_P1_2E","summer","Dark: placeable",0.00281047214141866
+"S_2_2_P1_8G","summer","Dark: placeable",0.697120011222557
+"S_2_3_P1_1F","summer","Dark: placeable",0.104627770044567
+"S_2_4_P1_1G","summer","Dark: placeable",0.106630495952439
+"S_2_5_P1_1H","summer","Dark: placeable",0.0847909590710574
+"S_2_6_P1_2D","summer","Dark: placeable",0.137493686439605
+"S_2_7_P1_8H","summer","Dark: placeable",0.00555884942661105
+"S_2_8_P1_9A","summer","Dark: placeable",0.937440169460456
+"S_3_10_P1_9G","summer","Dark: placeable",0.12897749242766
+"S_3_2_P1_9B","summer","Dark: placeable",0.124561563599656
+"S_3_3_P1_3A","summer","Dark: placeable",0.334587014162028
+"S_3_4_P2_1H","summer","Dark: placeable",0.00815568859994171
+"S_3_5_P1_9C","summer","Dark: placeable",0.981281237230063
+"S_3_6_P1_3B","summer","Dark: placeable",0.429252412331044
+"S_3_7_P2_2D","summer","Dark: placeable",0
+"S_3_8_P1_3G","summer","Dark: placeable",0.00883427478447535
+"S_3_9_P1_3H","summer","Dark: placeable",0.118997512913717
+"W_1_1_P1_10A","winter","Dark: placeable",0.0327717211760819
+"W_1_10_P2_2E","winter","Dark: placeable",0.0236759540673102
+"W_1_2_P1_10B","winter","Dark: placeable",0.289599700710812
+"W_1_5_P1_11A","winter","Dark: placeable",0.0566238277179576
+"W_1_7_P1_11C","winter","Dark: placeable",0.0091013414585889
+"W_1_8_P1_11D","winter","Dark: placeable",0.076620242983533
+"W_1_9_P1_11E","winter","Dark: placeable",0.0129023569023569
+"W_2_1_P2_2F","winter","Dark: placeable",0.176794244326012
+"W_2_10_P2_3H","winter","Dark: placeable",0.102753976713677
+"W_2_2_P1_12A","winter","Dark: placeable",0.0378231492361927
+"W_2_3_P2_2G","winter","Dark: placeable",0.111565617455473
+"W_2_4_P2_2H","winter","Dark: placeable",0.194603105062841
+"W_2_5_P2_3A","winter","Dark: placeable",0.345797413482102
+"W_2_6_P2_3B","winter","Dark: placeable",0.0250355241061561
+"W_2_7_P2_3F","winter","Dark: placeable",0.112491640038642
+"W_2_9_P2_3G","winter","Dark: placeable",0.140219939711957
+"W_3_1_P2_4F","winter","Dark: placeable",0.417929727867723
+"W_3_10_P2_5H","winter","Dark: placeable",0.179731321763289
+"W_3_2_P1_4A","winter","Dark: placeable",0.00646230136685761
+"W_3_3_P2_4G","winter","Dark: placeable",0.0912777236168657
+"W_3_4_P2_4H","winter","Dark: placeable",0.120706809512684
+"W_3_5_P1_12C","winter","Dark: placeable",0.0581903665836969
+"W_3_6_P2_5A","winter","Dark: placeable",0.15327905516971
+"W_3_7_P2_5B","winter","Dark: placeable",0.304404565773235
+"W_3_8_P2_5C","winter","Dark: placeable",0.512534549326221
+"W_3_9_P2_5G","winter","Dark: placeable",0.522627755283795
+"S_1_1_P2_1C","summer","Dark: candidate novel",0.130692772671917
+"S_1_2_P1_8D","summer","Dark: candidate novel",0.000888612972532121
+"S_1_3_P2_1D","summer","Dark: candidate novel",0.354606674686543
+"S_1_4_P1_1B","summer","Dark: candidate novel",0.00825426039918972
+"S_1_5_P2_1E","summer","Dark: candidate novel",0.0557510506158893
+"S_1_6_P1_1C","summer","Dark: candidate novel",0.0013394171327642
+"S_1_7_P1_8E","summer","Dark: candidate novel",0.201726309971797
+"S_1_9_P2_1F","summer","Dark: candidate novel",0.361744063572181
+"S_2_1_P1_1E","summer","Dark: candidate novel",0.0115997720057829
+"S_2_10_P1_2E","summer","Dark: candidate novel",0.0165508423105201
+"S_2_2_P1_8G","summer","Dark: candidate novel",0.00400785579013818
+"S_2_3_P1_1F","summer","Dark: candidate novel",0.0644316261486386
+"S_2_4_P1_1G","summer","Dark: candidate novel",0.0269664218409547
+"S_2_5_P1_1H","summer","Dark: candidate novel",0.110406132297252
+"S_2_6_P1_2D","summer","Dark: candidate novel",0.00340232605558065
+"S_2_7_P1_8H","summer","Dark: candidate novel",0.00191895819900822
+"S_2_8_P1_9A","summer","Dark: candidate novel",0.0272318064240178
+"S_3_10_P1_9G","summer","Dark: candidate novel",0.184591899207321
+"S_3_2_P1_9B","summer","Dark: candidate novel",0.220190602204872
+"S_3_3_P1_3A","summer","Dark: candidate novel",0.00106812098669247
+"S_3_4_P2_1H","summer","Dark: candidate novel",0.00909193079236758
+"S_3_5_P1_9C","summer","Dark: candidate novel",0.00424180191885218
+"S_3_6_P1_3B","summer","Dark: candidate novel",0.00481772899619604
+"S_3_7_P2_2D","summer","Dark: candidate novel",0.000317082837891399
+"S_3_8_P1_3G","summer","Dark: candidate novel",0.00143797774918641
+"S_3_9_P1_3H","summer","Dark: candidate novel",0.073124588142763
+"W_1_1_P1_10A","winter","Dark: candidate novel",0.257879088206145
+"W_1_10_P2_2E","winter","Dark: candidate novel",0.29986120222969
+"W_1_2_P1_10B","winter","Dark: candidate novel",0.0691358024691358
+"W_1_5_P1_11A","winter","Dark: candidate novel",0.0940604376519625
+"W_1_7_P1_11C","winter","Dark: candidate novel",0.70503739464208
+"W_1_8_P1_11D","winter","Dark: candidate novel",0.457731871481184
+"W_1_9_P1_11E","winter","Dark: candidate novel",0.350787878787879
+"W_2_1_P2_2F","winter","Dark: candidate novel",0.577663950705125
+"W_2_10_P2_3H","winter","Dark: candidate novel",0.495905419809774
+"W_2_2_P1_12A","winter","Dark: candidate novel",0.548105170387779
+"W_2_3_P2_2G","winter","Dark: candidate novel",0.38258096843256
+"W_2_4_P2_2H","winter","Dark: candidate novel",0.582842748007995
+"W_2_5_P2_3A","winter","Dark: candidate novel",0.290574881165059
+"W_2_6_P2_3B","winter","Dark: candidate novel",0.296475578074091
+"W_2_7_P2_3F","winter","Dark: candidate novel",0.427040202125288
+"W_2_9_P2_3G","winter","Dark: candidate novel",0.3170983588255
+"W_3_1_P2_4F","winter","Dark: candidate novel",7.17648409691124e-05
+"W_3_10_P2_5H","winter","Dark: candidate novel",0.281764871375569
+"W_3_2_P1_4A","winter","Dark: candidate novel",0.00250897619988552
+"W_3_3_P2_4G","winter","Dark: candidate novel",0.189108579088472
+"W_3_4_P2_4H","winter","Dark: candidate novel",0.428467170530527
+"W_3_5_P1_12C","winter","Dark: candidate novel",0.0740036934935631
+"W_3_6_P2_5A","winter","Dark: candidate novel",0.283822763326713
+"W_3_7_P2_5B","winter","Dark: candidate novel",0.100161207461603
+"W_3_8_P2_5C","winter","Dark: candidate novel",0.0499015949151996
+"W_3_9_P2_5G","winter","Dark: candidate novel",0.0399902694055266
+"S_1_1_P2_1C","summer","Dark: no reference <80%",0.0344569309169189
+"S_1_2_P1_8D","summer","Dark: no reference <80%",0.000255628389358555
+"S_1_3_P2_1D","summer","Dark: no reference <80%",0
+"S_1_4_P1_1B","summer","Dark: no reference <80%",0.000413835285139526
+"S_1_5_P2_1E","summer","Dark: no reference <80%",0.00220823648786056
+"S_1_6_P1_1C","summer","Dark: no reference <80%",0
+"S_1_7_P1_8E","summer","Dark: no reference <80%",0.126139291432658
+"S_1_9_P2_1F","summer","Dark: no reference <80%",0.0576244555450112
+"S_2_1_P1_1E","summer","Dark: no reference <80%",0.000207610628154266
+"S_2_10_P1_2E","summer","Dark: no reference <80%",0
+"S_2_2_P1_8G","summer","Dark: no reference <80%",4.20845900259522e-06
+"S_2_3_P1_1F","summer","Dark: no reference <80%",0.000849226365054335
+"S_2_4_P1_1G","summer","Dark: no reference <80%",0.000380946883883349
+"S_2_5_P1_1H","summer","Dark: no reference <80%",0.000273278304248714
+"S_2_6_P1_2D","summer","Dark: no reference <80%",3.73149743659453e-05
+"S_2_7_P1_8H","summer","Dark: no reference <80%",0
+"S_2_8_P1_9A","summer","Dark: no reference <80%",0.000407356864981567
+"S_3_10_P1_9G","summer","Dark: no reference <80%",0.017778887671586
+"S_3_2_P1_9B","summer","Dark: no reference <80%",0.40671784371988
+"S_3_3_P1_3A","summer","Dark: no reference <80%",7.2883549680192e-05
+"S_3_4_P2_1H","summer","Dark: no reference <80%",1.04767691929649e-05
+"S_3_5_P1_9C","summer","Dark: no reference <80%",0.00115256865641928
+"S_3_6_P1_3B","summer","Dark: no reference <80%",9.39819215759382e-05
+"S_3_7_P2_2D","summer","Dark: no reference <80%",0
+"S_3_8_P1_3G","summer","Dark: no reference <80%",1.37605526237934e-05
+"S_3_9_P1_3H","summer","Dark: no reference <80%",0.000276342920306953
+"W_1_1_P1_10A","winter","Dark: no reference <80%",0.0515361744301288
+"W_1_10_P2_2E","winter","Dark: no reference <80%",0.108132835268023
+"W_1_2_P1_10B","winter","Dark: no reference <80%",0.0459034792368126
+"W_1_5_P1_11A","winter","Dark: no reference <80%",0.0388607155262244
+"W_1_7_P1_11C","winter","Dark: no reference <80%",0.0661232242491393
+"W_1_8_P1_11D","winter","Dark: no reference <80%",0.207128645811286
+"W_1_9_P1_11E","winter","Dark: no reference <80%",0.0525252525252525
+"W_2_1_P2_2F","winter","Dark: no reference <80%",0.0440414060368261
+"W_2_10_P2_3H","winter","Dark: no reference <80%",2.56231551328304e-05
+"W_2_2_P1_12A","winter","Dark: no reference <80%",0.161060517038778
+"W_2_3_P2_2G","winter","Dark: no reference <80%",2.7331116476108e-05
+"W_2_4_P2_2H","winter","Dark: no reference <80%",0.0376851674379124
+"W_2_5_P2_3A","winter","Dark: no reference <80%",3.46331340966091e-05
+"W_2_6_P2_3B","winter","Dark: no reference <80%",0.201773334672963
+"W_2_7_P2_3F","winter","Dark: no reference <80%",0.115199524411087
+"W_2_9_P2_3G","winter","Dark: no reference <80%",0
+"W_3_1_P2_4F","winter","Dark: no reference <80%",0.000100470777356757
+"W_3_10_P2_5H","winter","Dark: no reference <80%",0.207671748342741
+"W_3_2_P1_4A","winter","Dark: no reference <80%",0
+"W_3_3_P2_4G","winter","Dark: no reference <80%",0.0403211065074336
+"W_3_4_P2_4H","winter","Dark: no reference <80%",0.0697043759499951
+"W_3_5_P1_12C","winter","Dark: no reference <80%",0.012695268938076
+"W_3_6_P2_5A","winter","Dark: no reference <80%",0.160715764904252
+"W_3_7_P2_5B","winter","Dark: no reference <80%",0
+"W_3_8_P2_5C","winter","Dark: no reference <80%",6.45279244593098e-05
+"W_3_9_P2_5G","winter","Dark: no reference <80%",7.00932652741471e-05

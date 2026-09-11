@@ -452,16 +452,16 @@ e1_tab <- data.frame(
   Category = c("Dark OTUs (no confident genus)",
                " placeable to an existing named SH",
                " novel — forms a new species hypothesis",
-               " no match to any UNITE SH (>20% divergent)",
-               " excluded by ITSx (chimeric / non-ITS)"),
+               " no reference within 80% identity",
+               " filtered before matching (QC)"),
   `Dark OTUs` = c(s$n_dark, s$placeable_existing_SH, s$novel_new_SH,
                   s$no_SH_match, s$excluded_nonITS),
   check.names = FALSE)
 kable(e1_tab,
-      caption = sprintf("Table S-E1a. UNITE Species Hypothesis placement of the dark-taxa OTUs (no confident genus in the canonical taxonomy). Median best-hit similarity to UNITE = %.2f%%; %d dark OTUs gained a finer lineage (family or deeper) from the SH consensus.", s$median_similarity, s$gained_finer_lineage))
+      caption = sprintf("Table S-E1a. UNITE Species Hypothesis placement of the dark-taxa OTUs (no confident genus in the canonical taxonomy). Median best-hit similarity to UNITE = %.2f%%; %d dark OTUs gained a finer lineage (family or deeper) from the SH consensus. The last three rows are all non-placements: rows 3 and 4 differ only in whether a UNITE relative exists at 80%% identity, and row 5 covers sequences dropped by quality control before the matching step ran (see the caveats below for what that QC actually is). Main-text Fig. 4A merges rows 4 and 5.", s$median_similarity, s$gained_finer_lineage))
 ```
 
-**Most dark taxa are close to known references, and a live-database cross-check further shrinks the genuinely-novel fraction.** Against the local reference, of the 493 dark OTUs 143 were placeable to an existing named UNITE SH, 247 formed new (candidate) species hypotheses, and 90 had no SH match; 13 were dropped by ITSx. The novel and no-match sequences were then re-run through the PlutoF web service, whose reference database is larger and more current: this reclassified 79 formerly-novel OTUs across the community — 19 of them dark — as matches to existing named SHs (21 of the 79 resolving to species, and 11 of the 19 dark ones gaining a genus). Table S-E1a reflects this combined result: 162 placeable, 228 candidate-novel, 90 no-match. Each placeable OTU resolves to a stable SH page (`https://unite.ut.ee/sh/<code>`) carrying the taxon name and its DOI. The best-hit similarity distribution (Figure S-E1a) shows the dark fraction is bimodal — a spike near 100% (OTUs essentially identical to a reference but withheld a genus by the conservative `minBoot = 80` threshold) plus a real tail of divergent, candidate-novel lineages.
+**Most dark taxa are close to known references, and a live-database cross-check further shrinks the genuinely-novel fraction.** Against the local reference, of the 493 dark OTUs 143 were placeable to an existing named UNITE SH, 247 formed new (candidate) species hypotheses, and 90 had no reference within 80% identity; 13 were dropped by quality control before matching. The novel and no-match sequences were then re-run through the PlutoF web service, whose reference database is larger and more current: this reclassified 79 formerly-novel OTUs across the community — 19 of them dark — as matches to existing named SHs (21 of the 79 resolving to species, and 11 of the 19 dark ones gaining a genus). Table S-E1a reflects this combined result: 162 placeable, 228 candidate-novel, 90 with no reference within 80%. It is worth being explicit that the last two are the same kind of outcome — neither sits inside an existing named SH — and that the 90 are the *most* divergent candidates rather than sequences that failed to analyse. The pipeline is designed to cluster them de novo into their own new Species Hypotheses, but in v2.0.4 the no-hits branch of `run_pipeline.sh` invokes the hits parsers (`parse_matches_sh.pl`) rather than `parse_matches_1.pl`, so the de-novo table (`matches_1_out_*.csv`) is never written and these OTUs reach `9_dark_taxa_SH_matching.R` as an absence rather than a status. Taken together, 331 of the 493 dark OTUs (67%) are candidate-novel in one form or the other. Each placeable OTU resolves to a stable SH page (`https://unite.ut.ee/sh/<code>`) carrying the taxon name and its DOI. The best-hit similarity distribution (Figure S-E1a) shows the dark fraction is bimodal — a spike near 100% (OTUs essentially identical to a reference but withheld a genus by the conservative `minBoot = 80` threshold) plus a real tail of divergent, candidate-novel lineages.
 
 ![](figures/E1_SH_similarity_hist.png)
 
@@ -469,9 +469,9 @@ kable(e1_tab,
 
 ![](figures/E1_dark_taxa_novel_vs_placeable.png)
 
-**Figure S-E1b**: Dark-taxa OTUs by SH placement category (placeable to an existing SH, novel/new SH, no SH match, or ITSx-excluded).
+**Figure S-E1b**: Dark-taxa OTUs by SH placement category (placeable to an existing SH, novel/new SH, no reference within 80% identity, or filtered before matching). All four categories are kept separate here; main-text Fig. 4A merges the last two. Category names in the underlying `SH_class` column are unchanged (`no_SH_match`, `excluded_nonITS`).
 
-SH matching directly addresses the "winter = dark taxa" caveat: 34.6% of the winter dark-read burden is placeable to an existing UNITE SH, while the remainder forms candidate new SHs. Winter's dominant dark OTU, OTU1369, is genuinely novel: a candidate new SH only 85.4% similar to any reference, resolving no further than class Dothideomycetes.
+SH matching directly addresses the "winter = dark taxa" caveat: 34.6% of the winter dark-read burden is placeable to an existing UNITE SH (mean of the per-sample ratio), while the remainder is candidate-novel. Expressed as shares of *all* winter reads rather than of the dark fraction — the form main-text Fig. 4B plots — the dark 51.3% divides into 15.8% placeable, 29.2% candidate-novel and 6.2% with no reference within 80% identity; the corresponding summer figures are 21.5%, 7.2% and 2.5% of a 31.2% dark fraction. Winter's dominant dark OTU, OTU1369, is genuinely novel: a candidate new SH only 85.4% similar to any reference, resolving no further than class Dothideomycetes.
 
 **Toward permanent, citable identifiers.** Placeable taxa already carry citable UNITE SH identifiers (resolvable SH pages with DOIs). The candidate novel taxa are being registered: their representative ITS2 sequences are being deposited in a public archive (ENA) and imprinted as new SHs via PlutoF, which mints permanent DOIs — converting short-lived study detections into citable candidate species hypotheses (*registration in progress*; sequences in `models/E1_novel_taxa_for_plutof.fasta`).
 
@@ -486,7 +486,7 @@ w_disp <- w %>%
     Class = sub("^c__", "", Class),
     `SH placement` = ifelse(!is.na(SH_URL), SH_code,
                      ifelse(SH_class == "novel_new_SH", "novel SH",
-                     ifelse(SH_class == "no_SH_match", "no SH match", "excluded (ITSx)"))),
+                     ifelse(SH_class == "no_SH_match", "no reference <80%", "filtered (QC)"))),
     `% id` = similarity_percentage,
     `Winter (n/26)` = paste0(winter_occ, "/", winter_n),
     `Winter %` = round(100 * winter_mean_share, 1),
@@ -501,10 +501,10 @@ kable(w_disp, digits = 1,
 
 for section 3.1; Bars are seriated within each Season for readability. These panels use script 5's PCR-collapsed object (57 samples, no depth filter); the qualitative pattern is unaffected by the depth filter used elsewhere. These four panels are retained here in full because they are a different object and a different question from the main text: all four ranks, all 57 samples, no depth filter. The main-text genus panel (Fig. 1A, Section 10.1) shows the genus rank only, on the canonical depth-filtered 52-sample object, and on the same sample axis as the functional guilds.
 
-section 3.4: Figures S-E1a and S-E1b are the same two quantities as main-text **Fig. 4A–B** (Section 10.4), redrawn there to the main-figure specification — S-E1a on a square-root axis normalised within each group, so the divergent tail is legible beside the near-100% spike, and S-E1b with counts and percentages labelled. They are retained here as the plain versions. Main-text **Fig. 4C** additionally plots Table S-E1b, which has no supplementary figure of its own.
+section 3.4: Figure S-E1b is the same quantity as main-text **Fig. 4A** (Section 10.4), redrawn there with counts and percentages labelled — and, unlike here, with `no_SH_match` and the pre-matching exclusions merged into one "no reference within 80% id" bar. This section keeps all four categories; only the main figure bundles. Figure S-E1a (best-hit similarity, square-root axis normalised within each group so the divergent tail is legible beside the near-100% spike) was a main-text panel in an earlier version of Fig. 4 and is now supplementary only; Section 10.4 cites it for the bimodality claim. Main-text **Fig. 4C** plots Table S-E1b, which has no supplementary figure of its own, and **Fig. 4B** is the read-weighted seasonal view, built from `tables/E1_SH_readshare_by_sample.csv` (script 9 Section 4b) with no supplementary counterpart.
 
 ::: {.callout-note appearance="minimal"}
-**Caveats.** (i) OTU320, previously listed among winter's dark dominants, is an ITSx-flagged chimeric/broken sequence and is dropped. (ii) On the PlutoF re-run, a reference-coverage heuristic flagged 248 of the resubmitted OTUs as putatively chimeric, but the *same* sequences passed cleanly in the local run and the flagged set is not the most-divergent one (median \~97% identity), so this flag is recorded (`plutof_chimera_flag`) but treated as unreliable and **not** used to exclude OTUs, pending scrutiny.
+**Caveats.** (i) "Excluded by ITSx" (`excluded_nonITS`, 21 OTUs across the dataset, 13 of them dark) is a misnomer inherited from the script's own comment. Reading `excluded_1.txt` by reason: **13 are vsearch coverage-chimera calls** (`CHIM`), 6 are ITSx chimeric/broken, 1 is under the 100 bp ITS2 length floor, and 1 is spurious. The 13 come from `exclude_chims.py`, whose rule is `perc_alignment_cov <= 85 AND perc_alignment_cov_target <= 85` — the *same* ≤85% coverage heuristic described in caveat (iii) below and treated there as unreliable, so it deserves the same scepticism here. **OTU320**, winter's third most abundant dark OTU, is one of these 13 — a `CHIM` call, not an ITSx one. (ii) The spurious exclusion is **OTU9**, which `matches_out_02.csv` places cleanly as `present_in SH0655188.10FU` (*Cladosporium herbarum*, with a resolvable SH page); it was flagged only by the "other eukaryotes" ITSx pass, which by construction finds no ITS in a fungal sequence. Because `excl_otus` is the first branch of the `case_when`, that flag wins. This is why the run log reports 554 `present_in` rows but 553 placeable OTUs. OTU9 is not a dark taxon, so no dark-taxa count and no panel of Fig. 4 is affected. (iii) On the PlutoF re-run, a reference-coverage heuristic flagged 248 of the resubmitted OTUs as putatively chimeric, but the *same* sequences passed cleanly in the local run and the flagged set is not the most-divergent one (median \~97% identity), so this flag is recorded (`plutof_chimera_flag`) but treated as unreliable and **not** used to exclude OTUs, pending scrutiny.
 :::
 :::
 
@@ -2676,17 +2676,17 @@ print(data.frame(Season = chk$Season, OTU = chk$OTU, share_pct = round(chk$share
       row.names = FALSE)
 ```
 
-### 10.4 Figure 4 — Dark and partly novel lineages dominate winter dung (E1)
+### 10.4 Figure 4 — Dark, largely novel lineages dominate winter dung (E1)
 
 :::: {.content-visible when-profile="docs"}
-*Provenance: all three panels come from Section 3.4. Fig. 4A and 4B are the main-text versions of Figures S-E1a and S-E1b; Fig. 4C plots Table S-E1b. Every value is read from the committed `tables/` CSVs written by `9_dark_taxa_SH_matching.R` — nothing is recomputed from sequence data, because the Species Hypothesis assignment is an external pipeline step (a containerised run of the TU-NHM `sh_matching` workflow against the UNITE reference).*
+*Provenance: all three panels come from Section 3.4. Fig. 4A is the main-text version of Figure S-E1b, with the last two placement categories merged; Fig. 4B is built from `tables/E1_SH_readshare_by_sample.csv`, written by `9_dark_taxa_SH_matching.R` Section 4b; Fig. 4C plots Table S-E1b. Every value is read from the committed `tables/` CSVs written by `9_dark_taxa_SH_matching.R` — nothing is recomputed from sequence data, because the Species Hypothesis assignment is an external pipeline step (a containerised run of the TU-NHM `sh_matching` workflow against the UNITE reference). The best-hit similarity histogram that was Fig. 4A in an earlier version is now supplementary only (Figure S-E1a).*
 ::::
 
 ![](figures/main/Fig4_dark_taxa_SH.png)
 
-**Figure 4**: Winter dung is dominated by fungal lineages that carry no confident genus, a substantial fraction of which are genuinely novel. **(A)** Best-hit similarity of each OTU to its nearest UNITE Species Hypothesis, split into OTUs with no confident genus assignment ("dark"; n = 390 with a best hit) and those with one ("named"; n = 624). Each group's bars sum to 100% so the two shapes can be compared despite the different group sizes, and the y axis is square-root scaled so the divergent tail stays visible beneath the near-identical spike. The dark distribution is bimodal: 37% of dark OTUs sit at ≥ 99% identity to a reference — essentially known sequences whose genus was withheld by the conservative `minBoot = 80` threshold — while 38% fall below 95%, a genuinely divergent tail. The named distribution has the same spike (73% at ≥ 99%) but almost no tail (9% below 95%). OTUs with no best hit at all (103 dark, 12 named) cannot appear here; they are the "no SH match" and "ITSx-excluded" categories of (B). **(B)** UNITE Species Hypothesis placement of all 493 dark OTUs. **(C)** The 30 dark OTUs with the highest mean winter read share (Table S-E1b), plotted as prevalence — the number of the 26 winter samples with any detection — against that mean share, coloured as in (B). OTU1369 is labelled: it is winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings, yet its best UNITE hit is only 85% similar, so it forms a candidate new Species Hypothesis rather than matching anything named.
+**Figure 4**: Winter dung is dominated by fungal lineages that carry no confident genus, and most of that fraction is not merely unnamed but absent from the reference database. **(A)** UNITE Species Hypothesis placement of all 493 dark OTUs — those the naïve-Bayes classifier leaves without a confident genus. The second and third categories are the same kind of outcome: neither falls inside an existing named Species Hypothesis, and they differ only in whether the sequence has any UNITE relative at all. "Candidate novel SH" has one (median best hit 92.0% identity across these 228 OTUs) and so inherits a partial lineage from its neighbours; "no reference within 80% id" has none, and additionally absorbs 13 OTUs that the pipeline filtered before the matching step. Together they are 331 of the 493 dark OTUs (67%). **(B)** Mean per-sample read share of the same categories, by season, with the named fraction added to reach 100% of reads (52 droppings, 26 per season; segments below 5% are unlabelled). This is the read-weighted counterpart to (A): counting OTUs says nothing about how much of a dropping they are. Candidate-novel lineages hold 29% of winter reads against 7% of summer reads (Wilcoxon *p* = 1.9 × 10⁻⁵), and the dark fraction as a whole is 51% of winter against 31% of summer reads. **(C)** The 30 dark OTUs with the highest mean winter read share (Table S-E1b), plotted as prevalence — the number of the 26 winter samples with any detection — against that mean share, coloured as in (A). OTU1369 is labelled: it is winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings, yet its best UNITE hit is only 85% similar, so it forms a candidate new Species Hypothesis rather than matching anything named.
 
-Roughly half of a typical winter dropping is reads that the canonical taxonomy cannot name (Section 3.4), and panel A shows that this single label covers two different problems. A little over a third of dark OTUs are near-identical to a UNITE reference and are dark only because `minBoot = 80` declines to commit to a genus at that bootstrap — a cost of conservatism, and one that Species Hypothesis matching largely recovers. But a comparable fraction sits below 95% identity, where no threshold adjustment would help, and 228 of the 493 dark OTUs (46%) form candidate new Species Hypotheses rather than matching an existing one (panel B). The winter-abundant end of that distribution is what matters for this study: panel C shows that the dark OTUs carrying real winter read share are predominantly candidate-novel rather than placeable, and the most extreme of them, OTU1369, is simultaneously the most abundant and among the most prevalent OTUs in winter dung while being only 85% similar to its nearest named relative. Two caveats travel with the figure. "Candidate novel" is a statement about the reference database rather than a taxonomic claim: these are unimprinted clusters awaiting public sequence deposition and PlutoF registration (Section 3.4), so none of them yet carries a permanent identifier. And the 13 ITSx-excluded OTUs in (B) — among them OTU320, winter's third most abundant dark OTU — are flagged by the pipeline as chimeric or non-ITS; they are retained in (C) only because they remain in the abundance table, and should not be read as biological entities.
+Roughly half of a typical winter dropping is reads that the canonical taxonomy cannot name (Section 3.4), and that single label covers two different problems. A little over a third of dark OTUs are near-identical to a UNITE reference and are dark only because `minBoot = 80` declines to commit to a genus at that bootstrap — a cost of conservatism, and one that Species Hypothesis matching largely recovers (of the 390 dark OTUs with a best hit at all, 37% sit at ≥ 99% identity; Figure S-E1a). But a comparable fraction of them (38%) sits below 95% identity, where no threshold adjustment would help, and panel A shows where that leads: 228 of the 493 dark OTUs (46%) form candidate new Species Hypotheses rather than matching an existing one, and a further 103 (21%) have no UNITE reference within 80% identity at all. Two thirds of the unnamed community is therefore unnamed because the reference lacks it, not because the classifier was cautious. Panel B supplies the weight behind that count, and it is strongly seasonal: candidate-novel lineages account for 29% of winter reads but only 7% of summer reads, so winter dung is not merely more dark than summer dung, it is dark in a different way — dominated by lineages with no named counterpart rather than by unnamed relatives of known ones. Panel C locates that signal in individual taxa: the dark OTUs carrying real winter read share are predominantly candidate-novel, and the most extreme of them, OTU1369, is simultaneously the most abundant and among the most prevalent OTUs in winter dung while being only 85% similar to its nearest named relative. One caveat travels with the figure throughout. "Candidate novel" is a statement about the reference database rather than a taxonomic claim: these are unimprinted clusters awaiting public sequence deposition and PlutoF registration (Section 3.4), so none of them yet carries a permanent identifier.
 
 ```{r fig4-build}
 #| eval: false
@@ -2694,15 +2694,16 @@ Roughly half of a typical winter dropping is reads that the canonical taxonomy c
 #| code-fold: true
 #| code-summary: "Full build code for Figure 4 — the source of truth for figures/main/Fig4_dark_taxa_SH.{png,jpg,pdf}"
 
-# Figure 4 -- Winter dung is dominated by unclassified, partly novel lineages (E1).
-# Every quantity here is READ from committed tables/ CSVs written by
-# 9_dark_taxa_SH_matching.R; nothing is recomputed from sequence data, because the
-# SH assignment itself is the expensive external step (a Singularity run of the
-# TU-NHM sh_matching pipeline against the UNITE reference, ~90 min).
-#   A  tables/dark_taxa_SH_matching.csv        (per-OTU similarity x is_dark)
-#   B  tables/E1_SH_assignment_summary.csv     (the 493 dark OTUs' placement)
+# Figure 4 -- Winter dung is dominated by unclassified, largely candidate-novel
+# lineages (E1). Every quantity here is READ from committed tables/ CSVs written
+# by 9_dark_taxa_SH_matching.R; nothing is recomputed from sequence data, because
+# the SH assignment itself is the expensive external step (a Singularity run of
+# the TU-NHM sh_matching pipeline against the UNITE reference, ~90 min).
+#   A  tables/E1_SH_assignment_summary.csv     (the 493 dark OTUs' placement)
+#   B  tables/E1_SH_readshare_by_sample.csv    (script 9 Section 4b, 52 samples)
 #   C  tables/E1_winter_dominant_dark_taxa_SH.csv (top 30 by winter read share)
-# Guards below assert B and C are consistent with the per-OTU table in A.
+# tables/dark_taxa_SH_matching.csv is the per-OTU table all three are derived
+# from; it is read here purely as a drift guard on A and C.
 # Rebuild:  conda run -n r_env Rscript build_main_figure.R fig4-build
 
 suppressPackageStartupMessages({
@@ -2716,18 +2717,23 @@ dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 grDevices::pdf(NULL)                                 # headless: no X11 fallback
 
 # ---- shared style ----------------------------------------------------------
-# ONE colour dimension in this figure: SH placement, used by both B and C. Panel
-# A compares two groups of OTUs, not two placements, so it is deliberately
-# monochrome -- the darker fill is the dark taxa. That keeps every coloured mark
-# in the figure meaning exactly one thing.
-SH_LEVELS <- c("Placeable to existing SH", "Candidate novel SH",
-               "No SH match", "ITSx-excluded")
-sh_cols <- c("Placeable to existing SH" = "#0072B2",   # resolved
-             "Candidate novel SH"       = "#D55E00",   # the novel signal
-             "No SH match"              = "#999999",   # grey = no information,
-             "ITSx-excluded"            = "#DDDDDD")   # as elsewhere in the repo
-group_cols <- c("Named OTUs (genus assigned)"    = "#B8B8B8",
-                "Dark OTUs (no confident genus)" = "#4D4D4D")
+# ONE colour dimension across all three panels, so every coloured mark in the
+# figure means exactly one thing. Panels A and C show dark OTUs only and use the
+# last three levels; panel B adds the named fraction to reach 100% of reads.
+#
+# "Candidate novel SH" and "No reference within 80% id" are the SAME kind of
+# outcome -- neither falls inside an existing named SH -- and differ only in
+# whether the sequence has any UNITE relative at all. The palette says so: the
+# third level is a lightness tint of the second rather than an unrelated hue.
+# (Lightness contrast survives every form of colour-vision deficiency, so the
+# pair stays separable while still reading as one family.)
+STRAT_LEVELS <- c("Named (genus assigned)", "Placeable to existing SH",
+                  "Candidate novel SH", "No reference within 80% id")
+strat_cols <- c("Named (genus assigned)"     = "#B8B8B8",   # not a dark OTU
+                "Placeable to existing SH"   = "#0072B2",   # resolved
+                "Candidate novel SH"         = "#D55E00",   # the novel signal
+                "No reference within 80% id" = "#E8A87C")   # novel, no relative
+SH_LEVELS <- STRAT_LEVELS[-1]                        # the dark-OTU categories
 
 base_theme <- theme_classic(base_size = 12) +
   theme(strip.background = element_blank(),
@@ -2739,102 +2745,128 @@ base_theme <- theme_classic(base_size = 12) +
         legend.title     = element_text(size = 10),
         legend.text      = element_text(size = 9))
 
+# One scale object reused by all three panels: patchwork can only collect guides
+# that are identical, so `limits` (not the data) fixes the key order everywhere.
+fill_scale <- scale_fill_manual(values = strat_cols, name = "Taxonomy / SH placement",
+                                limits = STRAT_LEVELS, drop = FALSE)
+
 # All in-plot text is ASCII: save_fig() falls back to grDevices::pdf when cairo is
 # unavailable, and that device silently substitutes a dot for a Unicode glyph.
+# no_SH_match and excluded_nonITS collapse into one displayed category -- see the
+# caption; Section 3.4 keeps them separate.
 sh_class_map <- c(placeable_existing_SH = "Placeable to existing SH",
                   novel_new_SH          = "Candidate novel SH",
-                  no_SH_match           = "No SH match",
-                  excluded_nonITS       = "ITSx-excluded")
+                  no_SH_match           = "No reference within 80% id",
+                  excluded_nonITS       = "No reference within 80% id")
 
 # ============================================================================
-# Panel A -- best-hit similarity, dark vs named OTUs
+# Panel A -- where the 493 dark OTUs land
 # ============================================================================
 sh <- read.csv(file.path(tab_dir, "dark_taxa_SH_matching.csv"), stringsAsFactors = FALSE)
 stopifnot(is.logical(sh$is_dark), !anyNA(sh$is_dark), nrow(sh) == 1129L,
           all(sh$SH_class %in% names(sh_class_map)))
 
-G_LEVELS <- c("Named OTUs (genus assigned)", "Dark OTUs (no confident genus)")
-sh$group <- factor(ifelse(sh$is_dark, G_LEVELS[2], G_LEVELS[1]), levels = G_LEVELS)
-
-# An OTU has a similarity only if the pipeline found a best hit at all: the
-# no-match and ITSx-excluded OTUs of panel B have none by construction, so they
-# cannot appear here. The caption says so, and these counts are printed below.
-sim <- sh[!is.na(sh$similarity_percentage), ]
-n_nosim <- table(sh$group[is.na(sh$similarity_percentage)])[G_LEVELS]
-stopifnot(min(sim$similarity_percentage) >= 80, max(sim$similarity_percentage) <= 100)
-
-# The histogram is precomputed rather than left to stat_bin, so the normalisation
-# is explicit: each group's bars sum to 1, which is what lets a 390-OTU group be
-# compared with a 624-OTU one. Bins are 1% wide over the pipeline's 80-100% range.
-brks <- seq(80, 100, by = 1)
-sim$bin <- cut(sim$similarity_percentage, breaks = brks, include.lowest = TRUE)
-hist_df <- as.data.frame(table(group = sim$group, bin = sim$bin),
-                         responseName = "n", stringsAsFactors = FALSE)
-hist_df$group <- factor(hist_df$group, levels = G_LEVELS)
-hist_df$prop  <- ave(hist_df$n, hist_df$group, FUN = function(x) x / sum(x))
-hist_df$mid   <- brks[-length(brks)][as.integer(factor(hist_df$bin, levels = levels(sim$bin)))] + 0.5
-stopifnot(all(abs(tapply(hist_df$prop, hist_df$group, sum) - 1) < 1e-10))
-
-# The two numbers that ARE the argument, per group: the near-identical spike and
-# the divergent tail. Printed into the panel so the reader does not have to
-# estimate them off the bars.
-shape_lab <- do.call(rbind, lapply(G_LEVELS, function(g) {
-  v <- sim$similarity_percentage[sim$group == g]
-  data.frame(group = factor(g, levels = G_LEVELS),
-             lab = sprintf("n = %d with a best hit\n%.0f%% at >= 99%% id   |   %.0f%% below 95%% id",
-                           length(v), 100 * mean(v >= 99), 100 * mean(v < 95)),
-             stringsAsFactors = FALSE)
-}))
-
-pA <- ggplot(hist_df, aes(mid, prop, fill = group)) +
-  geom_col(width = 1, colour = "white", linewidth = 0.15) +
-  geom_text(data = shape_lab, aes(x = 80.2, y = Inf, label = lab), inherit.aes = FALSE,
-            hjust = 0, vjust = 1.25, size = 2.9, lineheight = 1.05, colour = "grey20") +
-  facet_wrap(~ group, ncol = 1) +
-  scale_fill_manual(values = group_cols) +
-  scale_x_continuous(breaks = seq(80, 100, 5), expand = expansion(mult = c(0.01, 0.01))) +
-  # Square-root y: the (99,100] bin alone holds 69% of named and 37% of dark
-  # OTUs, and on a linear axis it flattens the divergent tail -- the half of the
-  # argument that a linear axis would hide -- into the baseline.
-  scale_y_sqrt(labels = scales::percent,
-               breaks = c(0.01, 0.05, 0.10, 0.25, 0.50, 0.75),
-               expand = expansion(mult = c(0, 0.22))) +
-  labs(x = "Best-hit similarity to nearest UNITE species hypothesis (%)",
-       y = "Share of the group's OTUs",
-       subtitle = "Each group's bars sum to 100%, so the two shapes compare despite different group sizes.\nSquare-root y axis, so the divergent tail stays visible beneath the near-identical spike.") +
-  base_theme +
-  # The facet strips already name the two groups; a colour key would repeat them.
-  guides(fill = "none")
-
-# ============================================================================
-# Panel B -- where the 493 dark OTUs land
-# ============================================================================
 asum <- read.csv(file.path(tab_dir, "E1_SH_assignment_summary.csv"), check.names = FALSE)
 stopifnot(nrow(asum) == 1L)
-bdf <- data.frame(
-  cat = factor(unname(sh_class_map[c("placeable_existing_SH", "novel_new_SH",
-                                     "no_SH_match", "excluded_nonITS")]),
-               levels = SH_LEVELS),
-  n   = c(asum$placeable_existing_SH, asum$novel_new_SH,
-          asum$no_SH_match, asum$excluded_nonITS))
-# Drift guard: the committed summary must still agree with the per-OTU table.
-tab_dark <- table(factor(unname(sh_class_map[sh$SH_class[sh$is_dark]]), levels = SH_LEVELS))
-stopifnot(sum(bdf$n) == asum$n_dark, asum$n_dark == sum(sh$is_dark),
-          identical(as.integer(tab_dark[SH_LEVELS]), as.integer(bdf$n)))
+
+# Tabulated from the per-OTU table rather than read off the summary's four
+# fields, because two of those fields now collapse into one displayed bar.
+dark_cat <- factor(unname(sh_class_map[sh$SH_class[sh$is_dark]]), levels = SH_LEVELS)
+bdf <- data.frame(cat = factor(SH_LEVELS, levels = SH_LEVELS),
+                  n   = as.integer(table(dark_cat)[SH_LEVELS]))
+# Drift guard: the committed summary must still agree with the per-OTU table,
+# both in total and in the merge that produces the third bar.
+stopifnot(asum$n_dark == sum(sh$is_dark), sum(bdf$n) == asum$n_dark,
+          sum(asum$placeable_existing_SH, asum$novel_new_SH,
+              asum$no_SH_match, asum$excluded_nonITS) == asum$n_dark,
+          bdf$n[3] == asum$no_SH_match + asum$excluded_nonITS)
 bdf$pct <- 100 * bdf$n / asum$n_dark
 bdf$cat <- factor(bdf$cat, levels = rev(SH_LEVELS))   # first category at the top
 
-pB <- ggplot(bdf, aes(n, cat, fill = cat)) +
+pA <- ggplot(bdf, aes(n, cat, fill = cat)) +
   geom_col(width = 0.68, colour = "grey30", linewidth = 0.15) +
   geom_text(aes(label = sprintf("%d  (%.0f%%)", n, pct)), hjust = -0.12,
             size = 3.1, colour = "grey25") +
-  scale_fill_manual(values = sh_cols, name = "UNITE SH placement", drop = FALSE) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0.40))) +
-  scale_y_discrete(labels = function(x) sub(" to existing SH", "\nto existing SH", x)) +
+  fill_scale +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.42))) +
+  scale_y_discrete(labels = function(x) sub(" (to existing SH|within 80% id)",
+                                            "\n\\1", x)) +
   labs(x = sprintf("Dark OTUs (n = %d)", asum$n_dark), y = NULL,
-       subtitle = "Every OTU with no confident\ngenus assignment.") +
+       subtitle = "Every OTU with no\nconfident genus\nassignment.") +
   base_theme +
   guides(fill = "none")
+
+# ============================================================================
+# Panel B -- how much of a dropping each stratum accounts for, by season
+# ============================================================================
+# Panel A counts OTUs, which says nothing about how much of the community they
+# are; this panel is the read-weighted view and the one that carries the
+# figure's claim. Written per sample by 9_dark_taxa_SH_matching.R Section 4b, so
+# the mean and the test below come from the same committed file.
+rs <- read.csv(file.path(tab_dir, "E1_SH_readshare_by_sample.csv"),
+               stringsAsFactors = FALSE)
+rs_map <- c("Named"                   = "Named (genus assigned)",
+            "Dark: placeable"         = "Placeable to existing SH",
+            "Dark: candidate novel"   = "Candidate novel SH",
+            "Dark: no reference <80%" = "No reference within 80% id")
+stopifnot(all(rs$stratum %in% names(rs_map)), all(rs$Season %in% c("winter", "summer")))
+rs$cat <- factor(unname(rs_map[rs$stratum]), levels = STRAT_LEVELS)
+# Compositional guard: the four strata must exhaust each sample's reads.
+stopifnot(abs(tapply(rs$read_share, rs$sample, sum) - 1) < 1e-6,
+          length(unique(rs$sample)) == 52L)
+
+# Season is capitalised for display only; winter first because the figure's
+# subject is the winter community.
+rs$Season <- factor(sub("^(.)", "\\U\\1", rs$Season, perl = TRUE),
+                    levels = c("Winter", "Summer"))
+bar <- aggregate(read_share ~ Season + cat, data = rs, FUN = mean)
+bar$pct <- 100 * bar$read_share
+bar <- bar[order(bar$Season, bar$cat), ]
+# Label positions are computed here rather than left to position_stack. The text
+# layer plots a SUBSET (segments too thin to hold a label), and position_stack
+# re-stacks whatever data it is given -- so the two layers would silently drift
+# apart in any season where a segment is dropped. geom_col stacks the first
+# factor level on top, hence the descending cumulative.
+bar$ymid <- unlist(lapply(split(bar$pct, bar$Season), function(v)
+  (sum(v) - cumsum(c(0, head(v, -1)))) - v / 2))
+# Drift guard: these means must reproduce the per-OTU table's season columns,
+# which are computed independently (script 9 Section 4, not 4b).
+chk <- vapply(split(seq_len(nrow(sh)), factor(
+                ifelse(sh$is_dark, unname(sh_class_map[sh$SH_class]),
+                       "Named (genus assigned)"), levels = STRAT_LEVELS)),
+              function(i) sum(sh$winter_mean_share[i]), numeric(1))
+win <- setNames(bar$read_share[bar$Season == "Winter"],
+                as.character(bar$cat[bar$Season == "Winter"]))
+stopifnot(max(abs(chk[STRAT_LEVELS] - win[STRAT_LEVELS])) < 1e-6)
+
+nov <- rs[rs$cat == "Candidate novel SH", ]
+nov_p <- wilcox.test(read_share ~ Season, data = nov)$p.value
+nov_m <- tapply(100 * nov$read_share, nov$Season, mean)
+
+pB <- ggplot(bar, aes(Season, pct, fill = cat)) +
+  geom_col(width = 0.62, colour = "grey30", linewidth = 0.15) +
+  # Labelled inside the segment it belongs to; segments under 5% have no room,
+  # and the axis already places them.
+  geom_text(data = bar[bar$pct >= 5, ],
+            aes(y = ymid, label = sprintf("%.0f%%", pct),
+                colour = cat == "Candidate novel SH"),
+            size = 3.0, show.legend = FALSE) +
+  scale_colour_manual(values = c(`TRUE` = "white", `FALSE` = "grey20")) +
+  fill_scale +
+  # coord_cartesian, not scale limits: position_stack sums to 1 and the scale is
+  # applied AFTER stacking, so a limit of exactly 100 drops the top segment on a
+  # floating-point overshoot (ggplot2 4.0 warns "Removed 1 row").
+  scale_y_continuous(breaks = seq(0, 100, 25), expand = expansion(mult = c(0, 0.02))) +
+  coord_cartesian(ylim = c(0, 100)) +
+  labs(x = NULL, y = "Mean per-sample read share (%)",
+       subtitle = sprintf("Mean per-sample read share.\nCandidate-novel: %.0f%% winter vs\n%.0f%% summer (p = %s).",
+                          nov_m[["Winter"]], nov_m[["Summer"]],
+                          format(signif(nov_p, 2), scientific = TRUE))) +
+  base_theme +
+  # The figure's one legend lives here: panel B is the only one that carries all
+  # four levels, and its geom_col draws square keys, which read correctly for
+  # both the bars here and the points in C. A and C suppress theirs.
+  guides(fill = guide_legend(order = 1, nrow = 1))
 
 # ============================================================================
 # Panel C -- the winter-abundant dark OTUs
@@ -2862,25 +2894,21 @@ pC <- ggplot(wd, aes(winter_occ, share_pct, fill = cat)) +
   geom_text(data = lab, aes(label = txt), inherit.aes = FALSE,
             x = lab$winter_occ - 0.8, y = lab$share_pct - 0.7, hjust = 1, vjust = 1,
             size = 2.9, lineheight = 1.05, colour = "grey20") +
-  scale_fill_manual(values = sh_cols, name = "UNITE SH placement", drop = FALSE) +
+  fill_scale +
   scale_x_continuous(limits = c(0, 26), breaks = seq(0, 25, 5),
                      expand = expansion(mult = c(0.02, 0.02))) +
   scale_y_continuous(expand = expansion(mult = c(0.04, 0.10))) +
-  labs(x = sprintf("Prevalence (winter samples with a detection, of %d)", wd$winter_n[1]),
+  labs(x = sprintf("Prevalence (of %d winter samples)", wd$winter_n[1]),
        y = "Mean winter read share (%)",
-       subtitle = "The 30 dark OTUs with the highest\nmean winter read share (Table S-E1b).") +
+       subtitle = "The 30 dark OTUs with the\nhighest mean winter read\nshare (Table S-E1b).") +
   base_theme +
-  guides(fill = guide_legend(order = 1, nrow = 2, override.aes = list(size = 3.4)))
+  guides(fill = "none")
 
 # ---- assemble and write ----------------------------------------------------
-# Explicit design grid rather than nested `/` and `|`: patchwork FLATTENS a chain
-# of `/`, so (pA) / (pB | pC) would silently become a three-row layout.
-design <- "
-AAAAAAAA
-BBBCCCCC
-"
+# Explicit widths rather than nested `/` and `|`: patchwork FLATTENS a chain of
+# `/`, so a mixed layout can silently become extra rows.
 fig4 <- pA + pB + pC +
-  plot_layout(design = design, heights = c(1, 1.02), guides = "collect") +
+  plot_layout(nrow = 1, widths = c(1.1, 0.75, 1.5), guides = "collect") +
   plot_annotation(tag_levels = "A") &
   theme(legend.position = "bottom", legend.box = "horizontal")
 
@@ -2895,22 +2923,18 @@ save_fig <- function(stem, obj, width, height, res = 600) {
   pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
   one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
 }
-save_fig(file.path(out_dir, "Fig4_dark_taxa_SH"), fig4, 10, 8.8)
+save_fig(file.path(out_dir, "Fig4_dark_taxa_SH"), fig4, 10, 5.0)
 
 # ---- console summary -------------------------------------------------------
-cat("Best-hit similarity, by group:\n")
-print(data.frame(group = G_LEVELS,
-                 n_with_hit = as.integer(table(sim$group)[G_LEVELS]),
-                 no_best_hit = as.integer(n_nosim),
-                 median_id = round(as.numeric(tapply(sim$similarity_percentage, sim$group, median)[G_LEVELS]), 2),
-                 pct_ge99 = round(100 * as.numeric(tapply(sim$similarity_percentage, sim$group,
-                                                          function(x) mean(x >= 99))[G_LEVELS]), 1),
-                 pct_lt95 = round(100 * as.numeric(tapply(sim$similarity_percentage, sim$group,
-                                                          function(x) mean(x < 95))[G_LEVELS]), 1)),
+cat(sprintf("Dark OTUs (n = %d) by SH placement:\n", asum$n_dark))
+print(data.frame(placement = SH_LEVELS,
+                 n = bdf$n[match(SH_LEVELS, as.character(bdf$cat))],
+                 pct = round(bdf$pct[match(SH_LEVELS, as.character(bdf$cat))], 1)),
       row.names = FALSE)
-cat(sprintf("\nDark OTUs (n = %d) by SH placement:\n", asum$n_dark))
-print(data.frame(placement = as.character(bdf$cat), n = bdf$n, pct = round(bdf$pct, 1)),
-      row.names = FALSE)
+cat("\nMean per-sample read share (%), by season:\n")
+print(round(100 * xtabs(read_share ~ cat + Season, data = bar), 2))
+cat(sprintf("\nCandidate-novel read share: winter %.1f%% vs summer %.1f%%, Wilcoxon p = %.3g\n",
+            nov_m[["Winter"]], nov_m[["Summer"]], nov_p))
 cat("\nTop 10 winter-abundant dark OTUs:\n")
 o <- order(-wd$share_pct)[1:10]
 print(data.frame(OTU = wd$OTU_ID[o], class = sub("^c__", "", wd$Class[o]),

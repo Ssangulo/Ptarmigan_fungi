@@ -264,6 +264,49 @@ occ <- data.frame(
 
 sh <- left_join(sh, occ, by = "OTU_ID")
 
+# ---- 4b) Per-sample read share by SH stratum (main-text Fig. 4B) -------------
+# Sections 5a/5b count OTUs and report per-OTU season means; the main figure also
+# needs the READ-weighted view per sample, so the seasonal claim ("dark, largely
+# candidate-novel lineages dominate winter dung") can be shown and tested rather
+# than asserted. Strata collapse no_SH_match together with excluded_nonITS: both
+# mean "no UNITE reference within 80% identity was established for this OTU", and
+# the figure draws them as one bar (see the appendix Section 10.4 caption).
+sh_stratum <- c(placeable_existing_SH = "Dark: placeable",
+                novel_new_SH          = "Dark: candidate novel",
+                no_SH_match           = "Dark: no reference <80%",
+                excluded_nonITS       = "Dark: no reference <80%")
+STRATA <- c("Named", "Dark: placeable", "Dark: candidate novel",
+            "Dark: no reference <80%")
+# rel is samples x taxa; sh carries the tax_table's row order, which need not
+# match, so index by OTU_ID rather than assuming alignment.
+ix <- match(colnames(rel), sh$OTU_ID)
+stopifnot(!anyNA(ix))
+stratum <- factor(ifelse(sh$is_dark[ix], unname(sh_stratum[sh$SH_class[ix]]), "Named"),
+                  levels = STRATA)
+stopifnot(!anyNA(stratum))
+
+# rowsum() aggregates over the TAXA margin, so transpose in and out.
+share_mat <- t(rowsum(t(rel), stratum))[, STRATA, drop = FALSE]
+stopifnot(all(abs(rowSums(share_mat) - 1) < 1e-10))
+
+readshare <- data.frame(
+  sample     = rep(rownames(share_mat), times = length(STRATA)),
+  Season     = rep(sd$Season, times = length(STRATA)),
+  stratum    = factor(rep(STRATA, each = nrow(share_mat)), levels = STRATA),
+  read_share = as.vector(share_mat),
+  stringsAsFactors = FALSE)
+write.csv(readshare, file.path(out_dir, "E1_SH_readshare_by_sample.csv"),
+          row.names = FALSE)
+
+cat("\n-- Mean per-sample read share by SH stratum (%) --\n")
+print(round(100 * t(sapply(STRATA, function(k)
+  tapply(share_mat[, k], sd$Season, mean))), 2))
+cat(sprintf("Dark total: winter %.1f%%, summer %.1f%%\n",
+            100 * mean(rowSums(share_mat[sd$Season == "winter", -1, drop = FALSE])),
+            100 * mean(rowSums(share_mat[sd$Season == "summer", -1, drop = FALSE]))))
+cat(sprintf("Candidate-novel share, winter vs summer: Wilcoxon p = %.3g\n",
+            wilcox.test(share_mat[, "Dark: candidate novel"] ~ sd$Season)$p.value))
+
 # ---- Citable UNITE identifier for placeable OTUs ----------------------------
 # Each existing UNITE SH has a stable page https://unite.ut.ee/sh/<SH_code>
 # carrying the taxon name and the SH's formal DOI. NB the DOI is a Taxon-
@@ -418,10 +461,12 @@ supp_tab <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
 invisible(file.copy(file.path(plot_dir, c("E1_SH_similarity_hist.png",
                                           "E1_dark_taxa_novel_vs_placeable.png")),
                     supp_fig, overwrite = TRUE))
-# dark_taxa_SH_matching.csv is staged too: it is the only per-OTU source of
-# similarity_percentage x is_dark, which main-text Fig. 4A (appendix Section 11.4)
-# needs. The two E1_* summaries below serve Fig. 4B and 4C.
+# dark_taxa_SH_matching.csv is staged too: it is the per-OTU source main-text
+# Fig. 4 (appendix Section 10.4) uses as its drift guard. The three E1_* files
+# below serve its panels: assignment_summary + the per-OTU table for A,
+# readshare_by_sample (Section 4b) for B, winter_dominant for C.
 invisible(file.copy(file.path(out_dir, c("E1_SH_assignment_summary.csv",
+                                         "E1_SH_readshare_by_sample.csv",
                                          "E1_winter_dominant_dark_taxa_SH.csv",
                                          "dark_taxa_SH_matching.csv")),
                     supp_tab, overwrite = TRUE))
