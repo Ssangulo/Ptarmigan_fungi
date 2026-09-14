@@ -166,8 +166,10 @@ load("eco_analysis.RData")  # produced by 4_data_prep.R
 #                 taxonomy cleaned; depth filter >= 10,000 reads/sample.
 #                 alldat$nopool = 52 samples (canonical object for PERMANOVA,
 #                 iNEXT3D, dominance).
-# alldat.rfy    : same as alldat but rarefied to the minimum depth (12,615 reads);
-#                 used where even sampling effort is required (per-sample hillR).
+# alldat.rfy    : same as alldat but rarefied to the minimum depth (12,615 reads).
+#                 Retained as a cross-check: per-sample Hill numbers are now
+#                 size-standardised to that same depth analytically by iNEXT.3D
+#                 from the raw counts, rather than read off one rarefaction draw.
 # alldat_full   : one row per PCR replicate (never collapsed), pass-through depth
 #                 threshold; for GLLVM / mixed-model work where PCR replicate is an
 #                 explicit random effect (read-count offset, not rarefaction).
@@ -926,7 +928,9 @@ cat(sprintf("Sorensen (presence/absence): Season R2 = %.3f, p = %.3f\n",
 
 ## Section 5: Diversity — H2 {.page-break-before}
 
-H2 predicts higher summer alpha diversity, tracking the richer summer diet. Two Hill-number approaches are presented together deliberately, because they appear to disagree in an informative way: coverage-based iNEXT3D (which pools samples within a Season and asks about the Season's total species pool) versus per-sample hillR (which asks about diversity within a single sample and rewards evenness). The disagreement is resolved by the dominance analysis in 5.3.
+H2 predicts higher summer alpha diversity, tracking the richer summer diet. Two levels of analysis are presented together deliberately, because they appear to disagree in an informative way: the **pooled-season** estimate of 5.1 (which pools samples within a Season and asks about the Season's total species pool) versus the **per-sample** estimate of 5.2 (which asks about diversity within a single dropping and rewards evenness). Both are computed with iNEXT3D, so the disagreement cannot be an artefact of using two different estimators — 5.1 standardises by coverage across the two pooled incidence sets, 5.2 standardises by size across the 52 individual samples. The disagreement is resolved by the dominance analysis in 5.3.
+
+Per-sample Hill numbers are size-standardised to a common depth of 12,615 reads — the minimum library size — using `iNEXT.3D::estimate3D(base = "size")` on the raw counts. This returns the analytic expectation of the Hill number at that depth, rather than the value observed in one random rarefaction draw, so the estimate is deterministic and uses the full read depth of every sample. Coverage-based standardisation is deliberately **not** used at the per-sample level: estimated sample coverage is ≥ 0.99999 in all 52 samples (exactly 1 in 46 of them, since 43 contain no singleton OTUs at all), which leaves coverage-based and asymptotic estimators either undefined or equal to the observed richness, and would reintroduce the dependence on sequencing depth that standardisation is there to remove.
 
 ### 5.1 iNEXT3D: coverage-based taxonomic diversity
 
@@ -948,7 +952,7 @@ The asymptotic estimates in Table S8 are plotted as main-text **Fig. 3A** (Secti
 
 ![](figures/H2_hill_boxplot_Season.png)
 
-**Figure S8**: Per-sample Hill numbers (PCR-collapsed object, rarefied to the minimum sample depth). Summer \> winter at q0 (richness) but winter ≥ summer at q1/q2 (Shannon/Simpson) — a richness–evenness crossover.
+**Figure S8**: Per-sample Hill numbers (PCR-collapsed object, size-standardised with iNEXT3D to the minimum sample depth of 12,615 reads). Summer \> winter at q0 (richness) but winter ≥ summer at q1/q2 (Shannon/Simpson) — a richness–evenness crossover.
 
 This is the same quantity as main-text **Fig. 3B** (Section 10.3), which redraws it to the main-figure specification: annotated with the Table S9 contrasts below, and stacked beneath the pooled estimates of Fig. 3A on a shared set of facet columns. Figure S8 is retained here as the plain, unannotated view.
 
@@ -964,7 +968,7 @@ kable(lmm, digits = 3,
 
 ### 5.3 Why the two metrics disagree: dominance and evenness
 
-The crossover is not an artifact. iNEXT3D pools a Season's samples and rewards the total species list (summer's samples collectively contain more species, so summer wins at every q). Per-sample q1/q2 instead downweight rare taxa and reward *within-sample evenness* — and individual summer samples are far more dominance-skewed than winter ones, so a single summer sample's effective diversity is often lower even though its raw species list is longer.
+The crossover is not an artifact, and it is not a difference of estimator — both levels are iNEXT3D. Pooling a Season's samples rewards the total species list (summer's samples collectively contain more species, so summer wins at every q). Per-sample q1/q2 instead downweight rare taxa and reward *within-sample evenness* — and individual summer samples are far more dominance-skewed than winter ones, so a single summer sample's effective diversity is often lower even though its raw species list is longer.
 
 ```{r tab-dominance}
 #| echo: false
@@ -1012,11 +1016,14 @@ Summer's dominance is driven by three strongly season-skewed OTUs: **OTU1 (*Thel
 # This chunk is the source of truth for every figure and table in Section 5,
 # and for Table S3 in Section 3.2; there is no parallel script. Sections 1-2
 # below reproduce 6_diversity_analyses.R Part A (Sections 1-2 plus the
-# per-sample hillR block) run against the corrected canonical workspace,
+# per-sample Hill block) run against the corrected canonical workspace,
 # without the slow parts Section 5 does not need (the Bayesian diet-richness
 # mechanism of Section 7.1, and Part B's phylogenetic null models).
 # ---------------------------------------------------------------------------
-library(phyloseq); library(iNEXT.3D); library(hillR)
+library(phyloseq); library(iNEXT.3D)
+# Size-standardised Hill numbers: single source, shared with the fig3-build
+# chunk and mirrored verbatim in Scripts/6_diversity_analyses.R.
+source("hill_size_helper.R")
 library(lme4); library(lmerTest); library(dplyr); library(tidyr); library(ggplot2)
 
 data_dir <- "/home/daniel/Ptarmigan/trimmed/mergedPlates"   # data live outside the repo
@@ -1091,21 +1098,19 @@ write.csv(est_TD, file.path(tab_dir, "H2_iNEXT3D_TD_coverage_standardised.csv"),
 # ===========================================================================
 # alldat_full[[1]] is one row per PCR replicate and is deliberately NOT
 # depth-filtered at the object level (4_data_prep.R uses a pass-through
-# threshold, since it is built for read-count-offset models). hillR needs
+# threshold, since it is built for read-count-offset models). Hill numbers need
 # comparable effort across rows, so the canonical 10,000-read floor is applied
-# here at the REPLICATE level, then everything is rarefied to the minimum
-# retained depth.
+# here at the REPLICATE level, then everything is size-standardised (iNEXT.3D)
+# to the minimum retained depth.
 PCR_MIN_DEPTH <- 10000
 ps_pcr <- prune_samples(sample_sums(alldat_full[[1]]) >= PCR_MIN_DEPTH, alldat_full[[1]])
 ps_pcr <- prune_taxa(taxa_sums(ps_pcr) > 0, ps_pcr)
 
-set.seed(1)
 rar_depth_pcr <- min(sample_sums(ps_pcr))
-ps_pcr_rar <- rarefy_even_depth(ps_pcr, sample.size = rar_depth_pcr,
-                                replace = FALSE, rngseed = 1, verbose = FALSE)
+hill_pcr_raw  <- hill_inext_size(ps_pcr, level = rar_depth_pcr, label = "Per-PCR-replicate")
 
-m_pcr  <- otu_mat_of(ps_pcr_rar)
-md_pcr <- as.data.frame(sample_data(ps_pcr_rar))
+m_pcr  <- otu_mat_of(ps_pcr)
+md_pcr <- as.data.frame(sample_data(ps_pcr))
 stopifnot(identical(rownames(m_pcr), rownames(md_pcr)))
 md_pcr$Season <- factor(md_pcr$Season, levels = c("winter", "summer"))
 md_pcr$Year   <- factor(md_pcr$Year)
@@ -1115,9 +1120,9 @@ md_pcr$pcr_replicate_id <- droplevels(factor(md_pcr$sample))
 
 hill_pcr <- data.frame(
   pcr_row = rownames(m_pcr),
-  q0 = hillR::hill_taxa(m_pcr, q = 0),
-  q1 = hillR::hill_taxa(m_pcr, q = 1),
-  q2 = hillR::hill_taxa(m_pcr, q = 2),
+  q0 = hill_pcr_raw$q0,
+  q1 = hill_pcr_raw$q1,
+  q2 = hill_pcr_raw$q2,
   Season = md_pcr$Season, Year = md_pcr$Year,
   indivID_glm = md_pcr$indivID_glm,
   pcr_replicate_id = md_pcr$pcr_replicate_id, stringsAsFactors = FALSE)
@@ -1130,7 +1135,7 @@ p_hill_box <- ggplot(hl_pcr, aes(Season, value)) +
   facet_wrap(~q, scales = "free_y",
              labeller = as_labeller(c(q0 = "q0 richness", q1 = "q1 Shannon",
                                       q2 = "q2 Simpson"))) +
-  labs(title = sprintf("Per-PCR-replicate Hill diversity (rarefied to %d reads)",
+  labs(title = sprintf("Per-PCR-replicate Hill diversity (iNEXT3D, size-standardised to %d reads)",
                        rar_depth_pcr), y = "Hill number", x = NULL) +
   theme_bw(base_size = 12)
 save_png(p_hill_box, "H2_hill_boxplot_Season_pcr.png", width = 10, height = 4.5)
@@ -1168,12 +1173,13 @@ write.csv(dplyr::bind_rows(lapply(c("q0", "q1", "q2"), function(q) fit_h2_lmm(hi
           file.path(tab_dir, "H2_lmm_season_effect.csv"), row.names = FALSE)
 
 # ===========================================================================
-# Figure S8 -- per-sample Hill diversity (PCR-collapsed, already rarefied)
+# Figure S8 -- per-sample Hill diversity (PCR-collapsed, size-standardised)
 # ===========================================================================
-# alldat.rfy$nopool is rarefied to a common depth, so hill_taxa() here is
-# deterministic and no seed is involved. This is the PER-SAMPLE level (n = 52),
-# deliberately distinct from the PCR-replicate level of Table S9 above.
-ps_rar_sample <- alldat.rfy$nopool
+# Raw counts (alldat$nopool): iNEXT.3D does the standardisation itself, to the
+# same depth alldat.rfy was rarefied to. Deterministic, no seed. This is the
+# PER-SAMPLE level (n = 52), deliberately distinct from the PCR-replicate level
+# of Table S9 above.
+ps_rar_sample <- alldat$nopool
 m_rar_sample  <- otu_mat_of(ps_rar_sample)
 md_rar_sample <- as.data.frame(sample_data(ps_rar_sample))
 stopifnot(identical(rownames(m_rar_sample), rownames(md_rar_sample)))
@@ -1181,11 +1187,14 @@ md_rar_sample$Season <- factor(md_rar_sample$Season, levels = c("winter", "summe
 md_rar_sample$Year   <- factor(md_rar_sample$Year)
 md_rar_sample <- add_indivID_glm(md_rar_sample)
 
+samp_depth      <- min(rowSums(m_rar_sample))
+hill_sample_raw <- hill_inext_size(ps_rar_sample, level = samp_depth, label = "Per-sample")
+
 hill_sample <- data.frame(
   sample = rownames(m_rar_sample),
-  q0 = hillR::hill_taxa(m_rar_sample, q = 0),
-  q1 = hillR::hill_taxa(m_rar_sample, q = 1),
-  q2 = hillR::hill_taxa(m_rar_sample, q = 2),
+  q0 = hill_sample_raw$q0,
+  q1 = hill_sample_raw$q1,
+  q2 = hill_sample_raw$q2,
   Season = md_rar_sample$Season, Year = md_rar_sample$Year,
   indivID_glm = md_rar_sample$indivID_glm, stringsAsFactors = FALSE)
 write.csv(hill_sample, file.path(tab_dir, "H2_hill_per_sample.csv"), row.names = FALSE)
@@ -1197,8 +1206,8 @@ p_hill_sample_box <- ggplot(hl_sample, aes(Season, value)) +
   facet_wrap(~q, scales = "free_y",
              labeller = as_labeller(c(q0 = "q0 richness", q1 = "q1 Shannon",
                                       q2 = "q2 Simpson"))) +
-  labs(title = sprintf("Per-sample Hill diversity (PCR-collapsed, rarefied to %d reads)",
-                       min(rowSums(m_rar_sample))), y = "Hill number", x = NULL) +
+  labs(title = sprintf("Per-sample Hill diversity (PCR-collapsed, iNEXT3D size-standardised to %d reads)",
+                       samp_depth), y = "Hill number", x = NULL) +
   theme_bw(base_size = 12)
 save_png(p_hill_sample_box, "H2_hill_boxplot_Season.png", width = 10, height = 4.5)
 
@@ -1418,7 +1427,7 @@ kable(mc_disp,
       caption = "Table S12. H2-mechanism: the two complementary Bayesian models of fungal Hill q1 diversity vs. dietary plant richness (standardised slope). Both converge cleanly (0 divergences, Rhat < 1.01) and place the diet-richness slope positive.")
 ```
 
-Both models place the diet-richness slope firmly positive (medians +0.28 and +0.38 standard deviations of fungal diversity per standard deviation of plant richness), with posterior support of **P(slope \> 0) = 0.92** (Season-adjusted) and **0.96** (drop-Year). The drop-Year model clears the preregistered 0.95 threshold; the Season-adjusted model sits just below it. The direction of the effect is therefore consistent, and the weight of posterior evidence favours the predicted positive diet-richness → fungal-diversity relationship.
+Both models place the diet-richness slope firmly positive (medians +0.29 and +0.38 standard deviations of fungal diversity per standard deviation of plant richness), with posterior support of **P(slope \> 0) = 0.91** (Season-adjusted) and **0.96** (drop-Year). The drop-Year model clears the preregistered 0.95 threshold; the Season-adjusted model sits just below it. The direction of the effect is therefore consistent, and the weight of posterior evidence favours the predicted positive diet-richness → fungal-diversity relationship.
 
 ![](figures/H2_mechanism_slope_posterior.png)
 
@@ -2270,14 +2279,14 @@ print(round(tapply(dcent$dist, list(dcent$Season, dcent$Year), mean), 1))
 ### 10.3 Figure 3 — Richness rises, evenness collapses (H2)
 
 :::: {.content-visible when-profile="docs"}
-*Provenance: Fig. 3A is the coverage-based iNEXT3D analysis of Section 5.1 (Table S8); Fig. 3B the per-sample Hill numbers of Section 5.2 (Figure S8), annotated with the mixed-model contrasts of Table S9; Fig. 3C the dominance and evenness metrics of Section 5.3 (Table S10); Fig. 3D the top-5 dominant OTUs of Section 5.4 (Table S11), coloured by the guild rule of Section 8.1. Panels B–D are computed on the canonical 52-sample object (`alldat$nopool`, rarefied for B); panel A's estimates and every test statistic are read from the committed `tables/` CSVs, so the figure cannot drift from Section 5.*
+*Provenance: Fig. 3A is the coverage-based pooled-season iNEXT3D analysis of Section 5.1 (Table S8); Fig. 3B the size-standardised per-sample iNEXT3D Hill numbers of Section 5.2 (Figure S8), annotated with the mixed-model contrasts of Table S9; Fig. 3C the dominance and evenness metrics of Section 5.3 (Table S10); Fig. 3D the top-5 dominant OTUs of Section 5.4 (Table S11), coloured by the guild rule of Section 8.1. Panels B–D are computed on the canonical 52-sample object (`alldat$nopool`); panel B standardises it to 12,615 reads through the shared `hill_size_helper.R`, the same single source Section 5.2 uses. Panel A's estimates and every test statistic are read from the committed `tables/` CSVs, so the figure cannot drift from Section 5.*
 ::::
 
 ![](figures/main/Fig3_richness_evenness_crossover.png)
 
-**Figure 3**: Summer dung mycobiomes hold more fungal OTUs than winter ones, yet each individual dropping is far less even. **(A)** Asymptotic taxonomic diversity of each season's pooled sample set (iNEXT3D, incidence data, 500 bootstraps) at Hill orders q = 0, 1 and 2; points are the asymptotic estimate, bars are 95% confidence intervals, and the grey segment joins the two seasons within an order. Summer exceeds winter at every order, with no pair of intervals overlapping. **(B)** Per-sample Hill numbers for the same 52 samples, rarefied to a common depth of 12,615 reads, drawn in the same three columns against the same season axis so that the two rows can be read against one another; boxes show the median and interquartile range, points are individual samples, white diamonds are season means, and the grey segment joins those means. The slope that rises in all three columns of (A) rises only at q = 0 here and falls at q = 1 and q = 2 — that reversal is the crossover. Annotations give the season contrast (summer minus winter) with its p-value from the mixed models of Table S9, which are fitted at the **PCR-replicate level (n = 98)** whereas the plotted points are per-sample (n = 52) — the same pairing used for Figure S8 and Table S9 in Section 5.2. Both rows scale y freely within each column, because the three Hill orders differ by an order of magnitude. **(C)** The mechanism: per-sample top-1-OTU read share and Pielou evenness *J*, both on a 0–1 scale, with symbols as in (B) and brackets giving the Wilcoxon rank-sum result (Table S10). **(D)** The identity of the dominants — the five OTUs with the highest mean within-season read share in each season, coloured by functional guild under the rule of Section 8.1. Bar labels give that mean share and, in parentheses, the number of the season's 26 samples in which the OTU was detected at all. Taxa are named at the finest confidently assigned rank, so an OTU with no genus appears under its family, or as *unclassified* plus its order or class. *Candida parapsilosis* is coloured plant-associated because its compound FUNGuild string contains `Epiphyte`; the rule is applied unchanged rather than special-cased, so that Figures 1 and 3 and Sections 8–9 classify every OTU identically.
+**Figure 3**: Summer dung mycobiomes hold more fungal OTUs than winter ones, yet each individual dropping is far less even. **(A)** Asymptotic taxonomic diversity of each season's pooled sample set (iNEXT3D, incidence data, 500 bootstraps) at Hill orders q = 0, 1 and 2; points are the asymptotic estimate, bars are 95% confidence intervals, and the grey segment joins the two seasons within an order. Summer exceeds winter at every order, with no pair of intervals overlapping. **(B)** Per-sample Hill numbers for the same 52 samples, size-standardised with iNEXT3D to a common depth of 12,615 reads, drawn in the same three columns against the same season axis so that the two rows can be read against one another; boxes show the median and interquartile range, points are individual samples, white diamonds are season means, and the grey segment joins those means. The slope that rises in all three columns of (A) rises only at q = 0 here and falls at q = 1 and q = 2 — that reversal is the crossover. Annotations give the season contrast (summer minus winter) with its p-value from the mixed models of Table S9, which are fitted at the **PCR-replicate level (n = 98)** whereas the plotted points are per-sample (n = 52) — the same pairing used for Figure S8 and Table S9 in Section 5.2. Both rows scale y freely within each column, because the three Hill orders differ by an order of magnitude. **(C)** The mechanism: per-sample top-1-OTU read share and Pielou evenness *J*, both on a 0–1 scale, with symbols as in (B) and brackets giving the Wilcoxon rank-sum result (Table S10). **(D)** The identity of the dominants — the five OTUs with the highest mean within-season read share in each season, coloured by functional guild under the rule of Section 8.1. Bar labels give that mean share and, in parentheses, the number of the season's 26 samples in which the OTU was detected at all. Taxa are named at the finest confidently assigned rank, so an OTU with no genus appears under its family, or as *unclassified* plus its order or class. *Candida parapsilosis* is coloured plant-associated because its compound FUNGuild string contains `Epiphyte`; the rule is applied unchanged rather than special-cased, so that Figures 1 and 3 and Sections 8–9 classify every OTU identically.
 
-Panels A and B put the same question to two scales and get opposite answers, and that disagreement is the result rather than a problem with it. Pooled across a season, summer is the richer assemblage at every Hill order — an estimated 1,708 OTUs against winter's 1,046 at q = 0, and the gap survives abundance weighting (978 vs 493 at q = 1; 523 vs 209 at q = 2) with no overlapping confidence intervals. Within a single dropping the ordering reverses as soon as abundance enters: summer leads at q = 0 (47.7 vs 31.1 effective OTUs; +18.8 in the replicate-level model, p = 0.011) but falls behind at q = 1 (7.4 vs 14.9) and significantly so at q = 2 (4.6 vs 10.1; −3.9, p = 0.010). Panel C locates the reversal in dominance rather than in the species lists: an average summer sample gives 56% of its reads to a single OTU against 25% in winter, and Pielou evenness falls from 0.72 to 0.38 (both p \< 0.001). Summer droppings are simultaneously longer-tailed and far more top-heavy, which is precisely the combination that lifts q = 0 while depressing q = 1 and q = 2. Panel D names the taxa responsible, and they are the ones a coprophilous account predicts: *Thelebolus*, *Coniochaeta* and *Sporormiella intermedia* together take 44% of summer reads and are all dung saprotrophs, whereas winter's leading OTUs are mostly unclassified below class and carry no guild call at all — among them OTU1369, an unclassified Dothideomycete that is winter's most abundant OTU and is present in 20 of 26 winter samples, and which is taken up as a dark taxon in Section 3.4. Two caveats travel with the figure. The contrasts annotating (B) are fitted at the PCR-replicate level while the points are per-sample, so they test the same seasonal effect on the nested replicate data rather than on the plotted values themselves (Section 5.2). And the shares in (D) are seasonal averages, not universals — *Thelebolus* reaches its 24.9% mean while being detected in only 15 of the 26 summer droppings.
+Panels A and B put the same question to two scales and get opposite answers, and that disagreement is the result rather than a problem with it. Pooled across a season, summer is the richer assemblage at every Hill order — an estimated 1,708 OTUs against winter's 1,046 at q = 0, and the gap survives abundance weighting (978 vs 493 at q = 1; 523 vs 209 at q = 2) with no overlapping confidence intervals. Within a single dropping the ordering reverses as soon as abundance enters: summer leads at q = 0 (48.3 vs 31.3 effective OTUs; +19.0 in the replicate-level model, p = 0.010) but falls behind at q = 1 (7.4 vs 14.9) and significantly so at q = 2 (4.6 vs 10.1; −3.9, p = 0.009). Panel C locates the reversal in dominance rather than in the species lists: an average summer sample gives 56% of its reads to a single OTU against 25% in winter, and Pielou evenness falls from 0.72 to 0.38 (both p \< 0.001). Summer droppings are simultaneously longer-tailed and far more top-heavy, which is precisely the combination that lifts q = 0 while depressing q = 1 and q = 2. Panel D names the taxa responsible, and they are the ones a coprophilous account predicts: *Thelebolus*, *Coniochaeta* and *Sporormiella intermedia* together take 44% of summer reads and are all dung saprotrophs, whereas winter's leading OTUs are mostly unclassified below class and carry no guild call at all — among them OTU1369, an unclassified Dothideomycete that is winter's most abundant OTU and is present in 20 of 26 winter samples, and which is taken up as a dark taxon in Section 3.4. Two caveats travel with the figure. The contrasts annotating (B) are fitted at the PCR-replicate level while the points are per-sample, so they test the same seasonal effect on the nested replicate data rather than on the plotted values themselves (Section 5.2). And the shares in (D) are seasonal averages, not universals — *Thelebolus* reaches its 24.9% mean while being detected in only 15 of the 26 summer droppings.
 
 ```{r fig3-build}
 #| eval: false
@@ -2291,13 +2300,17 @@ Panels A and B put the same question to two scales and get opposite answers, and
 # the same three columns, with the Winter->Summer slope flipping between rows.
 # C then gives the mechanism (dominance) and D the identity of the dominants.
 # Per-sample quantities are recomputed from the canonical objects (Fig. 1
-# precedent); every pooled estimate and test statistic is READ from a committed
-# tables/ CSV (Fig. 2 precedent), with guards asserting the two agree.
+# precedent) via the shared hill_size_helper.R; every pooled estimate and test
+# statistic is READ from a committed tables/ CSV (Fig. 2 precedent), with guards
+# asserting the two agree.
 # Rebuild:  conda run -n r_env Rscript build_main_figure.R fig3-build
 
 suppressPackageStartupMessages({
-  library(phyloseq); library(ggplot2); library(patchwork)
+  library(phyloseq); library(ggplot2); library(patchwork); library(iNEXT.3D)
 })
+# Size-standardised Hill numbers: the SAME single source the sec5-build chunk
+# uses, so Figure 3 panel B and Section 5.2 cannot drift apart.
+source("hill_size_helper.R")
 
 rdata <- if (file.exists("eco_analysis.RData")) "eco_analysis.RData" else
          "/home/daniel/Ptarmigan/trimmed/mergedPlates/eco_analysis.RData"
@@ -2380,22 +2393,24 @@ pA <- ggplot(asy, aes(Season, TD_asy)) +
 # ============================================================================
 # Panel B -- per-sample diversity (Section 5.2, Fig. S9 + Table S9)
 # ============================================================================
-# alldat.rfy$nopool is ALREADY rarefied to a common depth, so hill_taxa() here is
-# deterministic and no seed is involved; the guard makes that testable.
-ps_rfy <- alldat.rfy$nopool
+# Raw counts: iNEXT.3D size-standardises internally to rfy_depth, the same depth
+# alldat.rfy is rarefied to. Deterministic (an analytic expectation, not one
+# rarefaction draw), so no seed is involved; the guard makes that testable.
+ps_rfy <- alldat$nopool
 m_rfy  <- as(otu_table(ps_rfy), "matrix")
-if (taxa_are_rows(ps_rfy)) m_rfy <- t(m_rfy)         # hillR wants sites x species
-stopifnot(nsamples(ps_rfy) == 52L, length(unique(rowSums(m_rfy))) == 1L)
-rfy_depth <- unique(rowSums(m_rfy))
+if (taxa_are_rows(ps_rfy)) m_rfy <- t(m_rfy)         # sites x species
+rfy_depth <- min(rowSums(m_rfy))
+stopifnot(nsamples(ps_rfy) == 52L,
+          rfy_depth == unique(rowSums(otu_mat_of(alldat.rfy$nopool))))
 
 md_rfy <- data.frame(as(sample_data(ps_rfy), "data.frame"), stringsAsFactors = FALSE)
 stopifnot(identical(rownames(m_rfy), rownames(md_rfy)))
 season_rfy <- to_season(md_rfy$Season); stopifnot(!anyNA(season_rfy))
 
+hill_raw <- hill_inext_size(ps_rfy, level = rfy_depth, label = "Figure 3B")
+stopifnot(identical(hill_raw$row, rownames(m_rfy)))
 hill <- data.frame(Season = season_rfy,
-                   q0 = hillR::hill_taxa(m_rfy, q = 0),
-                   q1 = hillR::hill_taxa(m_rfy, q = 1),
-                   q2 = hillR::hill_taxa(m_rfy, q = 2))
+                   q0 = hill_raw$q0, q1 = hill_raw$q1, q2 = hill_raw$q2)
 hill_long <- data.frame(
   Season = rep(hill$Season, times = 3),
   q      = factor(rep(Q_LEVELS, each = nrow(hill)), levels = Q_LEVELS),
@@ -2446,7 +2461,7 @@ pB <- ggplot(hill_long, aes(Season, value)) +
   # be read off the axis. free_y absorbs the 164-vs-32 range difference instead.
   scale_y_continuous(expand = expansion(mult = c(0.04, 0.36))) +
   labs(x = NULL, y = "Per sample\n(effective no. of OTUs)",
-       subtitle = sprintf("Per-sample Hill numbers (n = %d, rarefied to %s reads); white diamonds are season means.\nAnnotations: PCR-replicate-level mixed model (n = %d; Table S9).",
+       subtitle = sprintf("Per-sample Hill numbers (n = %d, iNEXT3D size-standardised to %s reads); white diamonds are season means.\nAnnotations: PCR-replicate-level mixed model (n = %d; Table S9).",
                           nrow(hill), format(rfy_depth, big.mark = ","), n_pcr)) +
   base_theme +
   # B repeats A's facet columns exactly, so its strips are dropped as redundant.
@@ -2660,7 +2675,7 @@ print(data.frame(q = Q_LEVELS,
       row.names = FALSE)
 hill_means <- aggregate(cbind(q0, q1, q2) ~ Season, hill, mean)
 hill_means[-1] <- round(hill_means[-1], 2)
-cat(sprintf("\nPer-sample Hill means (n = %d, rarefied to %d reads):\n", nrow(hill), rfy_depth))
+cat(sprintf("\nPer-sample Hill means (n = %d, size-standardised to %d reads):\n", nrow(hill), rfy_depth))
 print(hill_means, row.names = FALSE)
 cat(sprintf("\nReplicate-level LMM, summer - winter (n = %d; Table S9):\n", n_pcr))
 print(data.frame(metric = lmm$metric, delta = lmm$summer_minus_winter,

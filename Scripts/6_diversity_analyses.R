@@ -2,8 +2,9 @@
 # 6_diversity_analyses.R
 #
 # PART A -- H2 (alpha diversity; preregistered):
-#   Hill numbers (q=0,1,2) via coverage-based rarefaction/extrapolation
-#   (iNEXT3D) and per-sample values (hillR). Full-sample main effect tested
+#   Hill numbers (q=0,1,2) via coverage-based rarefaction/extrapolation of the
+#   pooled seasons (iNEXT3D) and size-standardised per-sample values (also
+#   iNEXT3D). Full-sample main effect tested
 #   frequentist (mixed model, Season + (1|Year) + (1|indivID)); diet-richness
 #   mechanism tested on the plant-matched subset, Bayesian (brms).
 #
@@ -33,7 +34,6 @@ library(phyloseq)
 library(DECIPHER)
 library(phangorn)
 library(iNEXT.3D)
-library(hillR)
 library(lme4)
 library(lmerTest)
 library(picante)
@@ -83,6 +83,75 @@ add_indivID_glm <- function(md) {
                             paste0("unk_", md$sample), md$indivID)
   md$indivID_glm <- droplevels(factor(md$indivID_glm))
   md
+}
+
+# ---- Shared helper: size-standardised Hill numbers via iNEXT.3D -------------
+# Replaces the previous `rarefy_even_depth() %>% hillR::hill_taxa()` pattern
+# used in Sections 2 and 3. Both compute the SAME estimand -- the Hill number
+# of a sample of `level` reads drawn without replacement -- but they differ in
+# how they get there:
+#   hillR on a rarefied object = ONE random draw from that distribution, so the
+#     answer moves with the rarefaction seed. Verified against 200 independent
+#     draws: the committed draw sat a median 0.68-0.82 draw-SD from the
+#     expectation (up to 3.3 SD; up to 12.7 OTUs at q0).
+#   estimate3D(base="size") = the ANALYTIC EXPECTATION, computed from the full
+#     raw counts. Same check put it 0.05-0.07 draw-SD from the expectation.
+# So this is the same quantity estimated ~10x more precisely, deterministically,
+# and without discarding ~97% of the reads. Input must be RAW counts.
+#
+# `level` defaults to the minimum library size, i.e. exactly the depth the old
+# rarefaction used, so the two are directly comparable.
+#
+# GOTCHA: iNEXT.3D refuses any assemblage with fewer than 5 observed species
+# ("the number of observed species should be at least five"). A handful of
+# low-richness rows here trip that. Rather than drop them (which would silently
+# change n), those are computed from the exact closed-form rarefaction
+# expectations of Chao et al. 2014 (Ecol Monogr 84:45-67) -- Hurlbert's formula
+# for q0, the expected plug-in Shannon entropy for q1, and the exact expected
+# inverse Simpson for q2. Verified against estimate3D on rows where both run:
+# max absolute difference 8.5e-10, i.e. the identical estimand.
+hill_rarefy_exact <- function(x, m) {
+  x <- x[x > 0]; n <- sum(x)
+  stopifnot(m <= n)
+  if (m == n) { p <- x/n
+    return(c(q0 = length(x), q1 = exp(-sum(p*log(p))), q2 = 1/sum(p^2))) }
+  q0 <- sum(1 - exp(lchoose(n - x, m) - lchoose(n, m)))
+  lcnm <- lchoose(n, m); H <- 0
+  for (xi in x) {                       # X_i ~ Hypergeometric(n, x_i, m)
+    k  <- seq.int(max(1L, m - (n - xi)), min(xi, m))
+    kk <- k/m
+    H  <- H + sum(exp(lchoose(xi, k) + lchoose(n - xi, m - k) - lcnm) * (-kk*log(kk)))
+  }
+  q2 <- 1/(1/m + (1 - 1/m) * sum(x*(x-1))/(n*(n-1)))
+  c(q0 = q0, q1 = exp(H), q2 = q2)
+}
+
+hill_inext_size <- function(ps, level = NULL, label = "") {
+  m <- otu_mat_of(ps)                                   # rows = assemblages
+  if (is.null(level)) level <- min(rowSums(m))
+  stopifnot(level >= 1, all(rowSums(m) >= level))
+  S   <- rowSums(m > 0)
+  big <- rownames(m)[S >= 5]; small <- rownames(m)[S < 5]
+
+  out <- data.frame(row = rownames(m), q0 = NA_real_, q1 = NA_real_, q2 = NA_real_,
+                    stringsAsFactors = FALSE)
+  if (length(big)) {
+    d <- as.data.frame(t(m[big, , drop = FALSE]))
+    d <- d[rowSums(d) > 0, , drop = FALSE]
+    e <- iNEXT.3D::estimate3D(d, diversity = "TD", q = c(0,1,2), datatype = "abundance",
+                              base = "size", level = level, nboot = 0)
+    w <- reshape(e[, c("Assemblage","Order.q","qTD")], idvar = "Assemblage",
+                 timevar = "Order.q", direction = "wide")
+    names(w) <- c("row","q0","q1","q2")
+    i <- match(w$row, out$row); out[i, c("q0","q1","q2")] <- w[, c("q0","q1","q2")]
+  }
+  for (r in small)
+    out[match(r, out$row), c("q0","q1","q2")] <- as.list(hill_rarefy_exact(m[r, ], level))
+
+  stopifnot(!anyNA(out[, c("q0","q1","q2")]), identical(out$row, rownames(m)))
+  cat(sprintf("%sSize-standardised Hill numbers at m = %d reads: %d assemblages (%d via estimate3D, %d via exact formula, S.obs < 5)\n",
+              if (nzchar(label)) paste0(label, ": ") else "", level, nrow(out), length(big), length(small)))
+  out
 }
 
 
@@ -156,7 +225,8 @@ cat(sprintf("\nCoverage-standardised TD at shared coverage Cmin=%.4f:\n", Cmin))
 print(est_TD)
 
 # =============================================================================
-# SECTION 2 -- PER-PCR-REPLICATE HILL DIVERSITY (hillR) + FREQUENTIST MIXED
+# SECTION 2 -- PER-PCR-REPLICATE HILL DIVERSITY (iNEXT3D, size-standardised)
+# + FREQUENTIST MIXED
 # MODEL, WITH PCR REPLICATE AS AN EXPLICIT RANDOM EFFECT
 # H2 full-sample main effect: diversity ~ Season + (1|Year) + (1|indivID) +
 # (1|PCR replicate)
@@ -181,8 +251,8 @@ print(est_TD)
 # (4_data_prep.R uses a pass-through threshold, min_depth_full=1, since it's
 # built for GLLVM/HMSC-style read-count-offset models). Individual PCR
 # replicates range from 4 to ~637,000 reads (verified on current data) --
-# hillR needs comparable sampling effort across rows, so computing Hill
-# numbers with no floor at all would make a 4-read reaction meaningless and
+# Hill numbers need comparable sampling effort across rows, so computing them
+# with no floor at all would make a 4-read reaction meaningless and
 # would crush the shared rarefaction depth for every other row. We apply the
 # same canonical min_depth (10,000 reads) already used for `alldat`, just at
 # the replicate level here (stricter than the sample-level bar since it's
@@ -195,14 +265,16 @@ ps_pcr <- prune_taxa(taxa_sums(ps_pcr) > 0, ps_pcr)
 cat(sprintf("\nPCR replicates retained at >= %d reads: %d of %d\n",
             PCR_MIN_DEPTH, nsamples(ps_pcr), nsamples(alldat_full[[1]])))
 
-set.seed(1)
+# Size-standardised at the minimum retained library size -- the same depth the
+# previous rarefy_even_depth() call used, but as the analytic expectation via
+# iNEXT.3D rather than one random draw (see hill_inext_size() above).
 rar_depth_pcr <- min(sample_sums(ps_pcr))
-ps_pcr_rar <- rarefy_even_depth(ps_pcr, sample.size=rar_depth_pcr,
-                                replace=FALSE, rngseed=1, verbose=FALSE)
 
-m_pcr  <- otu_mat_of(ps_pcr_rar)
-md_pcr <- as.data.frame(sample_data(ps_pcr_rar))
+m_pcr  <- otu_mat_of(ps_pcr)
+md_pcr <- as.data.frame(sample_data(ps_pcr))
 stopifnot(identical(rownames(m_pcr), rownames(md_pcr)))
+hill_pcr_raw <- hill_inext_size(ps_pcr, level=rar_depth_pcr, label="Per-PCR-replicate")
+stopifnot(identical(hill_pcr_raw$row, rownames(m_pcr)))
 
 md_pcr$Season <- factor(md_pcr$Season, levels=c("winter","summer"))
 md_pcr$Year   <- factor(md_pcr$Year)
@@ -213,9 +285,9 @@ md_pcr$pcr_replicate_id <- droplevels(factor(md_pcr$sample))
 
 hill_pcr <- data.frame(
   pcr_row     = rownames(m_pcr),
-  q0          = hillR::hill_taxa(m_pcr, q=0),
-  q1          = hillR::hill_taxa(m_pcr, q=1),
-  q2          = hillR::hill_taxa(m_pcr, q=2),
+  q0          = hill_pcr_raw$q0,
+  q1          = hill_pcr_raw$q1,
+  q2          = hill_pcr_raw$q2,
   Season      = md_pcr$Season,
   Year        = md_pcr$Year,
   indivID_glm = md_pcr$indivID_glm,
@@ -223,7 +295,7 @@ hill_pcr <- data.frame(
   stringsAsFactors = FALSE
 )
 write.csv(hill_pcr, file.path(out_dir, "H2_hill_per_pcr_replicate.csv"), row.names=FALSE)
-cat(sprintf("\nPer-PCR-replicate Hill diversity computed at rarefaction depth = %d reads (%d rows, %d distinct samples)\n",
+cat(sprintf("\nPer-PCR-replicate Hill diversity size-standardised to %d reads (%d rows, %d distinct samples)\n",
             rar_depth_pcr, nrow(hill_pcr), nlevels(hill_pcr$pcr_replicate_id)))
 
 hl_pcr <- hill_pcr %>% pivot_longer(c(q0,q1,q2), names_to="q", values_to="value")
@@ -232,7 +304,7 @@ p_hill_box <- ggplot(hl_pcr, aes(Season, value)) +
   geom_jitter(aes(colour=Year), width=0.15, size=1.6, alpha=0.7) +
   facet_wrap(~q, scales="free_y",
              labeller=as_labeller(c(q0="q0 richness", q1="q1 Shannon", q2="q2 Simpson"))) +
-  labs(title=sprintf("Per-PCR-replicate Hill diversity (rarefied to %d reads)", rar_depth_pcr),
+  labs(title=sprintf("Per-PCR-replicate Hill diversity (iNEXT3D, size-standardised to %d reads)", rar_depth_pcr),
        y="Hill number", x=NULL) +
   theme_bw(base_size=12)
 save_png(p_hill_box, "H2_hill_boxplot_Season_pcr.png", width=10, height=4.5, dpi=800)
@@ -298,18 +370,22 @@ print(summary(h2_lmm_fits$q1$fit))
 # Self-contained from here: plant ITS2 diet data is one row per biological
 # dung sample (not per PCR replicate), so this section needs the PCR-
 # collapsed fungal object -- it builds its own `ps_rar_sample`/`hill_sample`
-# from alldat.rfy$nopool rather than reusing Section 2's now PCR-replicate-
-# level `ps_pcr_rar`/`hill_pcr`.
+# from alldat$nopool rather than reusing Section 2's now PCR-replicate-
+# level `ps_pcr`/`hill_pcr`.
 # =============================================================================
 
-# hillR::hill_taxa requires non-negative abundances at even depth for a fair
-# richness/evenness comparison across samples -- use the already-rarefied,
-# PCR-collapsed canonical object (alldat.rfy), not alldat (raw counts) or
-# Section 2's per-replicate object.
-ps_rar_sample <- alldat.rfy$nopool
+# Size-standardised Hill numbers need the RAW PCR-collapsed counts (alldat), not
+# the pre-rarefied alldat.rfy: iNEXT.3D does the standardisation itself and uses
+# the full read depth to do it. The target depth is min(sample_sums(alldat)) --
+# identical to the depth alldat.rfy was rarefied to, so the two are directly
+# comparable and the object choice changes the estimand not at all.
+ps_rar_sample <- alldat$nopool
 m_rar_sample  <- otu_mat_of(ps_rar_sample)
 md_rar_sample <- as.data.frame(sample_data(ps_rar_sample))
 stopifnot(identical(rownames(m_rar_sample), rownames(md_rar_sample)))
+samp_depth <- min(rowSums(m_rar_sample))
+hill_sample_raw <- hill_inext_size(ps_rar_sample, level=samp_depth, label="Per-sample")
+stopifnot(identical(hill_sample_raw$row, rownames(m_rar_sample)))
 
 md_rar_sample$Season <- factor(md_rar_sample$Season, levels=c("winter","summer"))
 md_rar_sample$Year   <- factor(md_rar_sample$Year)
@@ -317,20 +393,21 @@ md_rar_sample <- add_indivID_glm(md_rar_sample)
 
 hill_sample <- data.frame(
   sample  = rownames(m_rar_sample),
-  q0      = hillR::hill_taxa(m_rar_sample, q=0),
-  q1      = hillR::hill_taxa(m_rar_sample, q=1),
-  q2      = hillR::hill_taxa(m_rar_sample, q=2),
+  q0      = hill_sample_raw$q0,
+  q1      = hill_sample_raw$q1,
+  q2      = hill_sample_raw$q2,
   Season  = md_rar_sample$Season,
   Year    = md_rar_sample$Year,
   indivID_glm = md_rar_sample$indivID_glm,
   stringsAsFactors = FALSE
 )
 write.csv(hill_sample, file.path(out_dir, "H2_hill_per_sample.csv"), row.names=FALSE)
-cat(sprintf("\nPer-sample (PCR-collapsed) Hill diversity computed at rarefaction depth = %d reads (%d samples)\n",
-            min(rowSums(m_rar_sample)), nrow(hill_sample)))
+cat(sprintf("\nPer-sample (PCR-collapsed) Hill diversity size-standardised to %d reads (%d samples)\n",
+            samp_depth, nrow(hill_sample)))
 
 # ---- Build the plant-matched subset -----------------------------------------
-# Matched = canonical fungal samples (ps_rar_sample, PCR-collapsed + rarefied)
+# Matched = canonical fungal samples (ps_rar_sample, PCR-collapsed raw counts;
+# only sample identity and metadata are taken from it here)
 # that also have a plant ITS2 sample, joined on the raw Sample_ID_field key
 # (RL_####, no suffix stripping -- see 4_data_prep.R / CLAUDE.md gotcha).
 # This is the literal "matched subset" of the preregistration (~31 samples
