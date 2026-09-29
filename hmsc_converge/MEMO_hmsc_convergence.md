@@ -102,3 +102,30 @@ probit and the GLLVM.
     the PCR bar if C.
 - The new §6 sentence on main ("OTU-level seasonal pattern is carried by HMSC in Section 9")
   becomes true with either A or C.
+
+## 6. Implemented (script 10, branch) — decision: C headline, A complement (Daniel, 2026-09-29)
+
+Production run of the revised `Scripts/10_hmsc.R` (frozen copy; outputs in
+`/home/daniel/Ptarmigan/hmsc_branch/`, staged into this worktree's `Supplementary/`):
+
+| Model | Beta PSRF med / max | Season β % < 1.1 | Gamma PSRF max | chain range: guild means / VP |
+|---|---|---|---|---|
+| clr (C, headline, 55 rows) | 1.000 / 1.008 | 100 | 1.001 | 0.003 / 0.002 |
+| clr_rep (A, complement, 109 rows) | 1.002 / 1.096 | 100 | 1.004 | 0.015 / 0.018 |
+| pa (probit, reused, unchanged) | 1.008 / 1.139 | 99.1 | 1.070 | **0.242** / 0.068 |
+
+- **A behaved differently in this run.** Its chains agreed (VP Season 17.5 / dropping 43.3 /
+  PCR 26.8%). The earlier fit with the identical spec (`models/hmsc_v2/prod_A_thin50.rds`,
+  different seed) was bimodal (.52/.14 vs .43/.27). So A's dropping/PCR split is **not
+  reproducible across runs**; the appendix states it that way.
+- A vs C per-OTU Season β: Pearson 0.968, Spearman 0.894; CrI width A/C 0.84; 95%-resolved
+  74 (C) / 65 (A) / 56 both.
+- C: 74/226 resolved at 95% CrI; Fig 5A 16/22 at 0.95 support; guild means dung +1.32 /
+  other +0.22 / plant −0.10 / dark −0.31 / patho −0.33; VP 31.5 / 18.5 / 49.9 (dung sap Season
+  49.8%); CLR Gamma dung sap +0.31 [0.07, 0.54] support 0.994, plant/patho/dark lower
+  (support ≤ 0.004), other −0.16 (0.12). Spearman vs probit 0.758, vs GLLVM 0.746.
+  Expl R² 0.29, 2-fold CV R² 0.03 (the CV took ~2.5 h: ~75 min per fold).
+- PCR-replicate (model-free): 32.4% [27.5, 39.9]; lme4 34.1%; resid 36.1%; dung 16.7%,
+  pathotroph 49.6%; one-replicate-only detection 46%; both-detect noise median 3.2%.
+- Probit (flag, not acted on): passes PSRF but its per-chain guild means differ by up to 0.24
+  on the probit scale. Capping its latent factors like the CLR models would likely tighten it.
