@@ -162,6 +162,9 @@ hill_inext_size <- function(ps, level = NULL, label = "") {
 # =============================================================================
 # SECTION 1 -- iNEXT3D: COVERAGE-BASED TAXONOMIC HILL DIVERSITY (q = 0, 1, 2)
 # Standardised diversity comparison between timeblocks (winter vs summer).
+# The PRIMARY pooled result is the depth-controlled block at the end of this
+# section (H2_iNEXT3D_TD_coverage_rarefied.csv, appendix Table S8); the raw-count
+# asymptotic/coverage outputs just below are secondary (Table S8b).
 # =============================================================================
 
 ps <- alldat$nopool
@@ -224,7 +227,88 @@ write.csv(est_TD, file.path(out_dir, "H2_iNEXT3D_TD_coverage_standardised.csv"),
 cat(sprintf("\nCoverage-standardised TD at shared coverage Cmin=%.4f:\n", Cmin))
 print(est_TD)
 
+# NOTE: mirrored VERBATIM (paths aside) from the sec5-build chunk of
+# Supplementary/Supplementary_Appendix.qmd -- change one, change the other.
+# ---- Table S8 (primary) -- the same comparison with sequencing depth held equal
+# The incidence matrices above record whether an OTU was DETECTED in a dropping,
+# and detection rises with read depth. Summer libraries are ~2.6x deeper than
+# winter ones (median 551k vs 210k reads), so on raw counts the pooled summer
+# advantage is partly a depth effect. Here every sample is first rarefied to the
+# canonical minimum depth (12,615 reads) and the coverage-standardised comparison
+# is repeated over NDRAW independent draws, all at ONE common coverage level (the
+# lowest sample coverage reached by either Season in any draw, rounded down), so
+# the draws are comparable. Reported: the median over draws of the estimate and
+# of its bootstrap 95% CI. Asymptotic estimates (above, now secondary) are not
+# used for inference: they extrapolate to ~2x the observed richness.
+# Placed AFTER the raw-count block so the seeded outputs above are unchanged;
+# each draw has its own seed.
+NDRAW <- 50
+X_sxo <- t(OTU)                                     # samples x OTUs, raw counts
+rar_depth_pool <- min(rowSums(X_sxo))
+inc_of <- function(M) lapply(split(rownames(sd), sd$Season), function(samps) {
+  I <- t((M[samps, , drop = FALSE] > 0) * 1)        # OTUs x sampling units
+  storage.mode(I) <- "numeric"; I[rowSums(I) > 0, , drop = FALSE]
+})
+rar_draws <- lapply(seq_len(NDRAW), function(k) {
+  set.seed(20260929 + k); inc_of(vegan::rrarefy(X_sxo, rar_depth_pool))
+})
+sc_draw  <- vapply(rar_draws, function(L)
+  min(DataInfo3D(L, diversity = "TD", datatype = "incidence_raw")[["SC(T)"]]), numeric(1))
+C_common <- floor(100 * min(sc_draw)) / 100
+est_rar <- do.call(rbind, lapply(seq_len(NDRAW), function(k) {
+  set.seed(20260929 + k)
+  e <- estimate3D(rar_draws[[k]], diversity = "TD", q = c(0, 1, 2),
+                  datatype = "incidence_raw", base = "coverage",
+                  level = C_common, nboot = 100)
+  e$draw <- k; e
+}))
+write.csv(est_rar, file.path(out_dir, "H2_iNEXT3D_TD_coverage_rarefied_draws.csv"),
+          row.names = FALSE)
+s8 <- aggregate(cbind(qTD, qTD.LCL, qTD.UCL) ~ Assemblage + Order.q, est_rar, median)
+s8$SC <- C_common; s8$depth <- rar_depth_pool; s8$n_draws <- NDRAW
+s8$Season <- factor(labs_map[s8$Assemblage], levels = lvl_order)
+wide <- reshape(est_rar[, c("Assemblage", "Order.q", "qTD", "draw")],
+                idvar = c("Order.q", "draw"), timevar = "Assemblage", direction = "wide")
+rq <- tapply(wide$qTD.summer / wide$qTD.winter, wide$Order.q,
+             quantile, probs = c(0.025, 0.5, 0.975))
+s8$ratio_summer_winter_median <- NA_real_
+s8$ratio_draw_2.5 <- NA_real_; s8$ratio_draw_97.5 <- NA_real_
+for (q in names(rq)) {
+  i <- s8$Order.q == as.numeric(q)
+  s8[i, c("ratio_draw_2.5", "ratio_summer_winter_median", "ratio_draw_97.5")] <-
+    matrix(rq[[q]], nrow = sum(i), ncol = 3, byrow = TRUE)
+}
+# Share of draws in which the two Seasons' 95% CIs are separated, per order q.
+sep <- reshape(est_rar[, c("Assemblage", "Order.q", "qTD.LCL", "qTD.UCL", "draw")],
+               idvar = c("Order.q", "draw"), timevar = "Assemblage", direction = "wide")
+sep_share <- tapply(sep$qTD.LCL.summer > sep$qTD.UCL.winter, sep$Order.q, mean)
+s8$share_draws_CI_separated <- as.numeric(sep_share[as.character(s8$Order.q)])
+s8 <- s8[order(s8$Order.q, s8$Season), c("Season", "Order.q", "SC", "depth", "n_draws",
+         "qTD", "qTD.LCL", "qTD.UCL", "ratio_summer_winter_median", "ratio_draw_2.5",
+         "ratio_draw_97.5", "share_draws_CI_separated")]
+write.csv(s8, file.path(out_dir, "H2_iNEXT3D_TD_coverage_rarefied.csv"), row.names = FALSE)
+
+# Figure S7 companion: rarefaction/extrapolation curves on the ONE draw whose q0
+# summer/winter ratio sits closest to the median over draws, so the curves shown
+# are representative of the depth-controlled estimates in Table S8.
+r0 <- wide[wide$Order.q == 0, ]
+k_rep <- r0$draw[which.min(abs(r0$qTD.summer / r0$qTD.winter - rq[["0"]][2]))]
+set.seed(20260929 + k_rep)
+out_rep <- iNEXT3D(data = rar_draws[[k_rep]], diversity = "TD", q = c(0, 1, 2),
+                   datatype = "incidence_raw", nboot = 200)
+if (!is.null(out_rep$TDiNextEst))
+  out_rep$TDiNextEst <- lapply(out_rep$TDiNextEst, function(d) .relabel(as.data.frame(d)))
+p_TD_rar <- ggiNEXT3D(out_rep, type = 1, facet.var = "Order.q") +
+  labs(x = "Sampling units (droppings)") + theme_minimal(base_size = 14) +
+  theme(plot.title = element_blank(), legend.title = element_blank())
+save_png(p_TD_rar, "H2_iNEXT_TD_by_Season_rarefied.png", width = 10, height = 6, dpi = 800)
+print(s8)
+
 # =============================================================================
+# SUPERSEDED AS THE H2 TEST (2026-09-29; appendix Table S9c): the Season test
+# is now the per-sample gamma GLM written as H2_season_effect_per_sample.csv
+# in Section 3 below, fitted on the same unit the appendix plots. This
+# replicate-level model is kept for reference only.
 # SECTION 2 -- PER-PCR-REPLICATE HILL DIVERSITY (iNEXT3D, size-standardised)
 # + FREQUENTIST MIXED
 # MODEL, WITH PCR REPLICATE AS AN EXPLICIT RANDOM EFFECT
@@ -404,6 +488,63 @@ hill_sample <- data.frame(
 write.csv(hill_sample, file.path(out_dir, "H2_hill_per_sample.csv"), row.names=FALSE)
 cat(sprintf("\nPer-sample (PCR-collapsed) Hill diversity size-standardised to %d reads (%d samples)\n",
             samp_depth, nrow(hill_sample)))
+
+# NOTE: mirrored VERBATIM (paths aside) from the sec5-build chunk of
+# Supplementary/Supplementary_Appendix.qmd -- change one, change the other.
+# ===========================================================================
+# Table S9 (primary) + S9b -- Season effect on PER-SAMPLE Hill numbers
+# ===========================================================================
+# The test is fitted on the same unit Figure S8 / Fig. 3B plot: one value per
+# dung sample (n = 52), size-standardised above. Year is a FIXED effect (three
+# levels is too few to estimate a variance -- the replicate-level fits above went
+# singular on it). Individual bird is not modelled: only 3 birds were sampled
+# more than once. Primary family: gamma with a log link (Hill numbers are
+# positive and right-skewed; exp(coef) is a summer/winter ratio). Season x Year is
+# tested by F-test and dAICc against the additive model. Table S9b repeats the
+# Season test under other families, as the Paramo revision did, because the q0
+# result is the one sensitive to that choice.
+aicc <- function(m) { k <- length(coef(m)) + 1L; n <- nobs(m)
+  AIC(m) + 2 * k * (k + 1) / (n - k - 1) }
+hs <- hill_sample; hs$Season <- factor(hs$Season, levels = c("winter", "summer"))
+s9 <- do.call(rbind, lapply(c("q0", "q1", "q2"), function(q) {
+  f_add <- as.formula(paste(q, "~ Season + Year"))
+  f_int <- as.formula(paste(q, "~ Season * Year"))
+  g_add <- glm(f_add, family = Gamma(link = "log"), data = hs)
+  g_int <- glm(f_int, family = Gamma(link = "log"), data = hs)
+  dr  <- drop1(g_add, test = "F")
+  ci  <- exp(confint.default(g_add)["Seasonsummer", ])
+  data.frame(metric = q, n = nobs(g_add),
+             mean_winter = mean(hs[[q]][hs$Season == "winter"]),
+             mean_summer = mean(hs[[q]][hs$Season == "summer"]),
+             ratio_summer_winter = exp(coef(g_add)[["Seasonsummer"]]),
+             ratio_lwr = ci[[1]], ratio_upr = ci[[2]],
+             F_season = dr["Season", "F value"], p_season = dr["Season", "Pr(>F)"],
+             p_year = dr["Year", "Pr(>F)"],
+             p_season_x_year = anova(g_add, g_int, test = "F")[2, "Pr(>F)"],
+             dAICc_interaction = aicc(g_int) - aicc(g_add),
+             stringsAsFactors = FALSE)
+}))
+write.csv(s9, file.path(out_dir, "H2_season_effect_per_sample.csv"), row.names = FALSE)
+
+s9b <- do.call(rbind, lapply(c("q0", "q1", "q2"), function(q) {
+  f  <- as.formula(paste(q, "~ Season + Year"))
+  fl <- as.formula(paste("log(", q, ") ~ Season + Year"))
+  g  <- glm(f, family = Gamma(link = "log"), data = hs)
+  la <- lm(f, data = hs); ll <- lm(fl, data = hs)
+  data.frame(metric = q,
+             p_gaussian  = drop1(la, test = "F")["Season", "Pr(>F)"],
+             p_lognormal = drop1(ll, test = "F")["Season", "Pr(>F)"],
+             p_gamma     = drop1(g,  test = "F")["Season", "Pr(>F)"],
+             p_wilcoxon  = wilcox.test(as.formula(paste(q, "~ Season")), data = hs)$p.value,
+             # AIC on the response scale; the log-normal gets the Jacobian term
+             # so it is comparable (the Paramo family screen omitted it).
+             AIC_gaussian  = AIC(la),
+             AIC_lognormal = AIC(ll) + 2 * sum(log(hs[[q]])),
+             AIC_gamma     = AIC(g),
+             stringsAsFactors = FALSE)
+}))
+write.csv(s9b, file.path(out_dir, "H2_season_effect_family_sensitivity.csv"), row.names = FALSE)
+print(s9); print(s9b)
 
 # ---- Build the plant-matched subset -----------------------------------------
 # Matched = canonical fungal samples (ps_rar_sample, PCR-collapsed raw counts;
