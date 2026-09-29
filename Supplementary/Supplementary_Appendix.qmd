@@ -1544,6 +1544,10 @@ Sections 4 and 5 establish that the community shifts between seasons (H1) and th
 :::
 :::
 
+::: callout-warning
+**Read the per-OTU coefficients in this section as signs and ranks, not effect sizes.** Two limitations apply (added 2026-09-29; wording to be finalised). (i) The models were fitted on the pre-depth-filter-correction object (57 samples, 114 replicate rows, 327 OTUs), not the canonical 52-sample object used elsewhere. (ii) Many Season coefficients are not estimable as finite effects: OTUs absent or nearly absent from one season push an unpooled fixed coefficient toward ±∞. 134 of the 327 OTUs are flagged for this (`separation`), and 101 of the 209 OTUs counted as significant are among them (the largest reaching β ≈ 1,295 on the log scale). Among the 193 unflagged OTUs, 106 still have \|β\| \> 10, i.e. implausible fold changes (e¹⁰ ≈ 22,000), including the *Sporormiella* and *Coniochaeta* values quoted below (β ≈ 17). The OTU-level seasonal pattern is carried by HMSC in Section 9, which is fitted on the current data with shrinkage.
+:::
+
 ### 6.1 Model choice
 
 ```{r tab-gllvm-aic}
@@ -1742,6 +1746,10 @@ kable(data.frame(
 To check that the H3 verdict of Section 7.2 is not an artefact of one modelling framework, we repeat the analysis with a generalised linear latent-variable model (GLLVM) — the same model-based framework used for the OTU-resolved H1 in Section 6, now with the diet-plant predictors added. Everything about the data is held identical to the Bayesian model: the same PCR-replicate-level matched subset (**n = 30 biological samples, 60 libraries; 46 OTUs present in ≥5 samples**), the same six standardised diet-plant genera (rCLR-transformed), the same per-library log-size offset, and the same specificity index and preregistered coprophilous-vs-plant-associated contrast. Only the estimator differs, which is the point: agreement across two very different fitting machineries is stronger evidence than either alone.
 
 **Model.** Each OTU's counts are modelled with a negative-binomial GLLVM (`gllvm`), with Season and Year as community covariates, a per-OTU (species-specific) *fixed* slope for each plant genus, a biological-sample random row effect (so the two PCR replicates of a sample count as replication, not independent samples), and the log-library-size offset. We fit 0, 1 and 2 residual latent variables and select by AIC; here **num.lv = 0** is preferred — beyond the sample random effect the latent variables capture no further residual co-occurrence (so, unlike Section 6, there is no residual ordination to show). One difference from the Bayesian model is forced by the software: the natural partial-pooling analog (`gllvm`'s `randomX` species-specific *random* slopes) is silently dropped on this dataset, returning no plant-slope parameters at all. We therefore estimate the plant slopes as *fixed* per-OTU coefficients with Wald standard errors — an **unpooled** frequentist estimate that brackets the Bayesian *pooled* one from the other side. Rare on/off OTUs push their fixed coefficients toward ±∞ (near-separation); as in Section 6 these are flagged (16 of 46 OTUs) and excluded from the specificity ranking, contrast and plots, leaving **30 well-estimated OTUs**. Specificity is the same Herfindahl index of the \|plant slopes\|; a *resolved single-plant association* here means the 90 % Wald interval of an OTU's strongest plant slope excludes zero.
+
+::: callout-warning
+**Caveat on the per-OTU slopes (added 2026-09-29; wording to be finalised).** Even among the 30 retained OTUs the unpooled slopes are large for a per-SD predictor (median \|slope\| 1.9, 90th percentile 7.0, maximum 15.9 on the log scale), so the count of Wald-resolved associations in this section overstates what is estimable; the Bayesian pooled model of Section 7.2 resolves only 1 of 46. The verdict this section supports is the model-level one — AIC prefers the plant-free model and the coprophilous-versus-plant-associated contrast is not significant — not the individual slopes.
+:::
 
 ```{r tab-h3g-aic}
 #| echo: false
