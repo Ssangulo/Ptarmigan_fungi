@@ -12,9 +12,11 @@
 # Writes plots/hmsc_v2/<tag>_Fig5_draft.{png,jpg,pdf} + <tag>_fig5_console.txt
 # =============================================================================
 
+# Optional overrides: HMSC_QMD (default: main's appendix) and HMSC_TDIR (default:
+# models/hmsc_v2/<tag>_tables), so the branch's edited chunk can be exercised too.
 tag  <- commandArgs(trailingOnly = TRUE)[1]
-qmd  <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/Supplementary_Appendix.qmd"
-tdir <- file.path("/home/daniel/Ptarmigan/models/hmsc_v2", paste0(tag, "_tables"))
+qmd  <- Sys.getenv("HMSC_QMD", "/home/daniel/Ptarmigan/Scripts_server/Supplementary/Supplementary_Appendix.qmd")
+tdir <- Sys.getenv("HMSC_TDIR", file.path("/home/daniel/Ptarmigan/models/hmsc_v2", paste0(tag, "_tables")))
 odir <- "/home/daniel/Ptarmigan/plots/hmsc_v2"
 stopifnot(dir.exists(tdir))
 
@@ -42,15 +44,19 @@ sub1('^save_fig\\(file.path\\(out_dir, "Fig5_hmsc_synthesis"\\)',
 # The converged model's CLR-unit effects run to about +/-5 (the non-converged
 # one's were absorbed toward 0), so the published +/-2.5 clip would cut the
 # point estimates themselves; widen it (draft only) and relabel the axis breaks.
-sub1("^XCLIP <- 2.5", "XCLIP <- 6")
-sub1("scale_x_continuous\\(breaks = seq\\(-2, 2, 1\\)",
-     "  scale_x_continuous(breaks = seq(-6, 6, 2), expand = expansion(mult = c(0.03, 0.09))) +")
+if (any(grepl("^XCLIP <- 2.5", code))) {
+  sub1("^XCLIP <- 2.5", "XCLIP <- 6")
+  sub1("scale_x_continuous\\(breaks = seq\\(-2, 2, 1\\)",
+       "  scale_x_continuous(breaks = seq(-6, 6, 2), expand = expansion(mult = c(0.03, 0.09))) +")
+}
+# unfilled drift-guard placeholders (branch chunk before its numbers exist)
+code <- gsub("__[A-Z_]+__L?", "NA", code)
 
 # A fit without a PCR random level (arm C) has no "Random: pcr" column: drop
 # that component from the panel-B legend/stack rather than drawing a fake 0.
 vp_cols_here <- names(read.csv(file.path(tdir, "hmsc_variance_partition.csv"),
                                check.names = FALSE, nrows = 1))
-if (!"Random: pcr" %in% vp_cols_here)
+if (!"Random: pcr" %in% vp_cols_here && any(grepl('"Random: pcr"\\)', code)))
   sub1('^VP_LEVELS <- c\\("Season", "Year", "Random: sample", "Random: pcr"\\)',
        'VP_LEVELS <- c("Season", "Year", "Random: sample")')
 
