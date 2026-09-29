@@ -39,6 +39,21 @@ sub1('^out_dir <- "figures/main"', sprintf('out_dir <- "%s"', odir))
 sub1('^save_fig\\(file.path\\(out_dir, "Fig5_hmsc_synthesis"\\)',
      sprintf('save_fig(file.path(out_dir, "%s_Fig5_draft"), fig5, 11.5, 6.4)', tag))
 
+# The converged model's CLR-unit effects run to about +/-5 (the non-converged
+# one's were absorbed toward 0), so the published +/-2.5 clip would cut the
+# point estimates themselves; widen it (draft only) and relabel the axis breaks.
+sub1("^XCLIP <- 2.5", "XCLIP <- 6")
+sub1("scale_x_continuous\\(breaks = seq\\(-2, 2, 1\\)",
+     "  scale_x_continuous(breaks = seq(-6, 6, 2), expand = expansion(mult = c(0.03, 0.09))) +")
+
+# A fit without a PCR random level (arm C) has no "Random: pcr" column: drop
+# that component from the panel-B legend/stack rather than drawing a fake 0.
+vp_cols_here <- names(read.csv(file.path(tdir, "hmsc_variance_partition.csv"),
+                               check.names = FALSE, nrows = 1))
+if (!"Random: pcr" %in% vp_cols_here)
+  sub1('^VP_LEVELS <- c\\("Season", "Year", "Random: sample", "Random: pcr"\\)',
+       'VP_LEVELS <- c("Season", "Year", "Random: sample")')
+
 env <- new.env()
 env$stopifnot <- function(...) {
   cl <- deparse(sys.call(), width.cutoff = 500L)
