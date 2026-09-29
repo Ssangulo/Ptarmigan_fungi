@@ -11,6 +11,11 @@
 #        presence); OTUs in >= 10 PCR rows AND >= 5 droppings;
 #        sample nfMax 2 + PCR nfMax 1
 #   B0 : as B, sample level only
+#   A5 : as A but sample level nfMax 5 (does more capacity absorb the PCR-rep
+#        residual correlation without Season leaking back into the factors?)
+#   C  : CLR as A, then AVERAGED over the PCR replicates of each dropping (one
+#        row per dropping, sample level only, nfMax 2) -- pseudo-replication is
+#        impossible by construction, so its Season CrIs are the honest reference
 # YScale = TRUE in every arm.
 #
 # Run: HMSC_ARM=A HMSC_RUN_MODE=pilot OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
@@ -25,7 +30,7 @@ suppressMessages({
 ARM      <- Sys.getenv("HMSC_ARM", "A")
 RUN_MODE <- Sys.getenv("HMSC_RUN_MODE", "pilot")
 THIN     <- as.integer(Sys.getenv("HMSC_THIN", "10"))
-stopifnot(ARM %in% c("A", "A0", "B", "B0"))
+stopifnot(ARM %in% c("A", "A0", "B", "B0", "A5", "C"))
 mc <- if (RUN_MODE == "pilot") {
   list(samples = 250, thin = 10, transient = 2500)
 } else {
@@ -60,7 +65,7 @@ ps   <- alldat_full$nopool
 Ymat <- otu_mat_of(ps)
 md   <- data.frame(as(sample_data(ps), "data.frame"), stringsAsFactors = FALSE)
 
-if (ARM %in% c("A", "A0")) {
+if (ARM %in% c("A", "A0", "A5", "C")) {
   keep_otu <- colSums(Ymat > 0) >= 5
   Yk <- Ymat[, keep_otu, drop = FALSE]
   Yresp <- vegan::decostand(Yk, method = "clr", pseudocount = 1)
@@ -93,9 +98,24 @@ studyDesign <- data.frame(
 )
 stopifnot(nlevels(studyDesign$pcr) == nrow(Yk))
 
-rL_sample <- setPriors(HmscRandomLevel(units = levels(studyDesign$sample)), nfMax = 2, nfMin = 2)
+NF_SAMPLE <- if (ARM == "A5") 5 else 2
+if (ARM == "C") {
+  # Average the CLR response over each dropping's PCR replicates; library-size
+  # and prevalence bookkeeping follow the summed counts.
+  drop_id <- factor(md$Sample_ID_field)
+  Yresp <- rowsum(Yresp, drop_id) / as.vector(table(drop_id))
+  Yk    <- rowsum(Yk, drop_id)
+  first <- !duplicated(drop_id)
+  XData <- XData[first, , drop = FALSE]; rownames(XData) <- as.character(drop_id[first])
+  XData <- XData[rownames(Yresp), , drop = FALSE]
+  studyDesign <- data.frame(sample = factor(rownames(Yresp)), pcr = factor(rownames(Yresp)),
+                            row.names = rownames(Yresp))
+  prev_rows <- colSums(Yk > 0)
+  cat(sprintf("Arm C: averaged to %d droppings\n", nrow(Yresp)))
+}
+rL_sample <- setPriors(HmscRandomLevel(units = levels(studyDesign$sample)), nfMax = NF_SAMPLE, nfMin = 2)
 rL_pcr    <- setPriors(HmscRandomLevel(units = levels(studyDesign$pcr)),    nfMax = 1, nfMin = 1)
-if (ARM %in% c("A0", "B0")) {
+if (ARM %in% c("A0", "B0", "C")) {
   ranLevels <- list(sample = rL_sample)
   studyDesign <- studyDesign[, "sample", drop = FALSE]
 } else {
