@@ -2598,6 +2598,443 @@ cat("Mean distance to season centroid:\n")
 print(round(tapply(dcent$dist, list(dcent$Season, dcent$Year), mean), 1))
 ```
 
+### 10.5 Figure 5 — A reproducible seasonal axis inside large among-individual variation (HMSC synthesis)
+
+:::: {.content-visible when-profile="docs"}
+*Provenance: both panels of Fig. 5 come from the same abundance (CLR) HMSC model of Section 9. Fig. 5A is the per-OTU seasonal niche of Section 9.4 (Tables S-HMSCe(i) and S-HMSCe(ii)), restricted to the 22 OTUs that each hold at least 1% of modelled read share and augmented with a guild-mean block; Figure S-HMSCc is the same quantity for all 226 OTUs ranked by effect size rather than by abundance. Fig. 5B is the variance partition of Section 9.2 (Table S-HMSCc); its right-hand column is the model-free PCR-replicate share of Table S-HMSCc2 (`tables/hmsc_pcr_replicate_variance.csv`). The read shares behind the selection rule come from `tables/dark_taxa_SH_matching.csv` (Section 3.4), which is also the source of the finest-rank labels for OTUs with no genus. Both panels read committed `tables/*.csv` written by `10_hmsc.R` and `9_dark_taxa_SH_matching.R`, so the figure cannot drift from Sections 9 and 3.4.*
+::::
+
+![](figures/main/Fig5_hmsc_synthesis.png)
+
+<!-- CLAUDE DRAFT 2026-09-29 (caption rewritten for the revised model): rewrite freely -->
+**Figure 5**: A joint species distribution model places the seasonal axis at OTU level and sizes it against the variation among individual droppings. Both panels come from one abundance (CLR) HMSC model fitted to 226 OTUs in 55 droppings, with each dropping's two PCR replicates averaged, Season and Year as fixed effects, and the dropping as random level (Section 9.1). **(A)** Per-OTU Season coefficient in CLR units — positive = higher relative abundance in summer — for the 22 OTUs that each account for at least 1% of modelled-OTU read share, 73% of all modelled reads between them, ordered by coefficient and coloured by functional guild, with 95% credible intervals. One interval, OTU1369's, extends beyond the axis and is clipped at −6 with an arrowhead (it reaches −6.48). Filled points are the 16 resolved at HMSC's 0.95 posterior-support convention; community-wide, 74 of 226 OTUs have a 95% credible interval excluding zero. The lower block gives each guild's arithmetic mean of the per-OTU posterior means (diamond) with their interquartile range, taken over all OTUs in that guild rather than only the 22 plotted; it is a descriptive summary of the points above, not a credible interval. The model's own guild-level estimate is the trait-level Gamma (Section 9.3, Table S-HMSCd2). The four MCMC chains agree on every plotted estimate (Beta PSRF ≤ 1.01; Table S-HMSCb). **(B)** Mean share of per-OTU explained variance attributed to Season, Year and the dropping, for all 226 OTUs and then within each guild (Table S-HMSCc). The italic right-hand column is not part of that partition. It is the share of each OTU's total CLR variance that lies between the two PCR replicates of a dropping, measured outside the model (Table S-HMSCc2), and it mostly reflects rare taxa detected by one replicate but not the other. The three highlighted rows are drawn larger because they are the groups this study is about. The five guild classes are the model's trait and differ slightly from the display split used in Figure 1: 46 OTUs carrying a genus but no FUNGuild call sit in "Other assigned" here and in "Unassigned / dark" there (`tables/guild_scheme_crosswalk.csv`, Section 8.1).
+
+Panel A makes the seasonal signal concrete at the level of individual lineages, and it does so among the taxa that actually constitute the community: the 22 OTUs plotted are every OTU holding at least 1% of modelled read share, and they carry 73% of the modelled reads between them. <!-- CLAUDE DRAFT 2026-09-29 (numbers and claims updated to the revised model): rewrite freely -->
+Read from the top, the panel is the study's taxonomic result in one column. The summer end is an unbroken block of coprophilous dung saprotrophs — *Thelebolus* (OTU1, β = +4.17), *Sporormiella* (OTU636, +3.52), *Coniochaeta* (OTU1225, +3.44) and two further Sporormiaceae and Coniochaetaceae lineages — every one of them resolved. The winter end is a block dominated by dark, taxonomically unresolved taxa, ending at OTU1369 (−5.00), the unclassified Dothideomycete that dominates winter read share in Figure 4. Plant-associated taxa straddle zero between them. The guild means below make the same statement over all 226 OTUs rather than the 22 shown. Dung saprotrophs (+1.32) have by far the most summer-shifted mean; dark/unassigned taxa (−0.31) and pathotrophs (−0.33) lean winter; and the yeast-rich "other" group is weakly positive (+0.22). The model's trait-level estimate agrees: the dung-saprotroph guild's Season effect is positive with posterior support 0.994, and dark/unassigned, pathotroph and plant-associated OTUs respond clearly less summer-ward (Section 9.3). Panel B sizes these effects. Season accounts for 31.5% of the variance the model explains and Year for 18.5%, while half (49.9%) sits among droppings — one dropping to the next. The Season share is largest for dung saprotrophs (49.8%): coprophiles are the taxa whose abundance season determines most. Measured separately, a further 32% of total CLR variance is replicate-to-replicate noise within a dropping, most of it whether rare taxa are detected at all; coprophiles are the most repeatable guild (17%). Taken together the panels state the central quantitative claim in one place: seasonal turnover is real, directional and consistent across methods, yet it sits beside large idiosyncrasy among individual droppings — which is why the model explains the samples it has seen (R² ≈ 0.29) but predicts held-out droppings far less well (cross-validated R² ≈ 0.03; Section 9.7).
+
+```{r fig5-build}
+#| eval: false
+#| echo: !expr knitr::is_html_output()
+#| code-fold: true
+#| code-summary: "Full build code for Figure 5 — the source of truth for figures/main/Fig5_hmsc_synthesis.{png,jpg,pdf}"
+
+# Figure 5 -- HMSC synthesis: per-OTU seasonal niche + variance partition.
+# Every number is READ from committed tables/ CSVs; no model is loaded or
+# refitted here (the fits are ~200 MB each and the figure needs only their
+# posterior summaries).
+#   A  tables/hmsc_beta_season.csv         (per-OTU Season Beta, CLR abundance)
+#      tables/dark_taxa_SH_matching.csv    (per-OTU read share + full lineage)
+#   B  tables/hmsc_variance_partition.csv  (per-OTU variance components, CLR)
+#      tables/hmsc_pcr_replicate_variance.csv (model-free PCR-replicate share)
+#      tables/hmsc_convergence_psrf.csv    (quoted in the caption, checked here)
+#
+# BOTH panels are the headline ABUNDANCE (CLR) model: CLR averaged over each
+# dropping's two PCR replicates, one row per dropping, biological sample as the
+# random level (Section 9.1; revised 2026-09-29 -- the previous uncapped
+# replicate-level model did not converge). The occurrence (probit) model is a
+# supplementary robustness check (Section 9.4, Tables S-HMSCe(iii)/(iv)) and is
+# deliberately NOT mixed into this figure: on the occurrence scale the whole
+# community shifts summer-ward (157/226 OTUs positive), which ranks rare taxa at
+# the extremes and puts "other assigned" ahead of dung saprotrophs -- a richness
+# result already carried by Figure 3.
+# Rebuild:  conda run -n r_env Rscript build_main_figure.R fig5-build
+
+suppressPackageStartupMessages({
+  library(ggplot2); library(patchwork); library(ggtext)
+})
+
+tab_dir <- if (dir.exists("tables")) "tables" else
+           "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
+out_dir <- "figures/main"
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+grDevices::pdf(NULL)                                 # headless: no X11 fallback
+
+# ---- shared style ----------------------------------------------------------
+# Guild colours are Figure 1's, so a guild is the same colour in every main
+# figure. The model's five-level trait is NOT identical to Figure 1's display
+# split (46 OTUs move between "Other assigned" and "Unassigned / dark"); the
+# caption says so and tables/guild_scheme_crosswalk.csv reconciles them.
+GUILD_LEVELS <- c("Dung saprotroph", "Plant-associated", "Pathotroph",
+                  "Other assigned", "Unassigned / dark")
+guild_cols <- c("Dung saprotroph" = "#E69F00", "Plant-associated" = "#009E73",
+                "Pathotroph" = "#CC79A7", "Other assigned" = "#56B4E9",
+                "Unassigned / dark" = "#999999")
+guild_map <- c(dung_saprotroph = "Dung saprotroph", plant_associated = "Plant-associated",
+               pathotroph = "Pathotroph", other = "Other assigned",
+               dark_unassigned = "Unassigned / dark")
+# Variance components deliberately share NO colour with the guild scale, and
+# split fixed (coloured) from random (grey): the visual point of panel B is how
+# little of the bar is coloured.
+# The headline model averages PCR replicates, so it has NO PCR random level;
+# PCR-replicate variance is drawn as a separate, model-free column (panel B).
+VP_LEVELS <- c("Season", "Year", "Random: sample")   # CSV column names
+# Displayed names: the CSV's terse "Random: sample" is fine in a supplementary
+# table but a main-text key has to say what the level actually is.
+vp_display <- c("Season" = "Season", "Year" = "Year",
+                "Random: sample" = "Biological sample (dropping)")
+vp_cols <- c("Season" = "#0072B2", "Year" = "#F0E442",
+             "Biological sample (dropping)" = "#666666")
+
+base_theme <- theme_classic(base_size = 12) +
+  theme(strip.background = element_blank(),
+        strip.text.y     = element_text(face = "bold", size = 8.5, angle = 0),
+        plot.tag         = element_text(face = "bold", size = 14),
+        plot.subtitle    = element_text(size = 9, colour = "grey30"),
+        panel.spacing    = unit(0.5, "lines"),
+        legend.key.size  = unit(0.42, "cm"),
+        legend.title     = element_text(size = 10),
+        legend.text      = element_text(size = 9))
+
+# All in-plot text is ASCII: save_fig() falls back to grDevices::pdf when cairo
+# is unavailable, and that device silently substitutes a dot for a Unicode glyph.
+# (The markdown asterisks below are ggtext italics markup, and are ASCII.)
+
+strip_rank <- function(x) sub("^[a-z]__", "", x)
+
+# ============================================================================
+# Panel A -- per-OTU seasonal niche (CLR abundance), plus guild means
+# ============================================================================
+b <- read.csv(file.path(tab_dir, "hmsc_beta_season.csv"), stringsAsFactors = FALSE)
+stopifnot(nrow(b) == 226L, !anyNA(b$beta_season_mean), !anyNA(b$beta_season_CrI2.5),
+          !anyNA(b$beta_season_support), setequal(b$guild, names(guild_map)))
+b$Guild <- factor(unname(guild_map[b$guild]), levels = GUILD_LEVELS)
+
+# Read share AND full lineage both come from the E1 per-OTU table (Section 3.4),
+# the one committed file carrying a complete Kingdom..Species lineage together
+# with per-season mean read shares for every OTU in the study. Using it here is
+# what lets an OTU with no genus be labelled by its finest resolved rank
+# ("Dothideomycetes (OTU1369)") instead of a bare, unreadable ID.
+sh <- read.csv(file.path(tab_dir, "dark_taxa_SH_matching.csv"), stringsAsFactors = FALSE)
+stopifnot(nrow(sh) == 1129L, all(b$OTU_ID %in% sh$OTU_ID), !any(duplicated(sh$OTU_ID)))
+si <- match(b$OTU_ID, sh$OTU_ID)
+# Guard: the Beta table's own Genus column must agree with the lineage source,
+# or the labels would be describing different OTUs than the estimates.
+stopifnot(all(is.na(b$Genus) == is.na(sh$Genus[si])),
+          all(strip_rank(sh$Genus[si]) == b$Genus, na.rm = TRUE))
+
+# winter_mean_share and summer_mean_share are each a mean over that season's
+# samples, so their unweighted average is the OTU's mean share of a dropping.
+# Renormalising over the 226 MODELLED OTUs (not all 1129) is what makes "1% of
+# read share" a statement about the community the model actually sees.
+b$share <- (sh$winter_mean_share[si] + sh$summer_mean_share[si]) / 2
+stopifnot(!anyNA(b$share), all(b$share >= 0), sum(b$share) > 0)
+b$rel <- b$share / sum(b$share)
+
+# Selection rule: a stated threshold rather than an arbitrary top-N, so the
+# panel's membership is reproducible and cannot be read as cherry-picked. It
+# also ties Figure 5 to Figure 1, which is likewise read-share weighted.
+SHARE_MIN <- 0.01
+sel <- b[b$rel >= SHARE_MIN, ]
+sel <- sel[order(-sel$beta_season_mean), ]
+sel_cov <- sum(sel$rel)
+stopifnot(nrow(sel) == 22L, sel_cov > 0.70, sel_cov < 0.76)
+
+# Row labels: finest resolved rank, genus italicised via ggtext. Incertae sedis
+# placeholders are not genera and are shown at the rank they actually resolve to.
+RANKS <- c("Genus", "Family", "Order", "Class", "Phylum")
+label_one <- function(i, otu) {
+  v  <- strip_rank(unlist(sh[i, RANKS], use.names = FALSE))
+  ok <- which(!is.na(v) & nzchar(v))
+  if (!length(ok)) return(paste0("Fungi (", otu, ")"))
+  k <- ok[1]
+  nm <- sub("_(gen|fam|ord|cls)_Incertae_sedis$", "", v[k])
+  if (k == 1L && !grepl("Incertae", v[k], fixed = TRUE)) nm <- paste0("*", nm, "*")
+  paste0(nm, " (", otu, ")")
+}
+sel$lab <- vapply(seq_len(nrow(sel)),
+                  function(j) label_one(match(sel$OTU_ID[j], sh$OTU_ID), sel$OTU_ID[j]),
+                  character(1))
+stopifnot(!any(duplicated(sel$lab)))
+
+# Resolution marker: HMSC's own convention -- one-sided posterior support of
+# 0.95, i.e. a 90% two-sided interval. The caption also reports how many OTUs
+# community-wide have a 95% CrI excluding zero, so the weaker criterion is not
+# passed off as the stronger.
+SUPP <- 0.95
+sel$resolved <- factor(
+  ifelse(sel$beta_season_support >= SUPP | sel$beta_season_support <= 1 - SUPP,
+         "Posterior support >= 0.95", "Not resolved"),
+  levels = c("Posterior support >= 0.95", "Not resolved"))
+n_res <- sum(sel$resolved == "Posterior support >= 0.95")
+
+# Guild means over ALL OTUs of that guild (not just the 22 plotted), with the
+# IQR of the same per-OTU estimates as a spread -- a summary of the points
+# above, NOT a credible interval, which is why it is drawn as a plain segment.
+gm <- do.call(rbind, lapply(GUILD_LEVELS, function(g) {
+  v <- b$beta_season_mean[b$Guild == g]
+  data.frame(Guild = factor(g, levels = GUILD_LEVELS), n = length(v),
+             mean = mean(v), q25 = quantile(v, 0.25), q75 = quantile(v, 0.75),
+             stringsAsFactors = FALSE)
+}))
+gm$lab <- sprintf("%s (n = %d)", as.character(gm$Guild), gm$n)
+
+# Drift guard against the committed per-OTU table itself -- guild sizes and
+# guild means -- which is what the panel actually draws. (These are means of
+# per-OTU posterior means in CLR units, NOT the trait-level Gamma, which is on
+# the standardised scale and reported in Section 9.3.)
+N_EXP  <- c("Dung saprotroph" = 14L, "Plant-associated" = 50L, "Pathotroph" = 16L,
+            "Other assigned" = 67L, "Unassigned / dark" = 79L)
+GM_EXP <- c("Dung saprotroph" = 1.320, "Plant-associated" = -0.095, "Pathotroph" = -0.332,
+            "Other assigned" = 0.223, "Unassigned / dark" = -0.312)
+gm_n <- setNames(gm$n, as.character(gm$Guild))
+gm_m <- setNames(gm$mean, as.character(gm$Guild))
+stopifnot(sum(N_EXP) == 226L, all(gm_n[names(N_EXP)] == N_EXP),
+          max(abs(gm_m[names(GM_EXP)] - GM_EXP)) < 0.01,
+          as.character(gm$Guild[which.max(gm$mean)]) == "Dung saprotroph")
+
+# One plot, two blocks: facet_grid with free space gives the guild block a
+# height proportional to its 5 rows and keeps ONE shared x axis and one tag.
+BLOCKS <- c("Per-OTU niche", "Guild mean")   # short: the lower block is only 5 rows tall
+otu_df <- data.frame(lab = sel$lab, Guild = sel$Guild, resolved = sel$resolved,
+                     est = sel$beta_season_mean,
+                     lo = sel$beta_season_CrI2.5, hi = sel$beta_season_CrI97.5,
+                     block = factor(BLOCKS[1], levels = BLOCKS))
+gm_df  <- data.frame(lab = gm$lab, Guild = gm$Guild, est = gm$mean,
+                     lo = gm$q25, hi = gm$q75,
+                     block = factor(BLOCKS[2], levels = BLOCKS))
+lvl <- c(gm_df$lab[order(gm_df$est)], otu_df$lab[order(otu_df$est)])
+otu_df$lab <- factor(otu_df$lab, levels = lvl)
+gm_df$lab  <- factor(gm_df$lab,  levels = lvl)
+
+# Convergence is checked here but PRINTED IN THE CAPTION, not on the panel: a
+# diagnostic belongs in the caption rather than on the face of a main-text
+# figure. The guard refuses to draw the figure from a fit that does not meet
+# the Section 9.1 criteria (every Beta PSRF < 1.1; chains agree on the guild
+# means and the variance partition to within 0.05).
+conv <- read.csv(file.path(tab_dir, "hmsc_convergence_psrf.csv"), stringsAsFactors = FALSE)
+cclr <- conv[conv$model == "clr", ]
+stopifnot(nrow(cclr) == 1L, cclr$beta_psrf_max < 1.1, cclr$beta_pct_below_1.1 == 100,
+          cclr$guild_mean_chain_range_max < 0.05, cclr$vp_chain_range_max < 0.05)
+n_ci <- sum(b$beta_season_CrI2.5 > 0 | b$beta_season_CrI97.5 < 0)
+stopifnot(n_ci == 74L)
+
+# OTU1369's credible interval reaches below -6; drawn in full it would widen
+# the axis for one row. Intervals are therefore clipped at +/- 6 and the
+# clipped end carries an arrowhead, so nothing is hidden: the reader sees that
+# the interval continues, and the caption says how far.
+XCLIP <- 6
+otu_df$lo_c <- pmax(otu_df$lo, -XCLIP)
+otu_df$hi_c <- pmin(otu_df$hi,  XCLIP)
+otu_df$lo_clip <- otu_df$lo < -XCLIP
+otu_df$hi_clip <- otu_df$hi >  XCLIP
+n_clip <- sum(otu_df$lo_clip | otu_df$hi_clip)
+# Nothing may be clipped so hard that its point estimate leaves the panel.
+stopifnot(all(abs(otu_df$est) < XCLIP), all(abs(gm_df$est) < XCLIP),
+          all(abs(c(gm_df$lo, gm_df$hi)) < XCLIP))
+arr <- grid::arrow(length = unit(0.055, "in"), type = "open", angle = 22)
+
+pA <- ggplot(otu_df, aes(est, lab, colour = Guild)) +
+  geom_vline(xintercept = 0, linewidth = 0.3, colour = "grey70") +
+  # geom_segment rather than geom_errorbarh: the latter is deprecated in
+  # ggplot2 4.0 and its replacement's argument names differ between versions.
+  geom_segment(aes(x = lo_c, xend = hi_c, y = lab, yend = lab), linewidth = 0.45, alpha = 0.75) +
+  # Arrowheads drawn as short overlays at the clipped ends rather than as an
+  # arrow on the main segment, so an interval clipped at BOTH ends still gets
+  # two heads and an unclipped one gets none.
+  geom_segment(data = otu_df[otu_df$hi_clip, ],
+               aes(x = XCLIP - 0.30, xend = XCLIP, y = lab, yend = lab),
+               linewidth = 0.45, alpha = 0.75, arrow = arr) +
+  geom_segment(data = otu_df[otu_df$lo_clip, ],
+               aes(x = -XCLIP + 0.30, xend = -XCLIP, y = lab, yend = lab),
+               linewidth = 0.45, alpha = 0.75, arrow = arr) +
+  geom_point(aes(shape = resolved), size = 2.3, stroke = 0.8) +
+  # guild block: IQR segment behind, mean diamond on top, value printed
+  geom_segment(data = gm_df, aes(x = lo, xend = hi, y = lab, yend = lab),
+               inherit.aes = FALSE, colour = "grey65", linewidth = 0.5) +
+  geom_point(data = gm_df, aes(est, lab, fill = Guild), inherit.aes = FALSE,
+             shape = 23, size = 3.2, colour = "grey20", stroke = 0.4) +
+  # Value printed to the RIGHT of the IQR, not above the diamond: the five guild
+  # means sit within 0.6 of each other, so a label above one row lands on the next.
+  geom_text(data = gm_df, aes(hi, lab, label = sprintf("%+.2f", est)), inherit.aes = FALSE,
+            hjust = 0, nudge_x = 0.10, size = 2.9, colour = "grey20") +
+  facet_grid(rows = vars(block), scales = "free_y", space = "free_y", switch = "y") +
+  scale_colour_manual(values = guild_cols, name = "Guild", drop = FALSE) +
+  scale_fill_manual(values = guild_cols, guide = "none", drop = FALSE) +
+  scale_shape_manual(values = c("Posterior support >= 0.95" = 16, "Not resolved" = 1),
+                     name = NULL, drop = FALSE) +
+  scale_x_continuous(breaks = seq(-6, 6, 2), expand = expansion(mult = c(0.03, 0.09))) +
+  coord_cartesian(xlim = c(-XCLIP, XCLIP)) +
+  labs(x = "HMSC Beta: Season (CLR abundance, positive = more abundant in summer)", y = NULL,
+       subtitle = sprintf(paste0("The %d OTUs holding >= %.0f%% of modelled read share each (%.0f%% of modelled reads).\n",
+                                 "Abundance (CLR) model; %d of %d resolved at 0.95 posterior support."),
+                          nrow(sel), 100 * SHARE_MIN, 100 * sel_cov, n_res, nrow(sel))) +
+  base_theme +
+  theme(axis.text.y = element_markdown(size = 8.5),
+        strip.placement = "outside",
+        strip.text.y.left = element_text(angle = 90, face = "bold", size = 8)) +
+  guides(colour = guide_legend(order = 1, override.aes = list(shape = 16, size = 2.6)),
+         shape  = guide_legend(order = 2))
+
+# ============================================================================
+# Panel B -- variance partition (CLR), community-wide and by guild
+# ============================================================================
+vp <- read.csv(file.path(tab_dir, "hmsc_variance_partition.csv"), check.names = FALSE)
+# Components are stored rounded to 4 dp, so a row sums to 1 only to within the
+# rounding error of three values -- hence 1e-3 rather than machine tolerance.
+stopifnot(nrow(vp) == 226L, setequal(vp$OTU_ID, b$OTU_ID),
+          all(VP_LEVELS %in% names(vp)),
+          max(abs(rowSums(vp[, VP_LEVELS]) - 1)) < 1e-3)
+vp$Guild <- factor(unname(guild_map[vp$guild]), levels = GUILD_LEVELS)
+
+# Row order and emphasis are EDITORIAL, not statistical: the community row and
+# the two guilds this study is about are drawn larger and grouped at the top so
+# the panel states its point before the reader parses six bars. The caption says
+# this explicitly, because pathotrophs -- de-emphasised here -- actually carry
+# the largest Season share of any guild.
+ROW_ORDER <- c("All modelled OTUs", "Dung saprotroph", "Unassigned / dark",
+               "Plant-associated", "Pathotroph", "Other assigned")
+EMPH <- c(TRUE, TRUE, TRUE, FALSE, FALSE, FALSE)
+
+grp_mean <- function(d, label) data.frame(
+  grp = label, n = nrow(d), t(colMeans(d[, VP_LEVELS])), check.names = FALSE)
+vpm <- rbind(grp_mean(vp, ROW_ORDER[1]),
+             do.call(rbind, lapply(ROW_ORDER[-1],
+                                   function(g) grp_mean(vp[vp$Guild == g, ], g))))
+stopifnot(identical(vpm$grp, ROW_ORDER), vpm$n[1] == 226L, sum(vpm$n[-1]) == 226L)
+# Drift guard: the community means are quoted in Section 9.2, Table S-HMSCc and
+# the caption.
+VP_EXP <- c(Season = 31.53, Year = 18.55, `Random: sample` = 49.93)
+stopifnot(max(abs(100 * unlist(vpm[1, VP_LEVELS], use.names = FALSE) -
+                  VP_EXP[VP_LEVELS])) < 0.05)
+
+# PCR-replicate share, MODEL-FREE (Section 9.2, Table S-HMSCc2): replicate-to-
+# replicate variance of CLR within a dropping as a share of that OTU's total
+# CLR variance, averaged over OTUs. It is NOT a fourth component of the bar:
+# the bar partitions the model's explained variance, this is a share of TOTAL
+# variance, so it is drawn as a separate column and the caption says so.
+pcr <- read.csv(file.path(tab_dir, "hmsc_pcr_replicate_variance.csv"), stringsAsFactors = FALSE)
+pcr_lab <- c(all = "All modelled OTUs", guild_map)
+stopifnot(setequal(pcr$group, names(pcr_lab)))
+vpm$pcr_share <- pcr$share_total_mean[match(vpm$grp, unname(pcr_lab[pcr$group]))]
+stopifnot(!anyNA(vpm$pcr_share), abs(vpm$pcr_share[1] - 0.324) < 0.001)
+
+# Manual geometry on a CONTINUOUS y axis. A discrete axis spaces rows evenly
+# whatever width the bars are given, so it cannot produce "larger and grouped at
+# the top"; here each row carries its own height and its own gap below it.
+H_EMPH <- 0.82; H_MIN <- 0.46
+GAP    <- c(0.90, 0.45, 0.70, 0.40, 0.40, 0.00)   # space BELOW each row
+vpm$h   <- ifelse(EMPH, H_EMPH, H_MIN)
+vpm$emph <- EMPH
+edge <- 0
+ctr  <- numeric(nrow(vpm))
+for (i in seq_len(nrow(vpm))) {
+  ctr[i] <- edge - vpm$h[i] / 2
+  edge   <- edge - vpm$h[i] - GAP[i]
+}
+vpm$ctr <- ctr
+sep_y <- ctr[1] - vpm$h[1] / 2 - GAP[1] / 2       # rule under the community row
+
+# Stacking done by hand (cumsum), not position_stack: the label layers below
+# plot a different set of rows than the bars, and position_stack re-stacks
+# whatever data it is handed, so the two would silently drift apart.
+rect <- do.call(rbind, lapply(seq_len(nrow(vpm)), function(i) {
+  v <- 100 * unlist(vpm[i, VP_LEVELS], use.names = FALSE)
+  data.frame(comp = factor(unname(vp_display[VP_LEVELS]),
+                           levels = unname(vp_display[VP_LEVELS])),
+             xmin = cumsum(c(0, head(v, -1))), xmax = cumsum(v),
+             ymin = vpm$ctr[i] - vpm$h[i] / 2, ymax = vpm$ctr[i] + vpm$h[i] / 2)
+}))
+
+# Season is the one segment whose exact value the reader needs; print it inside.
+slab <- data.frame(x = 100 * vpm$Season / 2, y = vpm$ctr,
+                   txt = sprintf("%.1f", 100 * vpm$Season),
+                   sz  = ifelse(EMPH, 3.3, 2.7))
+tot  <- data.frame(x = 103, y = vpm$ctr,
+                   txt = sprintf("%.0f%%", 100 * (vpm$Season + vpm$Year)),
+                   sz  = ifelse(EMPH, 3.2, 2.8))
+X_PCR <- 121                                          # model-free column, right of a divider
+pcrt <- data.frame(x = X_PCR, y = vpm$ctr,
+                   txt = sprintf("%.0f%%", 100 * vpm$pcr_share),
+                   sz  = ifelse(EMPH, 3.2, 2.8))
+y_top <- vpm$ctr[1] + vpm$h[1] / 2
+hdr  <- data.frame(x = c(106, X_PCR + 3.5), y = y_top + 0.25,   # centred over each column
+                   txt = c("Season\n+ Year", "PCR rep.\n(model-free)"))
+ylab <- ifelse(vpm$emph,
+               sprintf("<span style='font-size:10.5pt'>**%s**</span><br>(n = %d)", vpm$grp, vpm$n),
+               sprintf("<span style='font-size:8.5pt'>%s</span><br>(n = %d)", vpm$grp, vpm$n))
+
+pB <- ggplot(rect) +
+  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = comp),
+            colour = "white", linewidth = 0.25) +
+  geom_hline(yintercept = sep_y, colour = "grey80", linewidth = 0.3) +
+  geom_text(data = slab, aes(x, y, label = txt, size = sz), inherit.aes = FALSE,
+            colour = "white", fontface = "bold") +
+  geom_text(data = tot, aes(x, y, label = txt, size = sz), inherit.aes = FALSE,
+            hjust = 0, colour = "grey25") +
+  # model-free column: divider + italic values, visibly not part of the bar
+  annotate("segment", x = 116, xend = 116, y = min(vpm$ctr - vpm$h / 2), yend = y_top,
+           colour = "grey75", linewidth = 0.3, linetype = "22") +
+  geom_text(data = pcrt, aes(x, y, label = txt, size = sz), inherit.aes = FALSE,
+            hjust = 0, colour = "grey35", fontface = "italic") +
+  geom_text(data = hdr, aes(x, y, label = txt), inherit.aes = FALSE,
+            hjust = 0.5, vjust = 0, size = 2.6, colour = "grey35", lineheight = 0.9) +
+  scale_size_identity() +
+  scale_fill_manual(values = vp_cols, name = "Variance component") +
+  scale_x_continuous(breaks = seq(0, 100, 25), limits = c(0, 136),
+                     expand = expansion(mult = c(0.01, 0)),
+                     labels = function(x) paste0(x, "%")) +
+  scale_y_continuous(breaks = vpm$ctr, labels = ylab, expand = expansion(add = c(0.18, 0.75))) +
+  labs(x = "Mean share of per-OTU variance", y = NULL,
+       subtitle = "Abundance (CLR) model, PCR replicates averaged;\nall 226 OTUs, then by guild.") +
+  base_theme +
+  theme(axis.text.y = element_markdown(size = 8.5, lineheight = 1.1, colour = "grey15"),
+        axis.line.y = element_blank(), axis.ticks.y = element_blank()) +
+  # cap the x axis line at the bar's 0-100% range so the text columns to its
+  # right do not read as part of the scale
+  guides(fill = guide_legend(nrow = 1), x = guide_axis(cap = "both"))
+
+# ---- assemble and write ----------------------------------------------------
+fig5 <- (pA | pB) +
+  plot_layout(widths = c(1.25, 1), guides = "collect") +
+  plot_annotation(tag_levels = "A") &
+  # VERIFIED the hard way: the three collected key blocks (guild, support,
+  # variance component) do NOT fit side by side at 11 in -- legend.box =
+  # "horizontal" overflows the device and is silently clipped, with no warning.
+  # They are stacked instead, and each is forced onto a single row so the block
+  # costs three text lines rather than four.
+  theme(legend.position = "bottom", legend.box = "vertical",
+        legend.box.just = "left", legend.margin = margin(t = 0, b = 0),
+        legend.box.spacing = unit(0.25, "cm"))
+
+# Every main figure is written three ways: PNG and JPG (600 dpi raster, for
+# submission systems that demand one or the other) and PDF (vector, for print).
+save_fig <- function(stem, obj, width, height, res = 600) {
+  one <- function(open_dev) { open_dev(); on.exit(grDevices::dev.off()); print(obj) }
+  one(function() grDevices::png(paste0(stem, ".png"), width = width, height = height,
+                                units = "in", res = res))
+  one(function() grDevices::jpeg(paste0(stem, ".jpg"), width = width, height = height,
+                                 units = "in", res = res, quality = 95))
+  pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
+  one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
+}
+save_fig(file.path(out_dir, "Fig5_hmsc_synthesis"), fig5, 11.5, 6.4)
+
+# ---- console summary -------------------------------------------------------
+cat(sprintf("Panel A: %d OTUs at >= %.0f%% modelled read share each = %.1f%% of modelled reads.\n",
+            nrow(sel), 100 * SHARE_MIN, 100 * sel_cov))
+cat(sprintf("Resolved: %d of %d at 0.95 posterior support (%d at the winter end); %d of %d OTUs community-wide have a 95%% CrI excluding 0.\n",
+            n_res, nrow(sel), sum(sel$resolved == "Posterior support >= 0.95" &
+                                  sel$beta_season_mean < 0), n_ci, nrow(b)))
+cat(sprintf("CLR convergence (caption): Beta median PSRF %.2f, %.0f%% of parameters < 1.1.\n",
+            cclr$beta_psrf_med, cclr$beta_pct_below_1.1))
+cat(sprintf("Credible intervals clipped at +/-%.1f (arrowed): %d of %d.\n",
+            XCLIP, n_clip, nrow(otu_df)))
+cat("\nPanel A rows, summer end first:\n")
+print(data.frame(OTU = sel$OTU_ID, label = gsub("\\*", "", sel$lab),
+                 guild = as.character(sel$Guild),
+                 beta = round(sel$beta_season_mean, 2),
+                 support = sel$beta_season_support,
+                 read_pct = round(100 * sel$rel, 2)), row.names = FALSE)
+cat("\nGuild means over all 226 OTUs:\n")
+print(data.frame(guild = as.character(gm$Guild), n = gm$n,
+                 mean_beta = round(gm$mean, 3),
+                 IQR = sprintf("[%.2f, %.2f]", gm$q25, gm$q75)), row.names = FALSE)
+cat("\nVariance partition (mean % per OTU):\n")
+print(data.frame(group = sprintf("%s (n = %d)", vpm$grp, vpm$n),
+                 round(100 * vpm[, VP_LEVELS], 1), check.names = FALSE),
+      row.names = FALSE)
+```
+
 ### 10.3 Figure 3 — Richness rises, evenness collapses (H2)
 
 :::: {.content-visible when-profile="docs"}
@@ -3280,443 +3717,6 @@ print(data.frame(OTU = wd$OTU_ID[o], class = sub("^c__", "", wd$Class[o]),
                  prevalence = sprintf("%d/%d", wd$winter_occ[o], wd$winter_n[o]),
                  id = wd$similarity_percentage[o],
                  placement = as.character(wd$cat[o])), row.names = FALSE)
-```
-
-### 10.5 Figure 5 — A reproducible seasonal axis inside large among-individual variation (HMSC synthesis)
-
-:::: {.content-visible when-profile="docs"}
-*Provenance: both panels of Fig. 5 come from the same abundance (CLR) HMSC model of Section 9. Fig. 5A is the per-OTU seasonal niche of Section 9.4 (Tables S-HMSCe(i) and S-HMSCe(ii)), restricted to the 22 OTUs that each hold at least 1% of modelled read share and augmented with a guild-mean block; Figure S-HMSCc is the same quantity for all 226 OTUs ranked by effect size rather than by abundance. Fig. 5B is the variance partition of Section 9.2 (Table S-HMSCc); its right-hand column is the model-free PCR-replicate share of Table S-HMSCc2 (`tables/hmsc_pcr_replicate_variance.csv`). The read shares behind the selection rule come from `tables/dark_taxa_SH_matching.csv` (Section 3.4), which is also the source of the finest-rank labels for OTUs with no genus. Both panels read committed `tables/*.csv` written by `10_hmsc.R` and `9_dark_taxa_SH_matching.R`, so the figure cannot drift from Sections 9 and 3.4.*
-::::
-
-![](figures/main/Fig5_hmsc_synthesis.png)
-
-<!-- CLAUDE DRAFT 2026-09-29 (caption rewritten for the revised model): rewrite freely -->
-**Figure 5**: A joint species distribution model places the seasonal axis at OTU level and sizes it against the variation among individual droppings. Both panels come from one abundance (CLR) HMSC model fitted to 226 OTUs in 55 droppings, with each dropping's two PCR replicates averaged, Season and Year as fixed effects, and the dropping as random level (Section 9.1). **(A)** Per-OTU Season coefficient in CLR units — positive = higher relative abundance in summer — for the 22 OTUs that each account for at least 1% of modelled-OTU read share, 73% of all modelled reads between them, ordered by coefficient and coloured by functional guild, with 95% credible intervals. One interval, OTU1369's, extends beyond the axis and is clipped at −6 with an arrowhead (it reaches −6.48). Filled points are the 16 resolved at HMSC's 0.95 posterior-support convention; community-wide, 74 of 226 OTUs have a 95% credible interval excluding zero. The lower block gives each guild's arithmetic mean of the per-OTU posterior means (diamond) with their interquartile range, taken over all OTUs in that guild rather than only the 22 plotted; it is a descriptive summary of the points above, not a credible interval. The model's own guild-level estimate is the trait-level Gamma (Section 9.3, Table S-HMSCd2). The four MCMC chains agree on every plotted estimate (Beta PSRF ≤ 1.01; Table S-HMSCb). **(B)** Mean share of per-OTU explained variance attributed to Season, Year and the dropping, for all 226 OTUs and then within each guild (Table S-HMSCc). The italic right-hand column is not part of that partition. It is the share of each OTU's total CLR variance that lies between the two PCR replicates of a dropping, measured outside the model (Table S-HMSCc2), and it mostly reflects rare taxa detected by one replicate but not the other. The three highlighted rows are drawn larger because they are the groups this study is about. The five guild classes are the model's trait and differ slightly from the display split used in Figure 1: 46 OTUs carrying a genus but no FUNGuild call sit in "Other assigned" here and in "Unassigned / dark" there (`tables/guild_scheme_crosswalk.csv`, Section 8.1).
-
-Panel A makes the seasonal signal concrete at the level of individual lineages, and it does so among the taxa that actually constitute the community: the 22 OTUs plotted are every OTU holding at least 1% of modelled read share, and they carry 73% of the modelled reads between them. <!-- CLAUDE DRAFT 2026-09-29 (numbers and claims updated to the revised model): rewrite freely -->
-Read from the top, the panel is the study's taxonomic result in one column. The summer end is an unbroken block of coprophilous dung saprotrophs — *Thelebolus* (OTU1, β = +4.17), *Sporormiella* (OTU636, +3.52), *Coniochaeta* (OTU1225, +3.44) and two further Sporormiaceae and Coniochaetaceae lineages — every one of them resolved. The winter end is a block dominated by dark, taxonomically unresolved taxa, ending at OTU1369 (−5.00), the unclassified Dothideomycete that dominates winter read share in Figure 4. Plant-associated taxa straddle zero between them. The guild means below make the same statement over all 226 OTUs rather than the 22 shown. Dung saprotrophs (+1.32) have by far the most summer-shifted mean; dark/unassigned taxa (−0.31) and pathotrophs (−0.33) lean winter; and the yeast-rich "other" group is weakly positive (+0.22). The model's trait-level estimate agrees: the dung-saprotroph guild's Season effect is positive with posterior support 0.994, and dark/unassigned, pathotroph and plant-associated OTUs respond clearly less summer-ward (Section 9.3). Panel B sizes these effects. Season accounts for 31.5% of the variance the model explains and Year for 18.5%, while half (49.9%) sits among droppings — one dropping to the next. The Season share is largest for dung saprotrophs (49.8%): coprophiles are the taxa whose abundance season determines most. Measured separately, a further 32% of total CLR variance is replicate-to-replicate noise within a dropping, most of it whether rare taxa are detected at all; coprophiles are the most repeatable guild (17%). Taken together the panels state the central quantitative claim in one place: seasonal turnover is real, directional and consistent across methods, yet it sits beside large idiosyncrasy among individual droppings — which is why the model explains the samples it has seen (R² ≈ 0.29) but predicts held-out droppings far less well (cross-validated R² ≈ 0.03; Section 9.7).
-
-```{r fig5-build}
-#| eval: false
-#| echo: !expr knitr::is_html_output()
-#| code-fold: true
-#| code-summary: "Full build code for Figure 5 — the source of truth for figures/main/Fig5_hmsc_synthesis.{png,jpg,pdf}"
-
-# Figure 5 -- HMSC synthesis: per-OTU seasonal niche + variance partition.
-# Every number is READ from committed tables/ CSVs; no model is loaded or
-# refitted here (the fits are ~200 MB each and the figure needs only their
-# posterior summaries).
-#   A  tables/hmsc_beta_season.csv         (per-OTU Season Beta, CLR abundance)
-#      tables/dark_taxa_SH_matching.csv    (per-OTU read share + full lineage)
-#   B  tables/hmsc_variance_partition.csv  (per-OTU variance components, CLR)
-#      tables/hmsc_pcr_replicate_variance.csv (model-free PCR-replicate share)
-#      tables/hmsc_convergence_psrf.csv    (quoted in the caption, checked here)
-#
-# BOTH panels are the headline ABUNDANCE (CLR) model: CLR averaged over each
-# dropping's two PCR replicates, one row per dropping, biological sample as the
-# random level (Section 9.1; revised 2026-09-29 -- the previous uncapped
-# replicate-level model did not converge). The occurrence (probit) model is a
-# supplementary robustness check (Section 9.4, Tables S-HMSCe(iii)/(iv)) and is
-# deliberately NOT mixed into this figure: on the occurrence scale the whole
-# community shifts summer-ward (157/226 OTUs positive), which ranks rare taxa at
-# the extremes and puts "other assigned" ahead of dung saprotrophs -- a richness
-# result already carried by Figure 3.
-# Rebuild:  conda run -n r_env Rscript build_main_figure.R fig5-build
-
-suppressPackageStartupMessages({
-  library(ggplot2); library(patchwork); library(ggtext)
-})
-
-tab_dir <- if (dir.exists("tables")) "tables" else
-           "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
-out_dir <- "figures/main"
-dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-grDevices::pdf(NULL)                                 # headless: no X11 fallback
-
-# ---- shared style ----------------------------------------------------------
-# Guild colours are Figure 1's, so a guild is the same colour in every main
-# figure. The model's five-level trait is NOT identical to Figure 1's display
-# split (46 OTUs move between "Other assigned" and "Unassigned / dark"); the
-# caption says so and tables/guild_scheme_crosswalk.csv reconciles them.
-GUILD_LEVELS <- c("Dung saprotroph", "Plant-associated", "Pathotroph",
-                  "Other assigned", "Unassigned / dark")
-guild_cols <- c("Dung saprotroph" = "#E69F00", "Plant-associated" = "#009E73",
-                "Pathotroph" = "#CC79A7", "Other assigned" = "#56B4E9",
-                "Unassigned / dark" = "#999999")
-guild_map <- c(dung_saprotroph = "Dung saprotroph", plant_associated = "Plant-associated",
-               pathotroph = "Pathotroph", other = "Other assigned",
-               dark_unassigned = "Unassigned / dark")
-# Variance components deliberately share NO colour with the guild scale, and
-# split fixed (coloured) from random (grey): the visual point of panel B is how
-# little of the bar is coloured.
-# The headline model averages PCR replicates, so it has NO PCR random level;
-# PCR-replicate variance is drawn as a separate, model-free column (panel B).
-VP_LEVELS <- c("Season", "Year", "Random: sample")   # CSV column names
-# Displayed names: the CSV's terse "Random: sample" is fine in a supplementary
-# table but a main-text key has to say what the level actually is.
-vp_display <- c("Season" = "Season", "Year" = "Year",
-                "Random: sample" = "Biological sample (dropping)")
-vp_cols <- c("Season" = "#0072B2", "Year" = "#F0E442",
-             "Biological sample (dropping)" = "#666666")
-
-base_theme <- theme_classic(base_size = 12) +
-  theme(strip.background = element_blank(),
-        strip.text.y     = element_text(face = "bold", size = 8.5, angle = 0),
-        plot.tag         = element_text(face = "bold", size = 14),
-        plot.subtitle    = element_text(size = 9, colour = "grey30"),
-        panel.spacing    = unit(0.5, "lines"),
-        legend.key.size  = unit(0.42, "cm"),
-        legend.title     = element_text(size = 10),
-        legend.text      = element_text(size = 9))
-
-# All in-plot text is ASCII: save_fig() falls back to grDevices::pdf when cairo
-# is unavailable, and that device silently substitutes a dot for a Unicode glyph.
-# (The markdown asterisks below are ggtext italics markup, and are ASCII.)
-
-strip_rank <- function(x) sub("^[a-z]__", "", x)
-
-# ============================================================================
-# Panel A -- per-OTU seasonal niche (CLR abundance), plus guild means
-# ============================================================================
-b <- read.csv(file.path(tab_dir, "hmsc_beta_season.csv"), stringsAsFactors = FALSE)
-stopifnot(nrow(b) == 226L, !anyNA(b$beta_season_mean), !anyNA(b$beta_season_CrI2.5),
-          !anyNA(b$beta_season_support), setequal(b$guild, names(guild_map)))
-b$Guild <- factor(unname(guild_map[b$guild]), levels = GUILD_LEVELS)
-
-# Read share AND full lineage both come from the E1 per-OTU table (Section 3.4),
-# the one committed file carrying a complete Kingdom..Species lineage together
-# with per-season mean read shares for every OTU in the study. Using it here is
-# what lets an OTU with no genus be labelled by its finest resolved rank
-# ("Dothideomycetes (OTU1369)") instead of a bare, unreadable ID.
-sh <- read.csv(file.path(tab_dir, "dark_taxa_SH_matching.csv"), stringsAsFactors = FALSE)
-stopifnot(nrow(sh) == 1129L, all(b$OTU_ID %in% sh$OTU_ID), !any(duplicated(sh$OTU_ID)))
-si <- match(b$OTU_ID, sh$OTU_ID)
-# Guard: the Beta table's own Genus column must agree with the lineage source,
-# or the labels would be describing different OTUs than the estimates.
-stopifnot(all(is.na(b$Genus) == is.na(sh$Genus[si])),
-          all(strip_rank(sh$Genus[si]) == b$Genus, na.rm = TRUE))
-
-# winter_mean_share and summer_mean_share are each a mean over that season's
-# samples, so their unweighted average is the OTU's mean share of a dropping.
-# Renormalising over the 226 MODELLED OTUs (not all 1129) is what makes "1% of
-# read share" a statement about the community the model actually sees.
-b$share <- (sh$winter_mean_share[si] + sh$summer_mean_share[si]) / 2
-stopifnot(!anyNA(b$share), all(b$share >= 0), sum(b$share) > 0)
-b$rel <- b$share / sum(b$share)
-
-# Selection rule: a stated threshold rather than an arbitrary top-N, so the
-# panel's membership is reproducible and cannot be read as cherry-picked. It
-# also ties Figure 5 to Figure 1, which is likewise read-share weighted.
-SHARE_MIN <- 0.01
-sel <- b[b$rel >= SHARE_MIN, ]
-sel <- sel[order(-sel$beta_season_mean), ]
-sel_cov <- sum(sel$rel)
-stopifnot(nrow(sel) == 22L, sel_cov > 0.70, sel_cov < 0.76)
-
-# Row labels: finest resolved rank, genus italicised via ggtext. Incertae sedis
-# placeholders are not genera and are shown at the rank they actually resolve to.
-RANKS <- c("Genus", "Family", "Order", "Class", "Phylum")
-label_one <- function(i, otu) {
-  v  <- strip_rank(unlist(sh[i, RANKS], use.names = FALSE))
-  ok <- which(!is.na(v) & nzchar(v))
-  if (!length(ok)) return(paste0("Fungi (", otu, ")"))
-  k <- ok[1]
-  nm <- sub("_(gen|fam|ord|cls)_Incertae_sedis$", "", v[k])
-  if (k == 1L && !grepl("Incertae", v[k], fixed = TRUE)) nm <- paste0("*", nm, "*")
-  paste0(nm, " (", otu, ")")
-}
-sel$lab <- vapply(seq_len(nrow(sel)),
-                  function(j) label_one(match(sel$OTU_ID[j], sh$OTU_ID), sel$OTU_ID[j]),
-                  character(1))
-stopifnot(!any(duplicated(sel$lab)))
-
-# Resolution marker: HMSC's own convention -- one-sided posterior support of
-# 0.95, i.e. a 90% two-sided interval. The caption also reports how many OTUs
-# community-wide have a 95% CrI excluding zero, so the weaker criterion is not
-# passed off as the stronger.
-SUPP <- 0.95
-sel$resolved <- factor(
-  ifelse(sel$beta_season_support >= SUPP | sel$beta_season_support <= 1 - SUPP,
-         "Posterior support >= 0.95", "Not resolved"),
-  levels = c("Posterior support >= 0.95", "Not resolved"))
-n_res <- sum(sel$resolved == "Posterior support >= 0.95")
-
-# Guild means over ALL OTUs of that guild (not just the 22 plotted), with the
-# IQR of the same per-OTU estimates as a spread -- a summary of the points
-# above, NOT a credible interval, which is why it is drawn as a plain segment.
-gm <- do.call(rbind, lapply(GUILD_LEVELS, function(g) {
-  v <- b$beta_season_mean[b$Guild == g]
-  data.frame(Guild = factor(g, levels = GUILD_LEVELS), n = length(v),
-             mean = mean(v), q25 = quantile(v, 0.25), q75 = quantile(v, 0.75),
-             stringsAsFactors = FALSE)
-}))
-gm$lab <- sprintf("%s (n = %d)", as.character(gm$Guild), gm$n)
-
-# Drift guard against the committed per-OTU table itself -- guild sizes and
-# guild means -- which is what the panel actually draws. (These are means of
-# per-OTU posterior means in CLR units, NOT the trait-level Gamma, which is on
-# the standardised scale and reported in Section 9.3.)
-N_EXP  <- c("Dung saprotroph" = 14L, "Plant-associated" = 50L, "Pathotroph" = 16L,
-            "Other assigned" = 67L, "Unassigned / dark" = 79L)
-GM_EXP <- c("Dung saprotroph" = 1.320, "Plant-associated" = -0.095, "Pathotroph" = -0.332,
-            "Other assigned" = 0.223, "Unassigned / dark" = -0.312)
-gm_n <- setNames(gm$n, as.character(gm$Guild))
-gm_m <- setNames(gm$mean, as.character(gm$Guild))
-stopifnot(sum(N_EXP) == 226L, all(gm_n[names(N_EXP)] == N_EXP),
-          max(abs(gm_m[names(GM_EXP)] - GM_EXP)) < 0.01,
-          as.character(gm$Guild[which.max(gm$mean)]) == "Dung saprotroph")
-
-# One plot, two blocks: facet_grid with free space gives the guild block a
-# height proportional to its 5 rows and keeps ONE shared x axis and one tag.
-BLOCKS <- c("Per-OTU niche", "Guild mean")   # short: the lower block is only 5 rows tall
-otu_df <- data.frame(lab = sel$lab, Guild = sel$Guild, resolved = sel$resolved,
-                     est = sel$beta_season_mean,
-                     lo = sel$beta_season_CrI2.5, hi = sel$beta_season_CrI97.5,
-                     block = factor(BLOCKS[1], levels = BLOCKS))
-gm_df  <- data.frame(lab = gm$lab, Guild = gm$Guild, est = gm$mean,
-                     lo = gm$q25, hi = gm$q75,
-                     block = factor(BLOCKS[2], levels = BLOCKS))
-lvl <- c(gm_df$lab[order(gm_df$est)], otu_df$lab[order(otu_df$est)])
-otu_df$lab <- factor(otu_df$lab, levels = lvl)
-gm_df$lab  <- factor(gm_df$lab,  levels = lvl)
-
-# Convergence is checked here but PRINTED IN THE CAPTION, not on the panel: a
-# diagnostic belongs in the caption rather than on the face of a main-text
-# figure. The guard refuses to draw the figure from a fit that does not meet
-# the Section 9.1 criteria (every Beta PSRF < 1.1; chains agree on the guild
-# means and the variance partition to within 0.05).
-conv <- read.csv(file.path(tab_dir, "hmsc_convergence_psrf.csv"), stringsAsFactors = FALSE)
-cclr <- conv[conv$model == "clr", ]
-stopifnot(nrow(cclr) == 1L, cclr$beta_psrf_max < 1.1, cclr$beta_pct_below_1.1 == 100,
-          cclr$guild_mean_chain_range_max < 0.05, cclr$vp_chain_range_max < 0.05)
-n_ci <- sum(b$beta_season_CrI2.5 > 0 | b$beta_season_CrI97.5 < 0)
-stopifnot(n_ci == 74L)
-
-# OTU1369's credible interval reaches below -6; drawn in full it would widen
-# the axis for one row. Intervals are therefore clipped at +/- 6 and the
-# clipped end carries an arrowhead, so nothing is hidden: the reader sees that
-# the interval continues, and the caption says how far.
-XCLIP <- 6
-otu_df$lo_c <- pmax(otu_df$lo, -XCLIP)
-otu_df$hi_c <- pmin(otu_df$hi,  XCLIP)
-otu_df$lo_clip <- otu_df$lo < -XCLIP
-otu_df$hi_clip <- otu_df$hi >  XCLIP
-n_clip <- sum(otu_df$lo_clip | otu_df$hi_clip)
-# Nothing may be clipped so hard that its point estimate leaves the panel.
-stopifnot(all(abs(otu_df$est) < XCLIP), all(abs(gm_df$est) < XCLIP),
-          all(abs(c(gm_df$lo, gm_df$hi)) < XCLIP))
-arr <- grid::arrow(length = unit(0.055, "in"), type = "open", angle = 22)
-
-pA <- ggplot(otu_df, aes(est, lab, colour = Guild)) +
-  geom_vline(xintercept = 0, linewidth = 0.3, colour = "grey70") +
-  # geom_segment rather than geom_errorbarh: the latter is deprecated in
-  # ggplot2 4.0 and its replacement's argument names differ between versions.
-  geom_segment(aes(x = lo_c, xend = hi_c, y = lab, yend = lab), linewidth = 0.45, alpha = 0.75) +
-  # Arrowheads drawn as short overlays at the clipped ends rather than as an
-  # arrow on the main segment, so an interval clipped at BOTH ends still gets
-  # two heads and an unclipped one gets none.
-  geom_segment(data = otu_df[otu_df$hi_clip, ],
-               aes(x = XCLIP - 0.30, xend = XCLIP, y = lab, yend = lab),
-               linewidth = 0.45, alpha = 0.75, arrow = arr) +
-  geom_segment(data = otu_df[otu_df$lo_clip, ],
-               aes(x = -XCLIP + 0.30, xend = -XCLIP, y = lab, yend = lab),
-               linewidth = 0.45, alpha = 0.75, arrow = arr) +
-  geom_point(aes(shape = resolved), size = 2.3, stroke = 0.8) +
-  # guild block: IQR segment behind, mean diamond on top, value printed
-  geom_segment(data = gm_df, aes(x = lo, xend = hi, y = lab, yend = lab),
-               inherit.aes = FALSE, colour = "grey65", linewidth = 0.5) +
-  geom_point(data = gm_df, aes(est, lab, fill = Guild), inherit.aes = FALSE,
-             shape = 23, size = 3.2, colour = "grey20", stroke = 0.4) +
-  # Value printed to the RIGHT of the IQR, not above the diamond: the five guild
-  # means sit within 0.6 of each other, so a label above one row lands on the next.
-  geom_text(data = gm_df, aes(hi, lab, label = sprintf("%+.2f", est)), inherit.aes = FALSE,
-            hjust = 0, nudge_x = 0.10, size = 2.9, colour = "grey20") +
-  facet_grid(rows = vars(block), scales = "free_y", space = "free_y", switch = "y") +
-  scale_colour_manual(values = guild_cols, name = "Guild", drop = FALSE) +
-  scale_fill_manual(values = guild_cols, guide = "none", drop = FALSE) +
-  scale_shape_manual(values = c("Posterior support >= 0.95" = 16, "Not resolved" = 1),
-                     name = NULL, drop = FALSE) +
-  scale_x_continuous(breaks = seq(-6, 6, 2), expand = expansion(mult = c(0.03, 0.09))) +
-  coord_cartesian(xlim = c(-XCLIP, XCLIP)) +
-  labs(x = "HMSC Beta: Season (CLR abundance, positive = more abundant in summer)", y = NULL,
-       subtitle = sprintf(paste0("The %d OTUs holding >= %.0f%% of modelled read share each (%.0f%% of modelled reads).\n",
-                                 "Abundance (CLR) model; %d of %d resolved at 0.95 posterior support."),
-                          nrow(sel), 100 * SHARE_MIN, 100 * sel_cov, n_res, nrow(sel))) +
-  base_theme +
-  theme(axis.text.y = element_markdown(size = 8.5),
-        strip.placement = "outside",
-        strip.text.y.left = element_text(angle = 90, face = "bold", size = 8)) +
-  guides(colour = guide_legend(order = 1, override.aes = list(shape = 16, size = 2.6)),
-         shape  = guide_legend(order = 2))
-
-# ============================================================================
-# Panel B -- variance partition (CLR), community-wide and by guild
-# ============================================================================
-vp <- read.csv(file.path(tab_dir, "hmsc_variance_partition.csv"), check.names = FALSE)
-# Components are stored rounded to 4 dp, so a row sums to 1 only to within the
-# rounding error of three values -- hence 1e-3 rather than machine tolerance.
-stopifnot(nrow(vp) == 226L, setequal(vp$OTU_ID, b$OTU_ID),
-          all(VP_LEVELS %in% names(vp)),
-          max(abs(rowSums(vp[, VP_LEVELS]) - 1)) < 1e-3)
-vp$Guild <- factor(unname(guild_map[vp$guild]), levels = GUILD_LEVELS)
-
-# Row order and emphasis are EDITORIAL, not statistical: the community row and
-# the two guilds this study is about are drawn larger and grouped at the top so
-# the panel states its point before the reader parses six bars. The caption says
-# this explicitly, because pathotrophs -- de-emphasised here -- actually carry
-# the largest Season share of any guild.
-ROW_ORDER <- c("All modelled OTUs", "Dung saprotroph", "Unassigned / dark",
-               "Plant-associated", "Pathotroph", "Other assigned")
-EMPH <- c(TRUE, TRUE, TRUE, FALSE, FALSE, FALSE)
-
-grp_mean <- function(d, label) data.frame(
-  grp = label, n = nrow(d), t(colMeans(d[, VP_LEVELS])), check.names = FALSE)
-vpm <- rbind(grp_mean(vp, ROW_ORDER[1]),
-             do.call(rbind, lapply(ROW_ORDER[-1],
-                                   function(g) grp_mean(vp[vp$Guild == g, ], g))))
-stopifnot(identical(vpm$grp, ROW_ORDER), vpm$n[1] == 226L, sum(vpm$n[-1]) == 226L)
-# Drift guard: the community means are quoted in Section 9.2, Table S-HMSCc and
-# the caption.
-VP_EXP <- c(Season = 31.53, Year = 18.55, `Random: sample` = 49.93)
-stopifnot(max(abs(100 * unlist(vpm[1, VP_LEVELS], use.names = FALSE) -
-                  VP_EXP[VP_LEVELS])) < 0.05)
-
-# PCR-replicate share, MODEL-FREE (Section 9.2, Table S-HMSCc2): replicate-to-
-# replicate variance of CLR within a dropping as a share of that OTU's total
-# CLR variance, averaged over OTUs. It is NOT a fourth component of the bar:
-# the bar partitions the model's explained variance, this is a share of TOTAL
-# variance, so it is drawn as a separate column and the caption says so.
-pcr <- read.csv(file.path(tab_dir, "hmsc_pcr_replicate_variance.csv"), stringsAsFactors = FALSE)
-pcr_lab <- c(all = "All modelled OTUs", guild_map)
-stopifnot(setequal(pcr$group, names(pcr_lab)))
-vpm$pcr_share <- pcr$share_total_mean[match(vpm$grp, unname(pcr_lab[pcr$group]))]
-stopifnot(!anyNA(vpm$pcr_share), abs(vpm$pcr_share[1] - 0.324) < 0.001)
-
-# Manual geometry on a CONTINUOUS y axis. A discrete axis spaces rows evenly
-# whatever width the bars are given, so it cannot produce "larger and grouped at
-# the top"; here each row carries its own height and its own gap below it.
-H_EMPH <- 0.82; H_MIN <- 0.46
-GAP    <- c(0.90, 0.45, 0.70, 0.40, 0.40, 0.00)   # space BELOW each row
-vpm$h   <- ifelse(EMPH, H_EMPH, H_MIN)
-vpm$emph <- EMPH
-edge <- 0
-ctr  <- numeric(nrow(vpm))
-for (i in seq_len(nrow(vpm))) {
-  ctr[i] <- edge - vpm$h[i] / 2
-  edge   <- edge - vpm$h[i] - GAP[i]
-}
-vpm$ctr <- ctr
-sep_y <- ctr[1] - vpm$h[1] / 2 - GAP[1] / 2       # rule under the community row
-
-# Stacking done by hand (cumsum), not position_stack: the label layers below
-# plot a different set of rows than the bars, and position_stack re-stacks
-# whatever data it is handed, so the two would silently drift apart.
-rect <- do.call(rbind, lapply(seq_len(nrow(vpm)), function(i) {
-  v <- 100 * unlist(vpm[i, VP_LEVELS], use.names = FALSE)
-  data.frame(comp = factor(unname(vp_display[VP_LEVELS]),
-                           levels = unname(vp_display[VP_LEVELS])),
-             xmin = cumsum(c(0, head(v, -1))), xmax = cumsum(v),
-             ymin = vpm$ctr[i] - vpm$h[i] / 2, ymax = vpm$ctr[i] + vpm$h[i] / 2)
-}))
-
-# Season is the one segment whose exact value the reader needs; print it inside.
-slab <- data.frame(x = 100 * vpm$Season / 2, y = vpm$ctr,
-                   txt = sprintf("%.1f", 100 * vpm$Season),
-                   sz  = ifelse(EMPH, 3.3, 2.7))
-tot  <- data.frame(x = 103, y = vpm$ctr,
-                   txt = sprintf("%.0f%%", 100 * (vpm$Season + vpm$Year)),
-                   sz  = ifelse(EMPH, 3.2, 2.8))
-X_PCR <- 121                                          # model-free column, right of a divider
-pcrt <- data.frame(x = X_PCR, y = vpm$ctr,
-                   txt = sprintf("%.0f%%", 100 * vpm$pcr_share),
-                   sz  = ifelse(EMPH, 3.2, 2.8))
-y_top <- vpm$ctr[1] + vpm$h[1] / 2
-hdr  <- data.frame(x = c(106, X_PCR + 3.5), y = y_top + 0.25,   # centred over each column
-                   txt = c("Season\n+ Year", "PCR rep.\n(model-free)"))
-ylab <- ifelse(vpm$emph,
-               sprintf("<span style='font-size:10.5pt'>**%s**</span><br>(n = %d)", vpm$grp, vpm$n),
-               sprintf("<span style='font-size:8.5pt'>%s</span><br>(n = %d)", vpm$grp, vpm$n))
-
-pB <- ggplot(rect) +
-  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = comp),
-            colour = "white", linewidth = 0.25) +
-  geom_hline(yintercept = sep_y, colour = "grey80", linewidth = 0.3) +
-  geom_text(data = slab, aes(x, y, label = txt, size = sz), inherit.aes = FALSE,
-            colour = "white", fontface = "bold") +
-  geom_text(data = tot, aes(x, y, label = txt, size = sz), inherit.aes = FALSE,
-            hjust = 0, colour = "grey25") +
-  # model-free column: divider + italic values, visibly not part of the bar
-  annotate("segment", x = 116, xend = 116, y = min(vpm$ctr - vpm$h / 2), yend = y_top,
-           colour = "grey75", linewidth = 0.3, linetype = "22") +
-  geom_text(data = pcrt, aes(x, y, label = txt, size = sz), inherit.aes = FALSE,
-            hjust = 0, colour = "grey35", fontface = "italic") +
-  geom_text(data = hdr, aes(x, y, label = txt), inherit.aes = FALSE,
-            hjust = 0.5, vjust = 0, size = 2.6, colour = "grey35", lineheight = 0.9) +
-  scale_size_identity() +
-  scale_fill_manual(values = vp_cols, name = "Variance component") +
-  scale_x_continuous(breaks = seq(0, 100, 25), limits = c(0, 136),
-                     expand = expansion(mult = c(0.01, 0)),
-                     labels = function(x) paste0(x, "%")) +
-  scale_y_continuous(breaks = vpm$ctr, labels = ylab, expand = expansion(add = c(0.18, 0.75))) +
-  labs(x = "Mean share of per-OTU variance", y = NULL,
-       subtitle = "Abundance (CLR) model, PCR replicates averaged;\nall 226 OTUs, then by guild.") +
-  base_theme +
-  theme(axis.text.y = element_markdown(size = 8.5, lineheight = 1.1, colour = "grey15"),
-        axis.line.y = element_blank(), axis.ticks.y = element_blank()) +
-  # cap the x axis line at the bar's 0-100% range so the text columns to its
-  # right do not read as part of the scale
-  guides(fill = guide_legend(nrow = 1), x = guide_axis(cap = "both"))
-
-# ---- assemble and write ----------------------------------------------------
-fig5 <- (pA | pB) +
-  plot_layout(widths = c(1.25, 1), guides = "collect") +
-  plot_annotation(tag_levels = "A") &
-  # VERIFIED the hard way: the three collected key blocks (guild, support,
-  # variance component) do NOT fit side by side at 11 in -- legend.box =
-  # "horizontal" overflows the device and is silently clipped, with no warning.
-  # They are stacked instead, and each is forced onto a single row so the block
-  # costs three text lines rather than four.
-  theme(legend.position = "bottom", legend.box = "vertical",
-        legend.box.just = "left", legend.margin = margin(t = 0, b = 0),
-        legend.box.spacing = unit(0.25, "cm"))
-
-# Every main figure is written three ways: PNG and JPG (600 dpi raster, for
-# submission systems that demand one or the other) and PDF (vector, for print).
-save_fig <- function(stem, obj, width, height, res = 600) {
-  one <- function(open_dev) { open_dev(); on.exit(grDevices::dev.off()); print(obj) }
-  one(function() grDevices::png(paste0(stem, ".png"), width = width, height = height,
-                                units = "in", res = res))
-  one(function() grDevices::jpeg(paste0(stem, ".jpg"), width = width, height = height,
-                                 units = "in", res = res, quality = 95))
-  pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
-  one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
-}
-save_fig(file.path(out_dir, "Fig5_hmsc_synthesis"), fig5, 11.5, 6.4)
-
-# ---- console summary -------------------------------------------------------
-cat(sprintf("Panel A: %d OTUs at >= %.0f%% modelled read share each = %.1f%% of modelled reads.\n",
-            nrow(sel), 100 * SHARE_MIN, 100 * sel_cov))
-cat(sprintf("Resolved: %d of %d at 0.95 posterior support (%d at the winter end); %d of %d OTUs community-wide have a 95%% CrI excluding 0.\n",
-            n_res, nrow(sel), sum(sel$resolved == "Posterior support >= 0.95" &
-                                  sel$beta_season_mean < 0), n_ci, nrow(b)))
-cat(sprintf("CLR convergence (caption): Beta median PSRF %.2f, %.0f%% of parameters < 1.1.\n",
-            cclr$beta_psrf_med, cclr$beta_pct_below_1.1))
-cat(sprintf("Credible intervals clipped at +/-%.1f (arrowed): %d of %d.\n",
-            XCLIP, n_clip, nrow(otu_df)))
-cat("\nPanel A rows, summer end first:\n")
-print(data.frame(OTU = sel$OTU_ID, label = gsub("\\*", "", sel$lab),
-                 guild = as.character(sel$Guild),
-                 beta = round(sel$beta_season_mean, 2),
-                 support = sel$beta_season_support,
-                 read_pct = round(100 * sel$rel, 2)), row.names = FALSE)
-cat("\nGuild means over all 226 OTUs:\n")
-print(data.frame(guild = as.character(gm$Guild), n = gm$n,
-                 mean_beta = round(gm$mean, 3),
-                 IQR = sprintf("[%.2f, %.2f]", gm$q25, gm$q75)), row.names = FALSE)
-cat("\nVariance partition (mean % per OTU):\n")
-print(data.frame(group = sprintf("%s (n = %d)", vpm$grp, vpm$n),
-                 round(100 * vpm[, VP_LEVELS], 1), check.names = FALSE),
-      row.names = FALSE)
 ```
 
 ::: {.content-visible when-profile="docs"}
