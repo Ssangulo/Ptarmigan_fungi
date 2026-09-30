@@ -81,6 +81,8 @@
 #   HMSC_OUT_ROOT / HMSC_SUPP_DIR -> redirect ALL outputs (e.g. from a worktree,
 #     so an experimental run cannot overwrite main's models/plots/tables).
 #   HMSC_RUN_PHYLO=1 -> also fit the phylogeny variant (slow; default off).
+#   HMSC_RUN_CV=0    -> reuse the stored 2-fold CV (~2.5 h) if it matches the fit.
+#   HMSC_PHYLO_THIN  -> phylo thinning (default = headline, 50: ~10 h; 10: ~2 h).
 #   Launch long runs from a COPY of this file: Rscript reads the script
 #   incrementally, so editing it mid-run corrupts the tail of the run.
 # =============================================================================
@@ -319,20 +321,27 @@ if (RUN_PHYLO) {
   m_phy <- if (!is.null(tr_p) && setequal(tr_p$tip.label, otu_ids)) {
     mm <- mk_hmsc(Yclr, ~Season + Year, XData_drop, "normal", sD = studyDesign_drop,
                   rL = ranLevels_drop, YScale = TRUE, phyloTree = tr_p)
-    # Coarsen the rho grid (default 101 -> 26 points): the rho-grid marginal
-    # likelihood scales with the grid size and is the whole cost gap vs the
-    # main model.
-    rv <- seq(0, 1, by = 0.04)
-    setPriors(mm, rhopw = cbind(rv, c(0.5, rep(0.5 / (length(rv) - 1), length(rv) - 1))))
+    # rho grid. The per-iteration cost scales with the number of grid points,
+    # so the grid is coarse where the posterior is not (0.05 steps below 0.9)
+    # and fine where it is (0.005 steps from 0.905 to 0.995): on the headline
+    # structure the conditional posterior sits at ~0.96, and a 0.04-step grid
+    # put every draw on one point (pilot, 2026-09-30). rho = 1 is excluded (the
+    # phylogenetic covariance is singular there: near-identical OTU sequences
+    # have ~zero branch lengths). Prior: Hmsc's usual 0.5 point mass at 0, the
+    # rest spread in proportion to grid spacing (uniform density on (0, 1)), so
+    # the fine top of the grid does not attract extra prior weight.
+    rv <- c(seq(0, 0.9, by = 0.05), seq(0.905, 0.995, by = 0.005))
+    sp <- diff(c(rv, 1))[-1]
+    setPriors(mm, rhopw = cbind(rv, c(0.5, 0.5 * sp / sum(sp))))
   } else { message("Phylo variant skipped (tree/OTU tip mismatch)."); NULL }
 }
 
 # =============================================================================
 # SECTION 4 -- FIT (MCMC), cached to models/ (delete an .rds to force a refit)
 # =============================================================================
-# `reuse`: a read-only cache elsewhere, loaded when `path` is absent. Used for
-# the probit, whose specification is unchanged, so a worktree run does not have
-# to refit it. The caller checks that the cached data match.
+# `reuse`: a read-only cache elsewhere, loaded when `path` is absent, so a
+# worktree run does not refit models main already holds. The caller checks that
+# the cached data and specification match (spec_ok below).
 fit_or_load <- function(m, path, mcp = mc, reuse = NULL) {
   if (file.exists(path)) { cat("Loading cached fit:", path, "\n"); return(readRDS(path)) }
   if (!is.null(reuse) && file.exists(reuse)) { cat("Reusing cached fit:", reuse, "\n"); return(readRDS(reuse)) }
@@ -343,13 +352,27 @@ fit_or_load <- function(m, path, mcp = mc, reuse = NULL) {
   cat(sprintf("  done in %.1f min\n", as.numeric(difftime(Sys.time(), t0, units = "mins"))))
   saveRDS(m, path); m
 }
-m_clr <- fit_or_load(m_clr, file.path(out_dir, "hmsc_clr_fit.rds"))
-m_rep <- fit_or_load(m_rep, file.path(out_dir, "hmsc_rep_fit.rds"))
+# A cached fit is only accepted if it was fitted to the same response and
+# design with the same latent-factor caps and scaling as the object built above.
+spec_ok <- function(fit, spec) {
+  nf <- function(m) vapply(m$rL, function(r) as.numeric(r$nfMax), numeric(1))
+  identical(dim(fit$Y), dim(spec$Y)) && isTRUE(all.equal(unname(fit$Y), unname(spec$Y))) &&
+    identical(colnames(fit$Y), colnames(spec$Y)) && isTRUE(all.equal(fit$X, spec$X)) &&
+    identical(nf(fit), nf(spec)) && identical(is.null(fit$YScalePar), is.null(spec$YScalePar))
+}
+spec_clr <- m_clr; spec_rep <- m_rep; spec_pa <- m_pa
+m_clr <- fit_or_load(m_clr, file.path(out_dir, "hmsc_clr_fit.rds"),
+                     reuse = file.path(CANON_MODELS, "hmsc_clr_fit.rds"))
+m_rep <- fit_or_load(m_rep, file.path(out_dir, "hmsc_rep_fit.rds"),
+                     reuse = file.path(CANON_MODELS, "hmsc_rep_fit.rds"))
 m_pa  <- fit_or_load(m_pa,  file.path(out_dir, "hmsc_pa_fit.rds"),
                      reuse = file.path(CANON_MODELS, "hmsc_pa_fit.rds"))
-stopifnot(identical(dim(m_pa$Y), dim(Ypa)), all(m_pa$Y == Ypa),
-          identical(colnames(m_pa$Y), otu_ids))          # cached probit = this data
-mc_phy <- if (RUN_MODE == "pilot") mc else list(samples = 250, thin = 15, transient = 4000)
+stopifnot(spec_ok(m_clr, spec_clr), spec_ok(m_rep, spec_rep), spec_ok(m_pa, spec_pa))
+# Phylo variant: same MCMC length as the headline model (it used to get a short
+# "enough to resolve rho" budget; the 2026-09-29 convergence study showed short
+# runs can hide chains stuck in different modes).
+PHYLO_THIN <- as.integer(Sys.getenv("HMSC_PHYLO_THIN", as.character(mc$thin)))
+mc_phy <- if (RUN_MODE == "pilot") mc else list(samples = 1000, thin = PHYLO_THIN, transient = 500 * PHYLO_THIN)
 if (!is.null(m_phy)) m_phy <- fit_or_load(m_phy, file.path(out_dir, "hmsc_clr_phylo_fit.rds"), mc_phy)
 
 # =============================================================================
@@ -666,10 +689,24 @@ expl_R2 <- function(m, label) {
 eclr <- expl_R2(m_clr, "clr")
 epa  <- expl_R2(m_pa,  "pa")
 # 2-fold CV on CLR, folds split by biological sample (one row per dropping here).
-partC <- createPartition(m_clr, nfolds = 2, column = "sample")
-mfC   <- evaluateModelFit(hM = m_clr, predY =
-           computePredictedValues(m_clr, partition = partC, nParallel = nParallel))
-eclr$cv_R2 <- round(if (!is.null(mfC$R2)) mfC$R2 else mfC$TjurR2, 3)
+# ~75 min PER FOLD. HMSC_RUN_CV=0 reuses the per-OTU CV R2 already in
+# CANON_MODELS/hmsc_predictive_R2.csv, but only if the explanatory R2 recomputed
+# here from the (reused) fit matches that table per OTU -- a fingerprint that the
+# stored CV belongs to this exact posterior.
+RUN_CV <- Sys.getenv("HMSC_RUN_CV", "1") == "1"
+if (RUN_CV) {
+  partC <- createPartition(m_clr, nfolds = 2, column = "sample")
+  mfC   <- evaluateModelFit(hM = m_clr, predY =
+             computePredictedValues(m_clr, partition = partC, nParallel = nParallel))
+  eclr$cv_R2 <- round(if (!is.null(mfC$R2)) mfC$R2 else mfC$TjurR2, 3)
+} else {
+  prev <- read.csv(file.path(CANON_MODELS, "hmsc_predictive_R2.csv"), stringsAsFactors = FALSE)
+  prev <- prev[prev$model == "clr", ]
+  pm <- match(eclr$OTU_ID, prev$OTU_ID)
+  stopifnot(!anyNA(pm), max(abs(prev$expl_R2[pm] - eclr$expl_R2)) <= 0.002)
+  eclr$cv_R2 <- prev$cv_R2[pm]
+  cat("CV R2 reused from", file.path(CANON_MODELS, "hmsc_predictive_R2.csv"), "(explanatory R2 fingerprint matched)\n")
+}
 epa$cv_R2  <- NA_real_
 r2_per <- rbind(eclr[, c("model","OTU_ID","expl_R2","cv_R2","expl_AUC")],
                 epa[,  c("model","OTU_ID","expl_R2","cv_R2","expl_AUC")])
@@ -716,6 +753,10 @@ if (!is.null(m_phy)) {
   geG_phy <- getPostEstimate(m_phy, parName = "Gamma")$mean
   rho_tbl$beta_season_cor_vs_main <- round(cor(geB$mean[season_row, ], geB_phy), 3)
   rho_tbl$gamma_cor_vs_main       <- round(cor(as.vector(geG$mean), as.vector(geG_phy)), 3)
+  # per-chain agreement on rho itself (the check PSRF alone can miss)
+  rho_ch <- vapply(mp$Rho, function(ch) median(as.numeric(ch)), numeric(1))
+  rho_tbl$rho_chain_medians <- paste(sprintf("%.3f", rho_ch), collapse = " / ")
+  rho_tbl$rho_chain_range   <- round(diff(range(rho_ch)), 3)
   write_tab(rho_tbl, "hmsc_rho_phylo.csv")
   cat(sprintf("Phylo rho: median=%.3f [%.3f, %.3f], P(rho>0)=%.3f; Beta/Gamma corr vs main = %.3f / %.3f\n",
               rho_tbl$median, rho_tbl$CrI_2.5, rho_tbl$CrI_97.5, rho_tbl$P_gt0,
