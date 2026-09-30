@@ -1,0 +1,7 @@
+"group","n_otu","share_total_mean","share_total_median","boot_CrI2.5","boot_CrI97.5","share_resid_mean","share_lme4_mean","discordance_mean","share_both_median","n_otu_share_both"
+"all",226,0.324,0.246,0.275,0.399,0.361,0.341,0.46,0.032,52
+"dung_saprotroph",14,0.167,0.055,0.111,0.25,0.195,0.187,0.317,0.014,9
+"plant_associated",50,0.35,0.356,0.284,0.481,0.379,0.356,0.499,0.053,10
+"pathotroph",16,0.496,0.552,0.364,0.623,0.546,0.52,0.555,0.011,2
+"dark_unassigned",79,0.344,0.309,0.287,0.429,0.387,0.366,0.508,0.061,15
+"other",67,0.274,0.185,0.22,0.379,0.305,0.291,0.382,0.031,16

@@ -1922,7 +1922,14 @@ Sections 4–6 treat the seasonal signal one lens at a time: community dissimila
 
 ### 9.1 Model, design, and what is (and isn't) trustworthy
 
-The model is fitted on the one-row-per-PCR-replicate object (`alldat_full$nopool`; 109 replicate rows from 55 biological dung samples), retaining the **226 OTUs present in ≥ 5 replicates** — the same prevalence rule used for the GLLVM/H3 analyses. Two response formulations are fitted in parallel: a **CLR-transformed abundance** model (Gaussian; CLR is the compositional normalisation in place of a library-size offset) and a **presence/absence** model (probit). Fixed effects are **Season** (winter as reference) **+ Year**; the species trait is the five-level functional **guild** class derived from FUNGuild (dung saprotroph, plant-associated, pathotroph, dark/unassigned, other — assigned by the priority rule in `Scripts/10_hmsc.R`, counts below). Random effects are latent factors at two levels: **biological sample** (the dung dropping, grouping its two PCR replicates) and **PCR replicate**.
+<!-- CLAUDE DRAFT 2026-09-29 (model revision): rewrite freely -->
+The models use the one-row-per-PCR-replicate object (`alldat_full$nopool`; 109 replicate rows from 55 biological dung samples), retaining the **226 OTUs present in ≥ 5 replicates** — the same prevalence rule used for the GLLVM/H3 analyses. Fixed effects are **Season** (winter as reference) **+ Year**; the species trait is the five-level functional **guild** class derived from FUNGuild (dung saprotroph, plant-associated, pathotroph, dark/unassigned, other — assigned by the priority rule in `Scripts/10_hmsc.R`, counts below). Three models are fitted:
+
+- **Headline — CLR abundance, replicates averaged.** Each PCR replicate is CLR-transformed (the compositional normalisation that stands in for a library-size offset), and the two replicates of a dropping are then averaged, giving one row per dropping (55 rows). The random level is the **biological sample** (the dropping), with two latent factors. This model carries the abundance results of this section and both panels of Figure 5.
+- **Complement — CLR abundance, replicate level.** The same CLR response with both replicates kept as rows (109 rows), and **two random levels**: biological sample (two latent factors) and **PCR replicate** (one latent factor).
+- **Robustness — presence/absence (probit)**, replicate level, with biological sample and PCR replicate as random levels.
+
+Both CLR models scale each OTU's response to unit variance before fitting and cap the number of latent factors; the reason for the cap, and for the choice of headline, is given below Table S-HMSCb.
 
 ```{r tab-hmsc-guild}
 #| echo: false
@@ -1934,51 +1941,116 @@ kable(data.frame(`Guild group` = gt$Var1, `n OTUs` = gt$Freq, check.names = FALS
       caption = "Table S-HMSCa. Functional-guild composition of the 226 modelled OTUs. FUNGuild returns a compound guild string per OTU; these are resolved to one class by the hierarchical priority rule in `Scripts/10_hmsc.R`, shared verbatim with Section 8. Dark/unassigned and 'other' together dominate the count — the modest coprophilous set (14 OTUs) nonetheless carries the strongest seasonal signal (Sections 9.3–9.4).")
 ```
 
-An **individual-bird** random level was deliberately **not** included. Microsatellite genotyping succeeded for only a handful of repeat birds, so a bird level (with unidentified droppings entered as singletons) would have \~51 units against 55 biological samples — effectively one-to-one with the sample level, confounding the two sets of latent factors. In the three-level version this stopped the CLR community-level parameters from converging and made the variance partition unstable; dropping it (leaving sample + PCR, mirroring the GLLVM's `(1 | Sample_ID_field)`) resolved both. Each model was fitted with four chains (1000 samples, thinning 50, 25,000 transient iterations).
+An **individual-bird** random level was deliberately **not** included. Microsatellite genotyping succeeded for only a handful of repeat birds, so a bird level (with unidentified droppings entered as singletons) would have \~51 units against 55 biological samples — effectively one-to-one with the sample level, confounding the two sets of latent factors. In the three-level version this stopped the CLR community-level parameters from converging and made the variance partition unstable, so the bird level was dropped, leaving sample + PCR (mirroring the GLLVM's `(1 | Sample_ID_field)`). Dropping it was not by itself sufficient; see the note below Table S-HMSCb. Each model was fitted with four chains (1000 samples, thinning 50, 25,000 transient iterations).
 
 ```{r tab-hmsc-conv}
 #| echo: false
 library(knitr)
 cv <- read.csv("tables/hmsc_convergence_psrf.csv", stringsAsFactors = FALSE)
-lab <- c(clr = "CLR (abundance)", pa = "Probit (occurrence)", clr_phylo = "CLR + phylogeny")
+lab <- c(clr = "CLR abundance, replicates averaged (headline)",
+         clr_rep = "CLR abundance, replicate level (complement)",
+         pa = "Probit occurrence, replicate level", clr_phylo = "CLR + phylogeny")
 kable(data.frame(
-  Model = lab[cv$model],
-  `Beta PSRF (median)` = cv$beta_psrf_med,
+  Model = lab[cv$model], Rows = cv$n_rows,
+  `Beta PSRF median / max` = sprintf("%.3f / %.3f", cv$beta_psrf_med, cv$beta_psrf_max),
   `Beta % < 1.1` = cv$beta_pct_below_1.1,
-  `Gamma PSRF (median)` = cv$gamma_psrf_med,
-  `Gamma PSRF (max)` = cv$gamma_psrf_max,
+  `Season Beta % < 1.1` = cv$season_pct_below_1.1,
+  `Gamma PSRF median / max` = sprintf("%.3f / %.3f", cv$gamma_psrf_med, cv$gamma_psrf_max),
+  `Chain range, guild means` = cv$guild_mean_chain_range_max,
+  `Chain range, variance partition` = cv$vp_chain_range_max,
   check.names = FALSE),
   row.names = FALSE,
-  caption = "Table S-HMSCb. Gelman–Rubin convergence (potential scale reduction factor, PSRF) for the per-OTU niches (Beta) and the trait → response link (Gamma). The probit and phylogenetic models converge well; the CLR-Gaussian community-level Gamma does not (median 1.46). We therefore read the guild → Season inference (Section 9.3) from the probit model, and use the CLR model only for the variance partition and per-OTU niches, where it is well behaved.")
+  caption = "Table S-HMSCb. Convergence of the three HMSC models. PSRF is the Gelman–Rubin potential scale reduction factor (1 = the four chains agree). The two chain-range columns compare the chains directly on the quantities the figures report: the largest difference between chains in any guild's mean Season Beta (standardised units), and in any community-mean variance component (proportion).")
 ```
 
+```{r tab-hmsc-v1}
+#| echo: false
+library(knitr)
+v1 <- read.csv("tables/hmsc_v1_chain_disagreement.csv", check.names = FALSE)
+kable(v1, row.names = FALSE,
+      col.names = c("Quantity", "Chain 1", "Chain 2", "Chain 3", "Chain 4", "PSRF"),
+      caption = "Table S-HMSCb2. The superseded CLR model (replicate level, uncapped latent factors: 7 at the sample level, 5 at the PCR level), fitted 2026-07-20. Each of its four chains converged to a different answer for the quantities the previous version of Figure 5 reported; pooling them produced the previously quoted values (e.g. dung-saprotroph mean +0.39, Season 11%).")
+```
+
+<!-- CLAUDE DRAFT 2026-09-29 (why the headline model wins): rewrite freely -->
 ::: callout-note
-**How to read the two response models.** Convergence is honest and not uniform. The **probit (occurrence)** model converges cleanly throughout (Beta median PSRF ≈ 1.01, 99.6% of Beta parameters below 1.1; Gamma median ≈ 1.01) and is the model we trust for the **guild → Season** statement. The **CLR (abundance)** model's per-OTU niches (Beta) and variance partition are well behaved and used as such, but its community-level **Gamma did not converge** (median PSRF ≈ 1.46) — so we do *not* quote CLR guild-response coefficients. This is the expected behaviour of a Gaussian JSDM with latent factors on a small, sparse compositional dataset, and it is why the two formulations are reported side by side rather than one alone.
+**Why the replicate-averaged model is the headline.** An earlier version of this section used a single CLR model at the replicate level with an uncapped number of latent factors (seven at the sample level, five at the PCR level). Its four chains converged to four different answers (Table S-HMSCb2): the *Thelebolus* Season coefficient was 0.36, 3.03, 0.69 and −0.03 in the four chains, and the Season share of variance between 5% and 28%. The PSRF understated the problem because each chain mixed well within its own solution. The cause is structural. Season is constant within a dropping, so enough sample-level latent factors can reproduce the Season contrast themselves, and each chain divided the seasonal signal differently between the Season coefficients and the latent factors. Longer chains do not cure this; capping the number of latent factors does, and both CLR models reported here are capped.
+
+With the cap, both CLR models converge on the Season effects (Table S-HMSCb). They differ in how they treat the two PCR replicates of each dropping. The replicate-level model estimates PCR replicate as its own random level, but the split of variance between dropping and replicate rests on only 54 replicate pairs and is weakly identified: in an earlier independent fit with the identical specification, its chains settled in two different splits (dropping/PCR 0.52/0.14 in two chains, 0.43/0.27 in the other two), whereas in the fit reported here the chains agree (Table S-HMSCc3). The replicate-level model also counts the two replicates as partly independent observations, which narrows its credible intervals (median width 0.84 of the headline model's; Table S-HMSCc4). Averaging the replicates removes both issues by construction — one row per dropping, no replicate-level split to identify — and its chains agree to within 0.003 on every reported guild mean and variance component.
+
+The two models agree on what the figures report: per-OTU Season coefficients correlate at Pearson r = 0.97 (Spearman ρ = 0.89), and 56 OTUs have a 95% credible interval excluding zero in both (Table S-HMSCc4). The replicate-level model is therefore kept as the complement that carries an explicit PCR-replicate level, and the PCR-replicate variance the headline model averages away is measured directly in Section 9.2 (Table S-HMSCc2).
+
+The **probit (occurrence)** model was not refitted. Its PSRFs are low (Beta median 1.01, 99.6% below 1.1), but compared chain by chain its guild means differ by up to 0.24 on the probit scale — the same qualitative answer in every chain, with looser agreement than the CLR models.
 :::
 
 ### 9.2 Variance partitioning: a reproducible seasonal axis within large individual heterogeneity
 
-For every OTU the model decomposes the explained variance in CLR abundance into contributions from Season, Year, and the two random levels. Averaged across OTUs, **Season and Year together account for \~20% of per-OTU variance** (Season \~11%, Year \~8%), with the remainder carried by among-sample (biological dropping) and among-replicate structure.
+<!-- CLAUDE DRAFT 2026-09-29 (numbers updated to the revised model): rewrite freely -->
+For every OTU the headline model decomposes the variance it explains in CLR abundance into contributions from Season, Year, and the biological-sample (dropping) random level. Averaged across OTUs, **Season accounts for 31.5% and Year for 18.5%**, with the remaining 49.9% carried by differences among droppings. These are shares of the variance the model explains, not of total variance, so they are not comparable with a PERMANOVA R².
 
 ![](figures/hmsc_variance_partition.png)
 
-**Figure S-HMSCa**: Per-OTU variance partitioning (CLR abundance). Each vertical bar is one OTU; colours give the proportion of that OTU's variance attributable to Season, Year, the biological-sample random level, and the PCR-replicate random level. The Season + Year share is modest but pervasive across the community; individual-dropping heterogeneity (sample level) is the single largest component.
+**Figure S-HMSCa**: Per-OTU variance partitioning (CLR abundance, headline model). Each vertical bar is one OTU; colours give the proportion of that OTU's explained variance attributable to Season, Year and the biological-sample random level. Individual-dropping heterogeneity is the single largest component.
 
 ```{r tab-hmsc-vp}
 #| echo: false
 library(knitr)
 vp <- read.csv("tables/hmsc_variance_partition.csv", check.names = FALSE)
-comp <- c("Season","Year","Random: sample","Random: pcr")
+comp <- c("Season","Year","Random: sample")
 cw  <- colMeans(vp[, comp])
 byg <- aggregate(vp[, comp], list(Guild = vp$guild), mean)
 tabb <- rbind(data.frame(Guild = "all OTUs (community mean)", t(cw), check.names = FALSE), byg)
 tabb[, comp] <- round(tabb[, comp] * 100, 1)
+pcr <- read.csv("tables/hmsc_pcr_replicate_variance.csv", stringsAsFactors = FALSE)
+tabb$pcr <- round(100 * pcr$share_total_mean[match(sub("all OTUs \\(community mean\\)", "all", tabb$Guild), pcr$group)], 1)
 kable(tabb, row.names = FALSE,
-      col.names = c("Guild group", "Season %", "Year %", "Sample %", "PCR %"),
-      caption = "Table S-HMSCc. Mean percentage of per-OTU variance attributed to each component, community-wide and by guild. The Season share is consistent across guilds and, at the community level (~11%), closely matches the Season effect size from the PERMANOVA in Section 4.2 (R² = 0.11) — two very different models converging on the same magnitude of seasonal turnover.")
+      col.names = c("Guild group", "Season %", "Year %", "Dropping %", "PCR replicate % (model-free)"),
+      caption = "Table S-HMSCc. Mean percentage of per-OTU variance attributed to each component of the headline model, community-wide and by guild; the three model components sum to 100%. The last column is not part of that partition: it is the model-free share of each OTU's total CLR variance that lies between the two PCR replicates of a dropping (Table S-HMSCc2).")
 ```
 
-The ecological reading is deliberately two-sided but coherent. The **seasonal axis is real and reproducible** — its community-mean magnitude (\~11%) independently recovers the PERMANOVA R² of 0.11 from Section 4.2 — yet at the level of an individual OTU it is *modest relative to how much dung communities differ from one dropping to the next*. In other words, HMSC formalises what the ordination and dominance analyses already suggested: season shifts the community in a consistent direction, on top of large individual-level variability. This decomposition, broken down by guild exactly as in Table S-HMSCc, is Figure 5B of the main text (Section 10.5).
+```{r tab-hmsc-pcr}
+#| echo: false
+library(knitr)
+pcr <- read.csv("tables/hmsc_pcr_replicate_variance.csv", stringsAsFactors = FALSE)
+kable(data.frame(
+  Group = pcr$group, `n OTUs` = pcr$n_otu,
+  `Share of total variance, mean [95% CI]` = sprintf("%.2f [%.2f, %.2f]", pcr$share_total_mean,
+                                                     pcr$boot_CrI2.5, pcr$boot_CrI97.5),
+  `Median` = pcr$share_total_median,
+  `Share after Season + Year` = pcr$share_resid_mean,
+  `Mixed model (lme4)` = pcr$share_lme4_mean,
+  `Detected in only one replicate` = pcr$discordance_mean,
+  `Share when both replicates detect (median)` = pcr$share_both_median,
+  check.names = FALSE),
+  row.names = FALSE,
+  caption = "Table S-HMSCc2. PCR-replicate variance, estimated outside the model from the 54 droppings with two replicates. For each OTU, replicate variance = mean(d²)/2, where d is the CLR difference between the two replicates; the share divides it by the OTU's total CLR variance and is averaged over OTUs (95% CI: 500 bootstrap resamples of droppings). Two cross-checks divide by the variance left after Season and Year, or take the residual share from a per-OTU mixed model with a dropping random intercept. 'Detected in only one replicate' is the fraction of droppings containing the OTU in which only one replicate detected it; the last column repeats the share using only droppings where both did. Per-OTU values: tables/hmsc_pcr_replicate_variance_perOTU.csv.")
+```
+
+```{r tab-hmsc-rep}
+#| echo: false
+library(knitr)
+vc <- read.csv("tables/hmsc_rep_vp_by_chain.csv", check.names = FALSE)
+vc[, -1] <- round(100 * vc[, -1], 1)
+kable(vc, row.names = FALSE,
+      col.names = c("Chain", "Season %", "Year %", "Dropping %", "PCR replicate %"),
+      caption = "Table S-HMSCc3. Variance partition of the complementary replicate-level model (both PCR replicates as rows; dropping and PCR replicate as random levels), shown chain by chain.")
+rv <- read.csv("tables/hmsc_rep_vs_main.csv")
+kable(data.frame(
+  `OTUs` = rv$n_otu, `Pearson r` = rv$pearson, `Spearman ρ` = rv$spearman,
+  `CrI width, replicate-level / headline (median)` = rv$median_CrI_width_ratio_rep_over_main,
+  `95% CrI excl. 0: headline / replicate-level / both` =
+    sprintf("%d / %d / %d", rv$resolved95_main, rv$resolved95_rep, rv$resolved95_both),
+  check.names = FALSE),
+  row.names = FALSE,
+  caption = "Table S-HMSCc4. Agreement between the headline and the replicate-level model on each OTU's Season coefficient (CLR units).")
+```
+
+<!-- CLAUDE DRAFT 2026-09-29: rewrite freely -->
+The ecological reading is two-sided but coherent. The **seasonal axis is real and reproducible**, yet at the level of an individual OTU the largest single component is still *how much dung communities differ from one dropping to the next*. HMSC formalises what the ordination and dominance analyses already suggested: season shifts the community in a consistent direction, on top of large individual-level variability. This decomposition, broken down by guild exactly as in Table S-HMSCc, is Figure 5B of the main text (Section 10.5).
+
+**PCR-replicate variance.** Because the headline model averages the two PCR replicates of each dropping, it has no PCR level to partition. The replicate-to-replicate variance is measured instead, outside the model, from the 54 droppings with two replicates (Table S-HMSCc2). Both replicates come from the same DNA extract, so any difference between them is measurement noise. For each OTU, half the mean squared difference between the two replicates' CLR values estimates the replicate variance; divided by the OTU's total CLR variance and averaged over OTUs, **replicate noise accounts for 32% of CLR variance** (bootstrap 95% CI 28–40%; median over OTUs 25%). The estimate does not depend on the method: dividing instead by the variance left after Season and Year gives 36%, and a per-OTU mixed model with a dropping random intercept gives 34% (per-OTU correlation with the former 0.998). Nor is it driven by unequal sequencing depth: the two replicates differ in depth by a median factor of 1.31, and the size of that difference does not predict how different the replicates look (Spearman ρ = 0.21, p = 0.13, n = 54). It is not spread evenly, however. Coprophilous dung saprotrophs are the most repeatable guild (17%, CI 11–25%) and pathotrophs the least (50%, CI 36–62%).
+
+The replicate noise is almost entirely **detection**, not abundance. Where both replicates detect an OTU, their CLR values agree closely: replicate noise is then a median 3% of variance. But in 46% of the droppings in which an OTU is found, only one of the two replicates detects it — the signature of low-abundance taxa near the detection limit, where PCR and sequencing sampling decide whether a few reads appear. Coprophiles are detected in both replicates more consistently (only one replicate detects them in 32% of cases) and, when both detect them, differ by a median 1% of variance: where *Thelebolus* or *Sporormiella* is present, both replicates see it at similar levels. The complementary replicate-level model, which fits PCR replicate as a random level, gives a comparable picture: 27% of its explained variance at the PCR level, 43% at the dropping level, and a Season share of 17.5% (Table S-HMSCc3). Its Season share is lower than the headline model's because replicate noise, which the headline model averages away, enters its denominator.
 
 ### 9.3 Guild predicts seasonal occurrence — the coprophilous summer signature, formalised
 
@@ -2005,11 +2077,31 @@ kable(data.frame(
   caption = "Table S-HMSCd. Probit Gamma — guild trait → probability of summer occurrence. The reference row is the dung-saprotroph guild's own Season effect; the other rows are deviations from it. Support is the posterior probability that the coefficient exceeds zero (values near 1 = summer, near 0 = winter).")
 ```
 
+```{r tab-hmsc-gamma-clr}
+#| echo: false
+library(knitr)
+g <- read.csv("tables/hmsc_gamma_CrI.csv", stringsAsFactors = FALSE)
+g <- g[g$covariate == "Seasonsummer", ]
+g$trait <- sub("^guild", "", g$trait)
+g$trait[g$trait == "(Intercept)"] <- "dung saprotroph (reference)"
+kable(data.frame(
+  `Guild (trait)` = g$trait,
+  `Gamma (summer)` = round(g$mean, 2),
+  `95% CrI` = sprintf("[%.2f, %.2f]", g$CrI_2.5, g$CrI_97.5),
+  `Support P(>0)` = round(g$support, 3),
+  check.names = FALSE),
+  row.names = FALSE,
+  caption = "Table S-HMSCd2. Abundance Gamma — guild trait → Season effect on CLR abundance, from the headline model, on the standardised scale (each OTU's response scaled to unit variance before fitting). Read as for Table S-HMSCd.")
+```
+
+<!-- CLAUDE DRAFT 2026-09-29: rewrite freely -->
+On the abundance scale the same link can now be read from the headline model, whose Gamma converges (Table S-HMSCb), and it is sharper (Table S-HMSCd2). The dung-saprotroph guild's own Season effect is positive (+0.31 in standardised units, 95% CrI \[0.07, 0.54\], support 0.994). Plant-associated, pathotroph and dark/unassigned OTUs all respond clearly less summer-ward than dung saprotrophs (differences −0.37, −0.52 and −0.46; support ≤ 0.004), while the "other" group does not differ clearly from them (−0.16, support 0.12).
+
 This is the guild-level counterpart to the taxonomic and dominance results (Sections 3.2, 5.4): the recognised coprophilous fungi — *Sporormiella*, *Thelebolus*, *Coniochaeta* — are not a fixed cold-adapted core but a **summer-occurring dung guild**, consistent with the richer, more fungal-propagule-laden summer diet. HMSC states that pattern as a trait effect estimated across all 226 OTUs at once, rather than genus by genus.
 
 ### 9.4 Per-OTU seasonal niches, and agreement with the GLLVM
 
-Extracting each OTU's Season coefficient (Beta) from the CLR model recovers the same lineages at the individual level. The **most strongly summer-shifted OTUs are exactly the coprophilous dung saprotrophs** — *Sporormiella* (OTU636), *Thelebolus* (OTU1) and *Coniochaeta* (OTU1225) — while the **most strongly winter-shifted OTUs are dark/unassigned taxa**, led by OTU1369, the same taxonomically unresolved Dothideomycete that anchors winter dominance in Sections 5.4 and the E1 dark-taxa analysis (Section 3.4).
+Extracting each OTU's Season coefficient (Beta) from the headline CLR model recovers the same lineages at the individual level. The **three most strongly summer-shifted OTUs are the coprophilous dung saprotrophs** *Thelebolus* (OTU1), *Sporormiella* (OTU636) and *Coniochaeta* (OTU1225), each with a 95% credible interval well clear of zero — while the **most strongly winter-shifted OTUs are dark/unassigned taxa**, led by OTU1369, the same taxonomically unresolved Dothideomycete that anchors winter dominance in Sections 5.4 and the E1 dark-taxa analysis (Section 3.4).
 
 ![](figures/hmsc_beta_season.png)
 
@@ -2027,10 +2119,11 @@ fmt <- function(d) d %>% transmute(
 kable(b %>% arrange(desc(beta_season_mean)) %>% slice_head(n = 6) %>% fmt(), row.names = FALSE,
       caption = "Table S-HMSCe(i). Most strongly summer-shifted OTUs (HMSC CLR Beta on Season).")
 kable(b %>% arrange(beta_season_mean) %>% slice_head(n = 6) %>% fmt(), row.names = FALSE,
-      caption = "Table S-HMSCe(ii). Most strongly winter-shifted OTUs. Wide credible intervals on the summer coprophiles reflect the abundance model's larger uncertainty; direction and support are nonetheless consistent. Full table: tables/hmsc_beta_season.csv.")
+      caption = "Table S-HMSCe(ii). Most strongly winter-shifted OTUs. Beta is in CLR units (the model's standardised coefficient multiplied by the OTU's CLR standard deviation). Full table: tables/hmsc_beta_season.csv.")
 ```
 
-The same per-OTU niche estimated on the **occurrence** scale — the probit model, whose Beta parameters are the ones that converge cleanly (Table S-HMSCb) — is considerably sharper: 55 of the 226 OTUs have a Season coefficient whose 95% credible interval excludes zero, against 4 in the abundance model. The two formulations rank the community's seasonal responses consistently (Spearman ρ = 0.82), and their per-OTU estimates aggregate to the guild-level Gamma of Section 9.3 to within 0.04, so nothing here contradicts the results above. What the occurrence scale does change is *which* taxa sit at the summer extreme. In abundance the coprophiles lead outright; in occurrence the shift is community-wide (157 of 226 OTUs point towards summer, median +0.70) and the extreme is occupied by cold-adapted basidiomycete yeasts — *Vishniacozyma*, *Mrakia*, *Piskurozyma*, *Phenoliferia* — with *Sporormiella* (OTU636) the only dung saprotroph in the top 25 and the mean dung-saprotroph rank falling to 125 of 226 (from 54 in abundance). The distinction is ecologically substantive rather than a modelling artefact: coprophilous fungi are what summer dung is largely *made of* in read share, but they are not the taxa that most reliably *appear* in summer. The winter extreme is unchanged and, if anything, more strongly resolved — dark/unassigned taxa and pathotrophs, with OTU1369 the most winter-shifted OTU in the community (β = −2.25, 95% CrI \[−3.53, −1.08\]). Both scales are carried forward, but they are not given equal weight in the main text. Figure 5 in Section 10.5 is built entirely on the abundance formulation — the scale on which the coprophilous shift is the community's largest seasonal effect, and the scale that Figures 1 and 2 also work on — while the occurrence-scale result reported here stays supplementary, alongside Tables S-HMSCe(iii) and S-HMSCe(iv). The price of that choice is stated in the Figure 5 caption: the abundance scale resolves far fewer individual OTUs, so the main figure rests on the guild-level contrast rather than on any single lineage. The abundance-scale table above also remains the one comparable with the GLLVM below.
+<!-- CLAUDE DRAFT 2026-09-29 (numbers updated to the revised model): rewrite freely -->
+The same per-OTU niche can be estimated on the **occurrence** scale, with the probit model. There, 55 of the 226 OTUs have a Season coefficient whose 95% credible interval excludes zero, against 74 in the headline abundance model. The two formulations rank the community's seasonal responses consistently (Spearman ρ = 0.76), and the probit per-OTU estimates aggregate to the guild-level Gamma of Section 9.3 to within 0.04, so nothing here contradicts the results above. What the occurrence scale does change is *which* taxa sit at the summer extreme. In abundance the coprophiles lead outright; in occurrence the shift is community-wide (157 of 226 OTUs point towards summer, median +0.70) and the extreme is occupied by cold-adapted basidiomycete yeasts — *Vishniacozyma*, *Mrakia*, *Piskurozyma*, *Phenoliferia* — with *Sporormiella* (OTU636) the only dung saprotroph in the top 25 and the mean dung-saprotroph rank falling to 125 of 226 (from 59 in abundance). The distinction is ecologically substantive rather than a modelling artefact: coprophilous fungi are what summer dung is largely *made of* in read share, but they are not the taxa that most reliably *appear* in summer. The winter extreme is unchanged and, if anything, more strongly resolved — dark/unassigned taxa and pathotrophs, with OTU1369 the most winter-shifted OTU in the community (β = −2.25, 95% CrI \[−3.53, −1.08\]). Both scales are carried forward, but they are not given equal weight in the main text. Figure 5 in Section 10.5 is built entirely on the abundance formulation — the scale on which the coprophilous shift is the community's largest seasonal effect, and the scale that Figures 1 and 2 also work on — while the occurrence-scale result reported here stays supplementary, alongside Tables S-HMSCe(iii) and S-HMSCe(iv). The abundance-scale table above also remains the one comparable with the GLLVM below.
 
 ```{r tab-hmsc-beta-probit}
 #| echo: false
@@ -2042,7 +2135,7 @@ fmtp <- function(d) d %>% transmute(
   `95% CrI` = sprintf("[%.2f, %.2f]", beta_season_CrI2.5, beta_season_CrI97.5),
   Support = round(beta_season_support, 3))
 kable(bp %>% arrange(desc(beta_season_mean)) %>% slice_head(n = 6) %>% fmtp(), row.names = FALSE,
-      caption = "Table S-HMSCe(iii). Most strongly summer- and winter-shifted OTUs on the occurrence scale (HMSC probit Beta on Season; positive = more likely to occur in summer). Unlike the abundance model, these intervals are mostly resolved — 55 of 226 OTUs exclude zero. Full table: tables/hmsc_probit_beta_season.csv.")
+      caption = "Table S-HMSCe(iii). Most strongly summer- and winter-shifted OTUs on the occurrence scale (HMSC probit Beta on Season; positive = more likely to occur in summer). 55 of 226 OTUs have a 95% credible interval excluding zero. Full table: tables/hmsc_probit_beta_season.csv.")
 kable(bp %>% arrange(beta_season_mean) %>% slice_head(n = 6) %>% fmtp(), row.names = FALSE,
       caption = "Table S-HMSCe(iv). Most strongly winter-shifted OTUs, occurrence scale. Support is the posterior probability that the coefficient exceeds zero.")
 ```
@@ -2051,7 +2144,7 @@ Because the GLLVM (Section 6) is an independent model — negative-binomial coun
 
 ![](figures/hmsc_vs_gllvm_season.png)
 
-**Figure S-HMSCd**: HMSC (CLR Beta) versus GLLVM Season coefficient, one point per shared OTU (n = 139 after excluding the GLLVM's on/off near-separation OTUs, whose ±10³ coefficients are not comparable), coloured by guild. The two independent joint models rank the OTUs' seasonal responses consistently (**Spearman ρ = 0.70**), a strong convergent-validity result for H1 at OTU resolution.
+**Figure S-HMSCd**: HMSC (CLR Beta) versus GLLVM Season coefficient, one point per shared OTU (n = 139 after excluding the GLLVM's on/off near-separation OTUs, whose ±10³ coefficients are not comparable), coloured by guild. The two independent joint models rank the OTUs' seasonal responses consistently (**Spearman ρ = 0.75**), a strong convergent-validity result for H1 at OTU resolution.
 
 ### 9.5 Residual co-occurrence beyond Season
 
@@ -2062,6 +2155,10 @@ The biological-sample latent factors capture the co-occurrence structure that re
 **Figure S-HMSCe**: Residual OTU–OTU association matrix (biological-sample level), showing only associations supported at ≥ 0.95 posterior probability and restricted to OTUs with at least one such association, ordered by hierarchical clustering. Red = positive residual co-occurrence, blue = negative. Blocks of positively associated OTUs indicate sub-communities that track together beyond the seasonal signal — candidate co-dispersed or co-sourced groups for follow-up.
 
 ### 9.6 Phylogenetic signal in seasonal niches
+
+::: callout-warning
+**Not yet re-run on the revised model (2026-09-29).** The phylogenetic variant below was fitted on the superseded, non-converged CLR structure (Section 9.1). Its ρ and the correlations with the main model in Table S-HMSCf refer to that structure. Re-fitting it on the headline model is pending a decision (`HMSC_RUN_PHYLO=1` in `Scripts/10_hmsc.R`).
+:::
 
 Adding the OTU phylogeny to the CLR model estimates rho, the degree to which closely related fungi share environmental niches. The signal is substantial and well-identified.
 
@@ -2102,9 +2199,9 @@ kable(data.frame(
   caption = "Table S-HMSCg. Community-mean explanatory vs cross-validated fit. Explanatory R² is moderate; cross-validated R² is near zero.")
 ```
 
-The explanatory fit is moderate (community-mean R² ≈ 0.46 for the abundance model) but **cross-validated R² is near zero** — the model does not predict the fungal community of a dropping it has not seen. Far from undercutting the story, this is the quantitative statement of it: the seasonal and guild effects documented above are **real and directional but small against the dominant, idiosyncratic variation among individual droppings**. A ptarmigan's dung mycobiome is shaped by season in a reproducible way, yet remains largely individual — which is exactly what a transient, diet- and propagule-sourced community should look like, and a useful caution for anyone hoping to read season directly off a single sample.
+The explanatory fit is moderate (community-mean R² ≈ 0.29 for the headline abundance model) but **cross-validated R² is near zero** (≈ 0.03) — the model does not predict the fungal community of a dropping it has not seen. Far from undercutting the story, this is the quantitative statement of it: the seasonal and guild effects documented above are **real and directional but small against the dominant, idiosyncratic variation among individual droppings**. A ptarmigan's dung mycobiome is shaped by season in a reproducible way, yet remains largely individual — which is exactly what a transient, diet- and propagule-sourced community should look like, and a useful caution for anyone hoping to read season directly off a single sample.
 
-**In summary**, HMSC does not overturn any earlier result; it unifies them and adds two things the single-lens analyses could not: a variance decomposition that sizes the seasonal signal against individual heterogeneity (and independently recovers the PERMANOVA effect size), and a formal trait- and phylogeny-level account of *why* the seasonal turnover looks the way it does — a summer-occurring coprophilous dung guild, phylogenetically conserved, riding on top of large among-individual variability.
+**In summary**, HMSC does not overturn any earlier result; it unifies them and adds two things the single-lens analyses could not: a variance decomposition that sizes the seasonal signal against individual heterogeneity, and a formal trait- and phylogeny-level account of *why* the seasonal turnover looks the way it does — a summer-occurring coprophilous dung guild, phylogenetically conserved, riding on top of large among-individual variability.
 
 ::: {.content-visible when-profile="docs"}
 #### Documentation notes — Section 9 {.unnumbered}
@@ -3188,14 +3285,16 @@ print(data.frame(OTU = wd$OTU_ID[o], class = sub("^c__", "", wd$Class[o]),
 ### 10.5 Figure 5 — A reproducible seasonal axis inside large among-individual variation (HMSC synthesis)
 
 :::: {.content-visible when-profile="docs"}
-*Provenance: both panels of Fig. 5 come from the same abundance (CLR) HMSC model of Section 9. Fig. 5A is the per-OTU seasonal niche of Section 9.4 (Tables S-HMSCe(i) and S-HMSCe(ii)), restricted to the 22 OTUs that each hold at least 1% of modelled read share and augmented with a guild-mean block; Figure S-HMSCc is the same quantity for all 226 OTUs ranked by effect size rather than by abundance. Fig. 5B is the variance partition of Section 9.2 (Table S-HMSCc). The read shares behind the selection rule come from `tables/dark_taxa_SH_matching.csv` (Section 3.4), which is also the source of the finest-rank labels for OTUs with no genus. Both panels read committed `tables/*.csv` written by `10_hmsc.R` and `9_dark_taxa_SH_matching.R`, so the figure cannot drift from Sections 9 and 3.4.*
+*Provenance: both panels of Fig. 5 come from the same abundance (CLR) HMSC model of Section 9. Fig. 5A is the per-OTU seasonal niche of Section 9.4 (Tables S-HMSCe(i) and S-HMSCe(ii)), restricted to the 22 OTUs that each hold at least 1% of modelled read share and augmented with a guild-mean block; Figure S-HMSCc is the same quantity for all 226 OTUs ranked by effect size rather than by abundance. Fig. 5B is the variance partition of Section 9.2 (Table S-HMSCc); its right-hand column is the model-free PCR-replicate share of Table S-HMSCc2 (`tables/hmsc_pcr_replicate_variance.csv`). The read shares behind the selection rule come from `tables/dark_taxa_SH_matching.csv` (Section 3.4), which is also the source of the finest-rank labels for OTUs with no genus. Both panels read committed `tables/*.csv` written by `10_hmsc.R` and `9_dark_taxa_SH_matching.R`, so the figure cannot drift from Sections 9 and 3.4.*
 ::::
 
 ![](figures/main/Fig5_hmsc_synthesis.png)
 
-**Figure 5**: A joint species distribution model places the seasonal axis at OTU level and shows how small it is beside the variation among individual droppings. Both panels come from one abundance (CLR) HMSC model, fitted to 226 OTUs across 109 PCR replicates of 55 droppings with Season and Year as fixed effects and biological sample and PCR replicate as random levels. **(A)** Per-OTU Season coefficient — positive = higher relative abundance in summer — for the 22 OTUs that each account for at least 1% of modelled-OTU read share, 73% of all modelled reads between them, ordered by coefficient and coloured by functional guild, with 95% credible intervals; seven intervals extend beyond the axis and are clipped at ±2.5 with an arrowhead, the widest reaching +3.79 (*Thelebolus*) and −3.61 (OTU1369). Filled points are the 9 resolved at HMSC's 0.95 posterior-support convention; on the abundance scale only 4 of all 226 OTUs have a 95% credible interval excluding zero, and every resolved OTU here is at the winter end. The coprophilous block at the summer end therefore carries a large but individually uncertain effect, which is what panel B accounts for: these taxa bloom in some droppings and not others. The lower block gives each guild's arithmetic mean of the per-OTU posterior means (diamond) with their interquartile range, taken over all OTUs in that guild rather than only the 22 plotted; it is a descriptive summary of the points above, not a credible interval, and it is deliberately not the model's trait-level Gamma, which is not quoted for this formulation because it does not converge (Section 9.1). Per-OTU coefficients in this formulation also converge less cleanly than in the occurrence formulation (Beta median PSRF 1.17, 40% of parameters below 1.1; Table S-HMSCb), which is why the guild-level contrast rather than any single OTU carries the panel's claim. **(B)** Mean share of per-OTU variance attributed to Season, Year, the biological-sample random level and the PCR-replicate random level, for all 226 OTUs and then within each guild (Table S-HMSCc). The three highlighted rows are drawn larger because they are the groups this study is about, not because they are the largest effects — pathotrophs in fact have the highest Season share (14.3%). The five guild classes are the model's trait and differ slightly from the display split used in Figure 1: 46 OTUs carrying a genus but no FUNGuild call sit in "Other assigned" here and in "Unassigned / dark" there (`tables/guild_scheme_crosswalk.csv`, Section 8.1).
+<!-- CLAUDE DRAFT 2026-09-29 (caption rewritten for the revised model): rewrite freely -->
+**Figure 5**: A joint species distribution model places the seasonal axis at OTU level and sizes it against the variation among individual droppings. Both panels come from one abundance (CLR) HMSC model fitted to 226 OTUs in 55 droppings, with each dropping's two PCR replicates averaged, Season and Year as fixed effects, and the dropping as random level (Section 9.1). **(A)** Per-OTU Season coefficient in CLR units — positive = higher relative abundance in summer — for the 22 OTUs that each account for at least 1% of modelled-OTU read share, 73% of all modelled reads between them, ordered by coefficient and coloured by functional guild, with 95% credible intervals. One interval, OTU1369's, extends beyond the axis and is clipped at −6 with an arrowhead (it reaches −6.48). Filled points are the 16 resolved at HMSC's 0.95 posterior-support convention; community-wide, 74 of 226 OTUs have a 95% credible interval excluding zero. The lower block gives each guild's arithmetic mean of the per-OTU posterior means (diamond) with their interquartile range, taken over all OTUs in that guild rather than only the 22 plotted; it is a descriptive summary of the points above, not a credible interval. The model's own guild-level estimate is the trait-level Gamma (Section 9.3, Table S-HMSCd2). The four MCMC chains agree on every plotted estimate (Beta PSRF ≤ 1.01; Table S-HMSCb). **(B)** Mean share of per-OTU explained variance attributed to Season, Year and the dropping, for all 226 OTUs and then within each guild (Table S-HMSCc). The italic right-hand column is not part of that partition. It is the share of each OTU's total CLR variance that lies between the two PCR replicates of a dropping, measured outside the model (Table S-HMSCc2), and it mostly reflects rare taxa detected by one replicate but not the other. The three highlighted rows are drawn larger because they are the groups this study is about. The five guild classes are the model's trait and differ slightly from the display split used in Figure 1: 46 OTUs carrying a genus but no FUNGuild call sit in "Other assigned" here and in "Unassigned / dark" there (`tables/guild_scheme_crosswalk.csv`, Section 8.1).
 
-Panel A makes the seasonal signal concrete at the level of individual lineages, and it does so among the taxa that actually constitute the community: the 22 OTUs plotted are every OTU holding at least 1% of modelled read share, and they carry 73% of the modelled reads between them. Read from the top, the panel is the study's taxonomic result in one column. The summer end is an unbroken block of coprophilous dung saprotrophs — *Sporormiella* (OTU636, β = +1.10), *Thelebolus* (OTU1, +1.01), *Coniochaeta* (OTU1225, +0.97) and two further Sporormiaceae and Coniochaetaceae lineages — the winter end an equally unbroken block of dark, taxonomically unresolved taxa ending at OTU1369 (−1.68), the unclassified Dothideomycete that dominates winter read share in Figure 4, with plant-associated taxa straddling zero between them. The guild means below make the same statement over all 226 OTUs rather than the 22 shown: dung saprotrophs (+0.39) are the only guild with a positive mean, and dark/unassigned taxa (−0.15) and pathotrophs (−0.17) are the only two that lean winter. What the panel does not offer is per-OTU certainty. On the abundance scale just 4 of 226 OTUs have a credible interval excluding zero, and the nine resolved among those plotted are all winter taxa; the coprophile effect is the largest in the community and simultaneously the least precisely estimated. Panel B is why, and it is the reason the two panels belong together. Season and Year account for only about a fifth of per-OTU variance (Season 11.2%, Year 8.4%) and the Season share is remarkably even across guilds (9.0% for plant-associated taxa to 14.3% for pathotrophs), while roughly half of all variance sits among biological samples — one dropping to the next — and a further third among PCR replicates of the same dropping. Coprophilous fungi bloom in some summer droppings and are near-absent from others, so a model that estimates each OTU separately recovers a large mean shift with wide bounds; the guild-level and read-share statements of Figure 1 are where that signal is sharp. The community-mean Season share independently recovers the PERMANOVA R² of 0.11 from Section 4 with a completely different model. Taken together the panels state the central quantitative claim in one place: seasonal turnover is real, directional and consistent across methods, yet it is modest beside the idiosyncrasy of individual birds — which is why the model explains the samples it has seen (R² ≈ 0.46) but cannot predict one it has not (Section 9.7).
+Panel A makes the seasonal signal concrete at the level of individual lineages, and it does so among the taxa that actually constitute the community: the 22 OTUs plotted are every OTU holding at least 1% of modelled read share, and they carry 73% of the modelled reads between them. <!-- CLAUDE DRAFT 2026-09-29 (numbers and claims updated to the revised model): rewrite freely -->
+Read from the top, the panel is the study's taxonomic result in one column. The summer end is an unbroken block of coprophilous dung saprotrophs — *Thelebolus* (OTU1, β = +4.17), *Sporormiella* (OTU636, +3.52), *Coniochaeta* (OTU1225, +3.44) and two further Sporormiaceae and Coniochaetaceae lineages — every one of them resolved. The winter end is a block dominated by dark, taxonomically unresolved taxa, ending at OTU1369 (−5.00), the unclassified Dothideomycete that dominates winter read share in Figure 4. Plant-associated taxa straddle zero between them. The guild means below make the same statement over all 226 OTUs rather than the 22 shown. Dung saprotrophs (+1.32) have by far the most summer-shifted mean; dark/unassigned taxa (−0.31) and pathotrophs (−0.33) lean winter; and the yeast-rich "other" group is weakly positive (+0.22). The model's trait-level estimate agrees: the dung-saprotroph guild's Season effect is positive with posterior support 0.994, and dark/unassigned, pathotroph and plant-associated OTUs respond clearly less summer-ward (Section 9.3). Panel B sizes these effects. Season accounts for 31.5% of the variance the model explains and Year for 18.5%, while half (49.9%) sits among droppings — one dropping to the next. The Season share is largest for dung saprotrophs (49.8%): coprophiles are the taxa whose abundance season determines most. Measured separately, a further 32% of total CLR variance is replicate-to-replicate noise within a dropping, most of it whether rare taxa are detected at all; coprophiles are the most repeatable guild (17%). Taken together the panels state the central quantitative claim in one place: seasonal turnover is real, directional and consistent across methods, yet it sits beside large idiosyncrasy among individual droppings — which is why the model explains the samples it has seen (R² ≈ 0.29) but predicts held-out droppings far less well (cross-validated R² ≈ 0.03; Section 9.7).
 
 ```{r fig5-build}
 #| eval: false
@@ -3210,16 +3309,18 @@ Panel A makes the seasonal signal concrete at the level of individual lineages, 
 #   A  tables/hmsc_beta_season.csv         (per-OTU Season Beta, CLR abundance)
 #      tables/dark_taxa_SH_matching.csv    (per-OTU read share + full lineage)
 #   B  tables/hmsc_variance_partition.csv  (per-OTU variance components, CLR)
+#      tables/hmsc_pcr_replicate_variance.csv (model-free PCR-replicate share)
 #      tables/hmsc_convergence_psrf.csv    (quoted in the caption, checked here)
 #
-# BOTH panels are the ABUNDANCE (CLR) model. The occurrence (probit) model is a
+# BOTH panels are the headline ABUNDANCE (CLR) model: CLR averaged over each
+# dropping's two PCR replicates, one row per dropping, biological sample as the
+# random level (Section 9.1; revised 2026-09-29 -- the previous uncapped
+# replicate-level model did not converge). The occurrence (probit) model is a
 # supplementary robustness check (Section 9.4, Tables S-HMSCe(iii)/(iv)) and is
 # deliberately NOT mixed into this figure: on the occurrence scale the whole
 # community shifts summer-ward (157/226 OTUs positive), which ranks rare taxa at
 # the extremes and puts "other assigned" ahead of dung saprotrophs -- a richness
-# result already carried by Figure 3. The cost of the choice is stated in the
-# caption: CLR Beta converges less cleanly and resolves only 4 of 226 OTUs, so
-# the guild means, not any single OTU, carry the panel's claim.
+# result already carried by Figure 3.
 # Rebuild:  conda run -n r_env Rscript build_main_figure.R fig5-build
 
 suppressPackageStartupMessages({
@@ -3248,14 +3349,15 @@ guild_map <- c(dung_saprotroph = "Dung saprotroph", plant_associated = "Plant-as
 # Variance components deliberately share NO colour with the guild scale, and
 # split fixed (coloured) from random (grey): the visual point of panel B is how
 # little of the bar is coloured.
-VP_LEVELS <- c("Season", "Year", "Random: sample", "Random: pcr")   # CSV column names
-# Displayed names: the CSV's terse "Random: pcr" is fine in a supplementary
+# The headline model averages PCR replicates, so it has NO PCR random level;
+# PCR-replicate variance is drawn as a separate, model-free column (panel B).
+VP_LEVELS <- c("Season", "Year", "Random: sample")   # CSV column names
+# Displayed names: the CSV's terse "Random: sample" is fine in a supplementary
 # table but a main-text key has to say what the level actually is.
 vp_display <- c("Season" = "Season", "Year" = "Year",
-                "Random: sample" = "Biological sample (dropping)",
-                "Random: pcr"    = "PCR replicate")
+                "Random: sample" = "Biological sample (dropping)")
 vp_cols <- c("Season" = "#0072B2", "Year" = "#F0E442",
-             "Biological sample (dropping)" = "#666666", "PCR replicate" = "#CCCCCC")
+             "Biological sample (dropping)" = "#666666")
 
 base_theme <- theme_classic(base_size = 12) +
   theme(strip.background = element_blank(),
@@ -3328,11 +3430,10 @@ sel$lab <- vapply(seq_len(nrow(sel)),
                   character(1))
 stopifnot(!any(duplicated(sel$lab)))
 
-# Resolution marker. A 95% CrI excluding zero would fill 3 of these 22 points
-# and say nothing, because on the CLR scale only 4 of all 226 OTUs clear it.
-# HMSC's own convention -- one-sided posterior support of 0.95, i.e. a 90%
-# two-sided interval -- is the informative threshold here, and the caption
-# reports BOTH counts so the weaker criterion is not passed off as the stronger.
+# Resolution marker: HMSC's own convention -- one-sided posterior support of
+# 0.95, i.e. a 90% two-sided interval. The caption also reports how many OTUs
+# community-wide have a 95% CrI excluding zero, so the weaker criterion is not
+# passed off as the stronger.
 SUPP <- 0.95
 sel$resolved <- factor(
   ifelse(sel$beta_season_support >= SUPP | sel$beta_season_support <= 1 - SUPP,
@@ -3351,15 +3452,14 @@ gm <- do.call(rbind, lapply(GUILD_LEVELS, function(g) {
 }))
 gm$lab <- sprintf("%s (n = %d)", as.character(gm$Guild), gm$n)
 
-# Drift guard. NOTE this cannot be the Gamma check the probit version of this
-# figure used: the CLR model's trait-level Gamma does not converge (median PSRF
-# 1.46) and Section 9.1 states that CLR guild-response coefficients are not
-# quoted. So the guard is against the committed per-OTU table itself -- guild
-# sizes and guild means -- which is what the panel actually draws.
+# Drift guard against the committed per-OTU table itself -- guild sizes and
+# guild means -- which is what the panel actually draws. (These are means of
+# per-OTU posterior means in CLR units, NOT the trait-level Gamma, which is on
+# the standardised scale and reported in Section 9.3.)
 N_EXP  <- c("Dung saprotroph" = 14L, "Plant-associated" = 50L, "Pathotroph" = 16L,
             "Other assigned" = 67L, "Unassigned / dark" = 79L)
-GM_EXP <- c("Dung saprotroph" = 0.387, "Plant-associated" = -0.007, "Pathotroph" = -0.167,
-            "Other assigned" = 0.040, "Unassigned / dark" = -0.153)
+GM_EXP <- c("Dung saprotroph" = 1.320, "Plant-associated" = -0.095, "Pathotroph" = -0.332,
+            "Other assigned" = 0.223, "Unassigned / dark" = -0.312)
 gm_n <- setNames(gm$n, as.character(gm$Guild))
 gm_m <- setNames(gm$mean, as.character(gm$Guild))
 stopifnot(sum(N_EXP) == 226L, all(gm_n[names(N_EXP)] == N_EXP),
@@ -3380,24 +3480,23 @@ lvl <- c(gm_df$lab[order(gm_df$est)], otu_df$lab[order(otu_df$est)])
 otu_df$lab <- factor(otu_df$lab, levels = lvl)
 gm_df$lab  <- factor(gm_df$lab,  levels = lvl)
 
-# Convergence is checked here but PRINTED IN THE CAPTION, not on the panel:
-# these are weak numbers for the CLR model and a diagnostic belongs in the
-# caption rather than on the face of a main-text figure. The check still fails
-# loudly if the committed table stops matching what the caption claims.
+# Convergence is checked here but PRINTED IN THE CAPTION, not on the panel: a
+# diagnostic belongs in the caption rather than on the face of a main-text
+# figure. The guard refuses to draw the figure from a fit that does not meet
+# the Section 9.1 criteria (every Beta PSRF < 1.1; chains agree on the guild
+# means and the variance partition to within 0.05).
 conv <- read.csv(file.path(tab_dir, "hmsc_convergence_psrf.csv"), stringsAsFactors = FALSE)
 cclr <- conv[conv$model == "clr", ]
-stopifnot(nrow(cclr) == 1L, abs(cclr$beta_psrf_med - 1.165) < 0.02,
-          abs(cclr$beta_pct_below_1.1 - 40) < 1)
+stopifnot(nrow(cclr) == 1L, cclr$beta_psrf_max < 1.1, cclr$beta_pct_below_1.1 == 100,
+          cclr$guild_mean_chain_range_max < 0.05, cclr$vp_chain_range_max < 0.05)
 n_ci <- sum(b$beta_season_CrI2.5 > 0 | b$beta_season_CrI97.5 < 0)
-stopifnot(n_ci == 4L)
+stopifnot(n_ci == 74L)
 
-# The three coprophilous OTUs at the summer end carry credible intervals out to
-# +3.8, and OTU1369 to -3.6. Drawn in full they set an axis on which every point
-# -- and the whole guild-mean block, which spans only 0.56 -- is squeezed into
-# the middle third. Intervals are therefore clipped at +/- 2.5 and the clipped
-# end carries an arrowhead, so nothing is hidden: the reader sees that the
-# interval continues, and the caption says how far. 7 of the 22 are clipped.
-XCLIP <- 2.5
+# OTU1369's credible interval reaches below -6; drawn in full it would widen
+# the axis for one row. Intervals are therefore clipped at +/- 6 and the
+# clipped end carries an arrowhead, so nothing is hidden: the reader sees that
+# the interval continues, and the caption says how far.
+XCLIP <- 6
 otu_df$lo_c <- pmax(otu_df$lo, -XCLIP)
 otu_df$hi_c <- pmin(otu_df$hi,  XCLIP)
 otu_df$lo_clip <- otu_df$lo < -XCLIP
@@ -3437,7 +3536,7 @@ pA <- ggplot(otu_df, aes(est, lab, colour = Guild)) +
   scale_fill_manual(values = guild_cols, guide = "none", drop = FALSE) +
   scale_shape_manual(values = c("Posterior support >= 0.95" = 16, "Not resolved" = 1),
                      name = NULL, drop = FALSE) +
-  scale_x_continuous(breaks = seq(-2, 2, 1), expand = expansion(mult = c(0.03, 0.09))) +
+  scale_x_continuous(breaks = seq(-6, 6, 2), expand = expansion(mult = c(0.03, 0.09))) +
   coord_cartesian(xlim = c(-XCLIP, XCLIP)) +
   labs(x = "HMSC Beta: Season (CLR abundance, positive = more abundant in summer)", y = NULL,
        subtitle = sprintf(paste0("The %d OTUs holding >= %.0f%% of modelled read share each (%.0f%% of modelled reads).\n",
@@ -3455,7 +3554,7 @@ pA <- ggplot(otu_df, aes(est, lab, colour = Guild)) +
 # ============================================================================
 vp <- read.csv(file.path(tab_dir, "hmsc_variance_partition.csv"), check.names = FALSE)
 # Components are stored rounded to 4 dp, so a row sums to 1 only to within the
-# rounding error of four values -- hence 1e-3 rather than machine tolerance.
+# rounding error of three values -- hence 1e-3 rather than machine tolerance.
 stopifnot(nrow(vp) == 226L, setequal(vp$OTU_ID, b$OTU_ID),
           all(VP_LEVELS %in% names(vp)),
           max(abs(rowSums(vp[, VP_LEVELS]) - 1)) < 1e-3)
@@ -3477,10 +3576,21 @@ vpm <- rbind(grp_mean(vp, ROW_ORDER[1]),
                                    function(g) grp_mean(vp[vp$Guild == g, ], g))))
 stopifnot(identical(vpm$grp, ROW_ORDER), vpm$n[1] == 226L, sum(vpm$n[-1]) == 226L)
 # Drift guard: the community means are quoted in Section 9.2, Table S-HMSCc and
-# the caption, and the Season share is matched against the PERMANOVA R2 of 0.11.
-VP_EXP <- c(Season = 11.24, Year = 8.42, `Random: sample` = 49.24, `Random: pcr` = 31.10)
+# the caption.
+VP_EXP <- c(Season = 31.53, Year = 18.55, `Random: sample` = 49.93)
 stopifnot(max(abs(100 * unlist(vpm[1, VP_LEVELS], use.names = FALSE) -
                   VP_EXP[VP_LEVELS])) < 0.05)
+
+# PCR-replicate share, MODEL-FREE (Section 9.2, Table S-HMSCc2): replicate-to-
+# replicate variance of CLR within a dropping as a share of that OTU's total
+# CLR variance, averaged over OTUs. It is NOT a fourth component of the bar:
+# the bar partitions the model's explained variance, this is a share of TOTAL
+# variance, so it is drawn as a separate column and the caption says so.
+pcr <- read.csv(file.path(tab_dir, "hmsc_pcr_replicate_variance.csv"), stringsAsFactors = FALSE)
+pcr_lab <- c(all = "All modelled OTUs", guild_map)
+stopifnot(setequal(pcr$group, names(pcr_lab)))
+vpm$pcr_share <- pcr$share_total_mean[match(vpm$grp, unname(pcr_lab[pcr$group]))]
+stopifnot(!anyNA(vpm$pcr_share), abs(vpm$pcr_share[1] - 0.324) < 0.001)
 
 # Manual geometry on a CONTINUOUS y axis. A discrete axis spaces rows evenly
 # whatever width the bars are given, so it cannot produce "larger and grouped at
@@ -3516,6 +3626,13 @@ slab <- data.frame(x = 100 * vpm$Season / 2, y = vpm$ctr,
 tot  <- data.frame(x = 103, y = vpm$ctr,
                    txt = sprintf("%.0f%%", 100 * (vpm$Season + vpm$Year)),
                    sz  = ifelse(EMPH, 3.2, 2.8))
+X_PCR <- 121                                          # model-free column, right of a divider
+pcrt <- data.frame(x = X_PCR, y = vpm$ctr,
+                   txt = sprintf("%.0f%%", 100 * vpm$pcr_share),
+                   sz  = ifelse(EMPH, 3.2, 2.8))
+y_top <- vpm$ctr[1] + vpm$h[1] / 2
+hdr  <- data.frame(x = c(106, X_PCR + 3.5), y = y_top + 0.25,   # centred over each column
+                   txt = c("Season\n+ Year", "PCR rep.\n(model-free)"))
 ylab <- ifelse(vpm$emph,
                sprintf("<span style='font-size:10.5pt'>**%s**</span><br>(n = %d)", vpm$grp, vpm$n),
                sprintf("<span style='font-size:8.5pt'>%s</span><br>(n = %d)", vpm$grp, vpm$n))
@@ -3528,21 +3645,31 @@ pB <- ggplot(rect) +
             colour = "white", fontface = "bold") +
   geom_text(data = tot, aes(x, y, label = txt, size = sz), inherit.aes = FALSE,
             hjust = 0, colour = "grey25") +
+  # model-free column: divider + italic values, visibly not part of the bar
+  annotate("segment", x = 116, xend = 116, y = min(vpm$ctr - vpm$h / 2), yend = y_top,
+           colour = "grey75", linewidth = 0.3, linetype = "22") +
+  geom_text(data = pcrt, aes(x, y, label = txt, size = sz), inherit.aes = FALSE,
+            hjust = 0, colour = "grey35", fontface = "italic") +
+  geom_text(data = hdr, aes(x, y, label = txt), inherit.aes = FALSE,
+            hjust = 0.5, vjust = 0, size = 2.6, colour = "grey35", lineheight = 0.9) +
   scale_size_identity() +
   scale_fill_manual(values = vp_cols, name = "Variance component") +
-  scale_x_continuous(breaks = seq(0, 100, 25), expand = expansion(mult = c(0.01, 0.16)),
+  scale_x_continuous(breaks = seq(0, 100, 25), limits = c(0, 136),
+                     expand = expansion(mult = c(0.01, 0)),
                      labels = function(x) paste0(x, "%")) +
-  scale_y_continuous(breaks = vpm$ctr, labels = ylab, expand = expansion(add = 0.18)) +
+  scale_y_continuous(breaks = vpm$ctr, labels = ylab, expand = expansion(add = c(0.18, 0.75))) +
   labs(x = "Mean share of per-OTU variance", y = NULL,
-       subtitle = "Abundance (CLR) model; all 226 OTUs, then by guild.\nRight-hand figures give Season + Year combined.") +
+       subtitle = "Abundance (CLR) model, PCR replicates averaged;\nall 226 OTUs, then by guild.") +
   base_theme +
   theme(axis.text.y = element_markdown(size = 8.5, lineheight = 1.1, colour = "grey15"),
         axis.line.y = element_blank(), axis.ticks.y = element_blank()) +
-  guides(fill = guide_legend(nrow = 1))
+  # cap the x axis line at the bar's 0-100% range so the text columns to its
+  # right do not read as part of the scale
+  guides(fill = guide_legend(nrow = 1), x = guide_axis(cap = "both"))
 
 # ---- assemble and write ----------------------------------------------------
 fig5 <- (pA | pB) +
-  plot_layout(widths = c(1.35, 1), guides = "collect") +
+  plot_layout(widths = c(1.25, 1), guides = "collect") +
   plot_annotation(tag_levels = "A") &
   # VERIFIED the hard way: the three collected key blocks (guild, support,
   # variance component) do NOT fit side by side at 11 in -- legend.box =
