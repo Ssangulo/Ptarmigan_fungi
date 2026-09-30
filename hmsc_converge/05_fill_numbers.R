@@ -3,8 +3,8 @@
 # Replace the __TOKEN__ placeholders left in Supplementary_Appendix.qmd while
 # the revised HMSC was still running. Every value is computed here from the
 # STAGED tables (Supplementary/tables), with the same selection rule as the
-# fig5-build chunk, so prose, drift guards and figure share one source.
-# Tokens inside the fig5-build chunk get plain numbers (guards); tokens in
+# fig3-build chunk, so prose, drift guards and figure share one source.
+# Tokens inside the fig3-build chunk get plain numbers (guards); tokens in
 # prose get formatted text. Refuses to write if any token is left unfilled.
 # Run from the worktree root: conda run -n r_env Rscript hmsc_converge/05_fill_numbers.R
 # =============================================================================
@@ -23,7 +23,7 @@ vpa <- 100 * colMeans(vp[, c("Season", "Year", "Random: sample")])
 vpg <- 100 * tapply(vp$Season, vp$guild, mean)
 n_ci <- sum(b$beta_season_CrI2.5 > 0 | b$beta_season_CrI97.5 < 0)
 
-# Figure 5A selection, exactly as in fig5-build
+# Figure 3A selection, exactly as in fig3-build
 si <- match(b$OTU_ID, sh$OTU_ID)
 b$share <- (sh$winter_mean_share[si] + sh$summer_mean_share[si]) / 2
 b$rel <- b$share / sum(b$share)
@@ -64,7 +64,7 @@ prose <- c(`__GM_DUNG__` = fmt_signed(gm[["dung_saprotroph"]]),
            `__DUNG_RANK__` = as.character(dung_rank))
 
 x <- readLines(qmd, encoding = "UTF-8")
-s <- grep("^```\\{r fig5-build\\}", x); e <- s + which(x[(s + 1):length(x)] == "```")[1]
+s <- grep("^```\\{r fig3-build\\}", x); e <- s + which(x[(s + 1):length(x)] == "```")[1]
 in_chunk <- seq_along(x) >= s & seq_along(x) <= e
 for (k in names(guard)) x[in_chunk] <- gsub(k, guard[[k]], x[in_chunk], fixed = TRUE)
 for (k in names(prose)) x[!in_chunk] <- gsub(k, prose[[k]], x[!in_chunk], fixed = TRUE)

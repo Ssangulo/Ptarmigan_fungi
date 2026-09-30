@@ -460,7 +460,7 @@ e1_tab <- data.frame(
                   s$no_SH_match, s$excluded_nonITS),
   check.names = FALSE)
 kable(e1_tab,
-      caption = sprintf("Table S-E1a. UNITE Species Hypothesis placement of the dark-taxa OTUs (no confident genus in the canonical taxonomy). Median best-hit similarity to UNITE = %.2f%%; %d dark OTUs gained a finer lineage (family or deeper) from the SH consensus. The last three rows are all non-placements: rows 3 and 4 differ only in whether a UNITE relative exists at 80%% identity, and row 5 covers sequences dropped by quality control before the matching step ran (see the caveats below for what that QC actually is). Main-text Fig. 4A merges rows 4 and 5.", s$median_similarity, s$gained_finer_lineage))
+      caption = sprintf("Table S-E1a. UNITE Species Hypothesis placement of the dark-taxa OTUs (no confident genus in the canonical taxonomy). Median best-hit similarity to UNITE = %.2f%%; %d dark OTUs gained a finer lineage (family or deeper) from the SH consensus. The last three rows are all non-placements: rows 3 and 4 differ only in whether a UNITE relative exists at 80%% identity, and row 5 covers sequences dropped by quality control before the matching step ran (see the caveats below for what that QC actually is). Main-text Fig. 5A merges rows 4 and 5.", s$median_similarity, s$gained_finer_lineage))
 ```
 
 **Most dark taxa are close to known references, and a live-database cross-check further shrinks the genuinely-novel fraction.** Against the local reference, of the 493 dark OTUs 143 were placeable to an existing named UNITE SH, 247 formed new (candidate) species hypotheses, and 90 had no reference within 80% identity; 13 were dropped by quality control before matching. The novel and no-match sequences were then re-run through the PlutoF web service, whose reference database is larger and more current: this reclassified 79 formerly-novel OTUs across the community — 19 of them dark — as matches to existing named SHs (21 of the 79 resolving to species, and 11 of the 19 dark ones gaining a genus). Table S-E1a reflects this combined result: 162 placeable, 228 candidate-novel, 90 with no reference within 80%. It is worth being explicit that the last two are the same kind of outcome — neither sits inside an existing named SH — and that the 90 are the *most* divergent candidates rather than sequences that failed to analyse. The pipeline is designed to cluster them de novo into their own new Species Hypotheses, but in v2.0.4 the no-hits branch of `run_pipeline.sh` invokes the hits parsers (`parse_matches_sh.pl`) rather than `parse_matches_1.pl`, so the de-novo table (`matches_1_out_*.csv`) is never written and these OTUs reach `9_dark_taxa_SH_matching.R` as an absence rather than a status. Taken together, 331 of the 493 dark OTUs (67%) are candidate-novel in one form or the other. Each placeable OTU resolves to a stable SH page (`https://unite.ut.ee/sh/<code>`) carrying the taxon name and its DOI. The best-hit similarity distribution (Figure S-E1a) shows the dark fraction is bimodal — a spike near 100% (OTUs essentially identical to a reference but withheld a genus by the conservative `minBoot = 80` threshold) plus a real tail of divergent, candidate-novel lineages.
@@ -471,9 +471,9 @@ kable(e1_tab,
 
 ![](figures/E1_dark_taxa_novel_vs_placeable.png)
 
-**Figure S-E1b**: Dark-taxa OTUs by SH placement category (placeable to an existing SH, novel/new SH, no reference within 80% identity, or filtered before matching). All four categories are kept separate here; main-text Fig. 4A merges the last two. Category names in the underlying `SH_class` column are unchanged (`no_SH_match`, `excluded_nonITS`).
+**Figure S-E1b**: Dark-taxa OTUs by SH placement category (placeable to an existing SH, novel/new SH, no reference within 80% identity, or filtered before matching). All four categories are kept separate here; main-text Fig. 5A merges the last two. Category names in the underlying `SH_class` column are unchanged (`no_SH_match`, `excluded_nonITS`).
 
-SH matching directly addresses the "winter = dark taxa" caveat: 34.6% of the winter dark-read burden is placeable to an existing UNITE SH (mean of the per-sample ratio), while the remainder is candidate-novel. Expressed as shares of *all* winter reads rather than of the dark fraction — the form main-text Fig. 4B plots — the dark 51.3% divides into 15.8% placeable, 29.2% candidate-novel and 6.2% with no reference within 80% identity; the corresponding summer figures are 21.5%, 7.2% and 2.5% of a 31.2% dark fraction. Winter's dominant dark OTU, OTU1369, is genuinely novel: a candidate new SH only 85.4% similar to any reference, resolving no further than class Dothideomycetes.
+SH matching directly addresses the "winter = dark taxa" caveat: 34.6% of the winter dark-read burden is placeable to an existing UNITE SH (mean of the per-sample ratio), while the remainder is candidate-novel. Expressed as shares of *all* winter reads rather than of the dark fraction — the form main-text Fig. 5B plots — the dark 51.3% divides into 15.8% placeable, 29.2% candidate-novel and 6.2% with no reference within 80% identity; the corresponding summer figures are 21.5%, 7.2% and 2.5% of a 31.2% dark fraction. Winter's dominant dark OTU, OTU1369, is genuinely novel: a candidate new SH only 85.4% similar to any reference, resolving no further than class Dothideomycetes.
 
 **Toward permanent, citable identifiers.** Placeable taxa already carry citable UNITE SH identifiers (resolvable SH pages with DOIs). The candidate novel taxa are being registered: their representative ITS2 sequences are being deposited in a public archive (ENA) and imprinted as new SHs via PlutoF, which mints permanent DOIs — converting short-lived study detections into citable candidate species hypotheses (*registration in progress*; sequences in `models/E1_novel_taxa_for_plutof.fasta`).
 
@@ -503,10 +503,10 @@ kable(w_disp, digits = 1,
 
 for section 3.1; Bars are seriated within each Season for readability. These panels use script 5's PCR-collapsed object (57 samples, no depth filter); the qualitative pattern is unaffected by the depth filter used elsewhere. These four panels are retained here in full because they are a different object and a different question from the main text: all four ranks, all 57 samples, no depth filter. The main-text genus panel (Fig. 1A, Section 10.1) shows the genus rank only, on the canonical depth-filtered 52-sample object, and on the same sample axis as the functional guilds.
 
-section 3.4: Figure S-E1b is the same quantity as main-text **Fig. 4A** (Section 10.4), redrawn there with counts and percentages labelled — and, unlike here, with `no_SH_match` and the pre-matching exclusions merged into one "no reference within 80% id" bar. This section keeps all four categories; only the main figure bundles. Figure S-E1a (best-hit similarity, square-root axis normalised within each group so the divergent tail is legible beside the near-100% spike) was a main-text panel in an earlier version of Fig. 4 and is now supplementary only; Section 10.4 cites it for the bimodality claim. Main-text **Fig. 4C** plots Table S-E1b, which has no supplementary figure of its own, and **Fig. 4B** is the read-weighted seasonal view, built from `tables/E1_SH_readshare_by_sample.csv` (script 9 Section 4b) with no supplementary counterpart.
+section 3.4: Figure S-E1b is the same quantity as main-text **Fig. 5A** (Section 10.5), redrawn there with counts and percentages labelled — and, unlike here, with `no_SH_match` and the pre-matching exclusions merged into one "no reference within 80% id" bar. This section keeps all four categories; only the main figure bundles. Figure S-E1a (best-hit similarity, square-root axis normalised within each group so the divergent tail is legible beside the near-100% spike) was a main-text panel in an earlier version of Fig. 5 and is now supplementary only; Section 10.5 cites it for the bimodality claim. Main-text **Fig. 5C** plots Table S-E1b, which has no supplementary figure of its own, and **Fig. 5B** is the read-weighted seasonal view, built from `tables/E1_SH_readshare_by_sample.csv` (script 9 Section 4b) with no supplementary counterpart.
 
 ::: {.callout-note appearance="minimal"}
-**Caveats.** (i) "Excluded by ITSx" (`excluded_nonITS`, 21 OTUs across the dataset, 13 of them dark) is a misnomer inherited from the script's own comment. Reading `excluded_1.txt` by reason: **13 are vsearch coverage-chimera calls** (`CHIM`), 6 are ITSx chimeric/broken, 1 is under the 100 bp ITS2 length floor, and 1 is spurious. The 13 come from `exclude_chims.py`, whose rule is `perc_alignment_cov <= 85 AND perc_alignment_cov_target <= 85` — the *same* ≤85% coverage heuristic described in caveat (iii) below and treated there as unreliable, so it deserves the same scepticism here. **OTU320**, winter's third most abundant dark OTU, is one of these 13 — a `CHIM` call, not an ITSx one. (ii) The spurious exclusion is **OTU9**, which `matches_out_02.csv` places cleanly as `present_in SH0655188.10FU` (*Cladosporium herbarum*, with a resolvable SH page); it was flagged only by the "other eukaryotes" ITSx pass, which by construction finds no ITS in a fungal sequence. Because `excl_otus` is the first branch of the `case_when`, that flag wins. This is why the run log reports 554 `present_in` rows but 553 placeable OTUs. OTU9 is not a dark taxon, so no dark-taxa count and no panel of Fig. 4 is affected. (iii) On the PlutoF re-run, a reference-coverage heuristic flagged 248 of the resubmitted OTUs as putatively chimeric, but the *same* sequences passed cleanly in the local run and the flagged set is not the most-divergent one (median \~97% identity), so this flag is recorded (`plutof_chimera_flag`) but treated as unreliable and **not** used to exclude OTUs, pending scrutiny.
+**Caveats.** (i) "Excluded by ITSx" (`excluded_nonITS`, 21 OTUs across the dataset, 13 of them dark) is a misnomer inherited from the script's own comment. Reading `excluded_1.txt` by reason: **13 are vsearch coverage-chimera calls** (`CHIM`), 6 are ITSx chimeric/broken, 1 is under the 100 bp ITS2 length floor, and 1 is spurious. The 13 come from `exclude_chims.py`, whose rule is `perc_alignment_cov <= 85 AND perc_alignment_cov_target <= 85` — the *same* ≤85% coverage heuristic described in caveat (iii) below and treated there as unreliable, so it deserves the same scepticism here. **OTU320**, winter's third most abundant dark OTU, is one of these 13 — a `CHIM` call, not an ITSx one. (ii) The spurious exclusion is **OTU9**, which `matches_out_02.csv` places cleanly as `present_in SH0655188.10FU` (*Cladosporium herbarum*, with a resolvable SH page); it was flagged only by the "other eukaryotes" ITSx pass, which by construction finds no ITS in a fungal sequence. Because `excl_otus` is the first branch of the `case_when`, that flag wins. This is why the run log reports 554 `present_in` rows but 553 placeable OTUs. OTU9 is not a dark taxon, so no dark-taxa count and no panel of Fig. 5 is affected. (iii) On the PlutoF re-run, a reference-coverage heuristic flagged 248 of the resubmitted OTUs as putatively chimeric, but the *same* sequences passed cleanly in the local run and the flagged set is not the most-divergent one (median \~97% identity), so this flag is recorded (`plutof_chimera_flag`) but treated as unreliable and **not** used to exclude OTUs, pending scrutiny.
 :::
 :::
 
@@ -971,7 +971,7 @@ kable(data.frame(
   caption = "Table S8. Pooled-season taxonomic Hill diversity at equal sequencing depth and equal sample coverage (iNEXT3D, incidence data; every sample rarefied to 12,615 reads; coverage 0.65; 50 rarefaction draws, 100 bootstraps each). Estimate and CI are medians over draws. 'Summer/winter' is the median ratio of the two estimates with the 2.5–97.5% range across draws. The last column is the share of draws in which the two Seasons' 95% CIs do not overlap.")
 ```
 
-The depth-controlled estimates in Table S8 are plotted as main-text **Fig. 3A** (Section 10.3). Summer is the richer pooled assemblage at every order, by a factor of 1.42 at q = 0, 1.57 at q = 1 and 1.78 at q = 2.
+The depth-controlled estimates in Table S8 are plotted as main-text **Fig. 4A** (Section 10.4). Summer is the richer pooled assemblage at every order, by a factor of 1.42 at q = 0, 1.57 at q = 1 and 1.78 at q = 2.
 
 :::: {.content-visible when-profile="docs"}
 **Raw-count and asymptotic versions (superseded as the primary result).** Without rarefying first, the same coverage-standardised comparison gives summer/winter ratios of 1.73, 1.96 and 2.28 (`tables/H2_iNEXT3D_TD_coverage_standardised.csv`), i.e. about a fifth of the raw summer advantage is the depth difference. The asymptotic estimates below were the Table S8 of earlier drafts; they carry the same depth confound and extrapolate to about twice the observed richness (summer 1,708 vs 864 observed; winter 1,046 vs 436), which is the regime in which asymptotic richness is least reliable.
@@ -993,7 +993,7 @@ kable(inx, digits = 2,
 
 **Figure S8**: Per-sample Hill numbers (PCR-collapsed object, size-standardised with iNEXT3D to the minimum sample depth of 12,615 reads). Winter exceeds summer at q1/q2 (Shannon/Simpson); summer has the higher mean at q0 (richness), but that difference is weak and depends on the model family (Tables S9, S9b).
 
-This is the same quantity as main-text **Fig. 3B** (Section 10.3), which redraws it to the main-figure specification: annotated with the Table S9 contrasts below, and stacked beneath the pooled estimates of Fig. 3A on a shared set of facet columns. Figure S8 is retained here as the plain, unannotated view.
+This is the same quantity as main-text **Fig. 4B** (Section 10.4), which redraws it to the main-figure specification: annotated with the Table S9 contrasts below, and stacked beneath the pooled estimates of Fig. 4A on a shared set of facet columns. Figure S8 is retained here as the plain, unannotated view.
 
 The Season effect is tested on the plotted values themselves: one size-standardised value per dung sample (n = 52), with a gamma GLM (log link) of `q ~ Season + Year`, so the Season coefficient is a summer/winter ratio adjusted for year. Year is a fixed effect (three levels are too few to estimate a variance), and individual bird is not modelled because only three birds were sampled more than once. The Season × Year interaction is tested by F-test and ΔAICc against the additive model.
 
@@ -1098,7 +1098,7 @@ Summer's dominance is driven by three strongly season-skewed OTUs: **OTU1 (*Thel
 # mechanism of Section 7.1, and Part B's phylogenetic null models).
 # ---------------------------------------------------------------------------
 library(phyloseq); library(iNEXT.3D)
-# Size-standardised Hill numbers: single source, shared with the fig3-build
+# Size-standardised Hill numbers: single source, shared with the fig4-build
 # chunk and mirrored verbatim in Scripts/6_diversity_analyses.R.
 source("hill_size_helper.R")
 library(lme4); library(lmerTest); library(dplyr); library(tidyr); library(ggplot2)
@@ -1365,7 +1365,7 @@ save_png(p_hill_sample_box, "H2_hill_boxplot_Season.png", width = 10, height = 4
 # ===========================================================================
 # Table S9 (primary) + S9b -- Season effect on PER-SAMPLE Hill numbers
 # ===========================================================================
-# The test is fitted on the same unit Figure S8 / Fig. 3B plot: one value per
+# The test is fitted on the same unit Figure S8 / Fig. 4B plot: one value per
 # dung sample (n = 52), size-standardised above. Year is a FIXED effect (three
 # levels is too few to estimate a variance -- the replicate-level fits above went
 # singular on it). Individual bird is not modelled: only 3 birds were sampled
@@ -1925,7 +1925,7 @@ Sections 4–6 treat the seasonal signal one lens at a time: community dissimila
 <!-- CLAUDE DRAFT 2026-09-29 (model revision): rewrite freely -->
 The models use the one-row-per-PCR-replicate object (`alldat_full$nopool`; 109 replicate rows from 55 biological dung samples), retaining the **226 OTUs present in ≥ 5 replicates** — the same prevalence rule used for the GLLVM/H3 analyses. Fixed effects are **Season** (winter as reference) **+ Year**; the species trait is the five-level functional **guild** class derived from FUNGuild (dung saprotroph, plant-associated, pathotroph, dark/unassigned, other — assigned by the priority rule in `Scripts/10_hmsc.R`, counts below). Three models are fitted:
 
-- **Headline — CLR abundance, replicates averaged.** Each PCR replicate is CLR-transformed (the compositional normalisation that stands in for a library-size offset), and the two replicates of a dropping are then averaged, giving one row per dropping (55 rows). The random level is the **biological sample** (the dropping), with two latent factors. This model carries the abundance results of this section and both panels of Figure 5.
+- **Headline — CLR abundance, replicates averaged.** Each PCR replicate is CLR-transformed (the compositional normalisation that stands in for a library-size offset), and the two replicates of a dropping are then averaged, giving one row per dropping (55 rows). The random level is the **biological sample** (the dropping), with two latent factors. This model carries the abundance results of this section and both panels of Figure 3.
 - **Complement — CLR abundance, replicate level.** The same CLR response with both replicates kept as rows (109 rows), and **two random levels**: biological sample (two latent factors) and **PCR replicate** (one latent factor).
 - **Robustness — presence/absence (probit)**, replicate level, with biological sample and PCR replicate as random levels.
 
@@ -1969,7 +1969,7 @@ library(knitr)
 v1 <- read.csv("tables/hmsc_v1_chain_disagreement.csv", check.names = FALSE)
 kable(v1, row.names = FALSE,
       col.names = c("Quantity", "Chain 1", "Chain 2", "Chain 3", "Chain 4", "PSRF"),
-      caption = "Table S-HMSCb2. The superseded CLR model (replicate level, uncapped latent factors: 7 at the sample level, 5 at the PCR level), fitted 2026-07-20. Each of its four chains converged to a different answer for the quantities the previous version of Figure 5 reported; pooling them produced the previously quoted values (e.g. dung-saprotroph mean +0.39, Season 11%).")
+      caption = "Table S-HMSCb2. The superseded CLR model (replicate level, uncapped latent factors: 7 at the sample level, 5 at the PCR level), fitted 2026-07-20. Each of its four chains converged to a different answer for the quantities the previous version of Figure 3 reported; pooling them produced the previously quoted values (e.g. dung-saprotroph mean +0.39, Season 11%).")
 ```
 
 <!-- CLAUDE DRAFT 2026-09-29 (why the headline model wins): rewrite freely -->
@@ -2046,7 +2046,7 @@ kable(data.frame(
 ```
 
 <!-- CLAUDE DRAFT 2026-09-29: rewrite freely -->
-The ecological reading is two-sided but coherent. The **seasonal axis is real and reproducible**, yet at the level of an individual OTU the largest single component is still *how much dung communities differ from one dropping to the next*. HMSC formalises what the ordination and dominance analyses already suggested: season shifts the community in a consistent direction, on top of large individual-level variability. This decomposition, broken down by guild exactly as in Table S-HMSCc, is Figure 5B of the main text (Section 10.5).
+The ecological reading is two-sided but coherent. The **seasonal axis is real and reproducible**, yet at the level of an individual OTU the largest single component is still *how much dung communities differ from one dropping to the next*. HMSC formalises what the ordination and dominance analyses already suggested: season shifts the community in a consistent direction, on top of large individual-level variability. This decomposition, broken down by guild exactly as in Table S-HMSCc, is Figure 3B of the main text (Section 10.3).
 
 **PCR-replicate variance.** Because the headline model averages the two PCR replicates of each dropping, it has no PCR level to partition. The replicate-to-replicate variance is measured instead, outside the model, from the 54 droppings with two replicates (Table S-HMSCc2). Both replicates come from the same DNA extract, so any difference between them is measurement noise. For each OTU, half the mean squared difference between the two replicates' CLR values estimates the replicate variance; divided by the OTU's total CLR variance and averaged over OTUs, **replicate noise accounts for 32% of CLR variance** (bootstrap 95% CI 28–40%; median over OTUs 25%). The estimate does not depend on the method: dividing instead by the variance left after Season and Year gives 36%, and a per-OTU mixed model with a dropping random intercept gives 34% (per-OTU correlation with the former 0.998). Nor is it driven by unequal sequencing depth: the two replicates differ in depth by a median factor of 1.31, and the size of that difference does not predict how different the replicates look (Spearman ρ = 0.21, p = 0.13, n = 54). It is not spread evenly, however. Coprophilous dung saprotrophs are the most repeatable guild (17%, CI 11–25%) and pathotrophs the least (50%, CI 36–62%).
 
@@ -2105,7 +2105,7 @@ Extracting each OTU's Season coefficient (Beta) from the headline CLR model reco
 
 ![](figures/hmsc_beta_season.png)
 
-**Figure S-HMSCc**: Per-OTU seasonal niche (HMSC CLR Beta on Season; positive = summer), for the 25 most summer- and 25 most winter-shifted OTUs, coloured by guild, with 95% credible intervals. The summer extreme is dominated by dung saprotrophs (warm) and yeasts; the winter extreme by dark/unassigned taxa. This is the same model and the same quantity as Figure 5A of the main text (Section 10.5), but selected differently and deliberately kept alongside it: here all 226 OTUs are ranked by effect size, so the panel shows the community's extremes regardless of how rare they are, whereas Figure 5A restricts to the 22 OTUs holding at least 1% of modelled read share each and adds a guild-mean block. Rare OTUs with large coefficients therefore appear here and not there.
+**Figure S-HMSCc**: Per-OTU seasonal niche (HMSC CLR Beta on Season; positive = summer), for the 25 most summer- and 25 most winter-shifted OTUs, coloured by guild, with 95% credible intervals. The summer extreme is dominated by dung saprotrophs (warm) and yeasts; the winter extreme by dark/unassigned taxa. This is the same model and the same quantity as Figure 3A of the main text (Section 10.3), but selected differently and deliberately kept alongside it: here all 226 OTUs are ranked by effect size, so the panel shows the community's extremes regardless of how rare they are, whereas Figure 3A restricts to the 22 OTUs holding at least 1% of modelled read share each and adds a guild-mean block. Rare OTUs with large coefficients therefore appear here and not there.
 
 ```{r tab-hmsc-beta}
 #| echo: false
@@ -2123,7 +2123,7 @@ kable(b %>% arrange(beta_season_mean) %>% slice_head(n = 6) %>% fmt(), row.names
 ```
 
 <!-- CLAUDE DRAFT 2026-09-29 (numbers updated to the revised model): rewrite freely -->
-The same per-OTU niche can be estimated on the **occurrence** scale, with the probit model. There, 55 of the 226 OTUs have a Season coefficient whose 95% credible interval excludes zero, against 74 in the headline abundance model. The two formulations rank the community's seasonal responses consistently (Spearman ρ = 0.76), and the probit per-OTU estimates aggregate to the guild-level Gamma of Section 9.3 to within 0.04, so nothing here contradicts the results above. What the occurrence scale does change is *which* taxa sit at the summer extreme. In abundance the coprophiles lead outright; in occurrence the shift is community-wide (157 of 226 OTUs point towards summer, median +0.70) and the extreme is occupied by cold-adapted basidiomycete yeasts — *Vishniacozyma*, *Mrakia*, *Piskurozyma*, *Phenoliferia* — with *Sporormiella* (OTU636) the only dung saprotroph in the top 25 and the mean dung-saprotroph rank falling to 125 of 226 (from 59 in abundance). The distinction is ecologically substantive rather than a modelling artefact: coprophilous fungi are what summer dung is largely *made of* in read share, but they are not the taxa that most reliably *appear* in summer. The winter extreme is unchanged and, if anything, more strongly resolved — dark/unassigned taxa and pathotrophs, with OTU1369 the most winter-shifted OTU in the community (β = −2.25, 95% CrI \[−3.53, −1.08\]). Both scales are carried forward, but they are not given equal weight in the main text. Figure 5 in Section 10.5 is built entirely on the abundance formulation — the scale on which the coprophilous shift is the community's largest seasonal effect, and the scale that Figures 1 and 2 also work on — while the occurrence-scale result reported here stays supplementary, alongside Tables S-HMSCe(iii) and S-HMSCe(iv). The abundance-scale table above also remains the one comparable with the GLLVM below.
+The same per-OTU niche can be estimated on the **occurrence** scale, with the probit model. There, 55 of the 226 OTUs have a Season coefficient whose 95% credible interval excludes zero, against 74 in the headline abundance model. The two formulations rank the community's seasonal responses consistently (Spearman ρ = 0.76), and the probit per-OTU estimates aggregate to the guild-level Gamma of Section 9.3 to within 0.04, so nothing here contradicts the results above. What the occurrence scale does change is *which* taxa sit at the summer extreme. In abundance the coprophiles lead outright; in occurrence the shift is community-wide (157 of 226 OTUs point towards summer, median +0.70) and the extreme is occupied by cold-adapted basidiomycete yeasts — *Vishniacozyma*, *Mrakia*, *Piskurozyma*, *Phenoliferia* — with *Sporormiella* (OTU636) the only dung saprotroph in the top 25 and the mean dung-saprotroph rank falling to 125 of 226 (from 59 in abundance). The distinction is ecologically substantive rather than a modelling artefact: coprophilous fungi are what summer dung is largely *made of* in read share, but they are not the taxa that most reliably *appear* in summer. The winter extreme is unchanged and, if anything, more strongly resolved — dark/unassigned taxa and pathotrophs, with OTU1369 the most winter-shifted OTU in the community (β = −2.25, 95% CrI \[−3.53, −1.08\]). Both scales are carried forward, but they are not given equal weight in the main text. Figure 3 in Section 10.3 is built entirely on the abundance formulation — the scale on which the coprophilous shift is the community's largest seasonal effect, and the scale that Figures 1 and 2 also work on — while the occurrence-scale result reported here stays supplementary, alongside Tables S-HMSCe(iii) and S-HMSCe(iv). The abundance-scale table above also remains the one comparable with the GLLVM below.
 
 ```{r tab-hmsc-beta-probit}
 #| echo: false
@@ -2598,711 +2598,27 @@ cat("Mean distance to season centroid:\n")
 print(round(tapply(dcent$dist, list(dcent$Season, dcent$Year), mean), 1))
 ```
 
-### 10.3 Figure 3 — Richness rises, evenness collapses (H2)
+### 10.3 Figure 3 — A reproducible seasonal axis inside large among-individual variation (HMSC synthesis)
 
 :::: {.content-visible when-profile="docs"}
-*Provenance: Fig. 3A is the coverage-based pooled-season iNEXT3D analysis of Section 5.1 (Table S8); Fig. 3B the size-standardised per-sample iNEXT3D Hill numbers of Section 5.2 (Figure S8), annotated with the per-sample gamma-GLM contrasts of Table S9; Fig. 3C the dominance and evenness metrics of Section 5.3 (Table S10); Fig. 3D the top-5 dominant OTUs of Section 5.4 (Table S11), coloured by the guild rule of Section 8.1. Panels B–D are computed on the canonical 52-sample object (`alldat$nopool`); panel B standardises it to 12,615 reads through the shared `hill_size_helper.R`, the same single source Section 5.2 uses. Panel A's estimates and every test statistic are read from the committed `tables/` CSVs, so the figure cannot drift from Section 5.*
+*Provenance: both panels of Fig. 3 come from the same abundance (CLR) HMSC model of Section 9. Fig. 3A is the per-OTU seasonal niche of Section 9.4 (Tables S-HMSCe(i) and S-HMSCe(ii)), restricted to the 22 OTUs that each hold at least 1% of modelled read share and augmented with a guild-mean block; Figure S-HMSCc is the same quantity for all 226 OTUs ranked by effect size rather than by abundance. Fig. 3B is the variance partition of Section 9.2 (Table S-HMSCc); its right-hand column is the model-free PCR-replicate share of Table S-HMSCc2 (`tables/hmsc_pcr_replicate_variance.csv`). The read shares behind the selection rule come from `tables/dark_taxa_SH_matching.csv` (Section 3.4), which is also the source of the finest-rank labels for OTUs with no genus. Both panels read committed `tables/*.csv` written by `10_hmsc.R` and `9_dark_taxa_SH_matching.R`, so the figure cannot drift from Sections 9 and 3.4.*
 ::::
 
-![](figures/main/Fig3_richness_evenness_crossover.png)
+![](figures/main/Fig3_hmsc_synthesis.png)
 
-**Figure 3**: The summer dung mycobiome is the richer assemblage when droppings are pooled, yet each individual dropping is far less even. **(A)** Taxonomic diversity of each season's pooled sample set at Hill orders q = 0, 1 and 2, at equal sequencing depth (every sample rarefied to 12,615 reads) and equal sample coverage (0.65) (iNEXT3D, incidence data); points are the median estimate over 50 rarefaction draws, bars the median 95% confidence interval, and the grey segment joins the two seasons within an order. Summer exceeds winter at every order (Table S8). **(B)** Per-sample Hill numbers for the same 52 samples, size-standardised with iNEXT3D to a common depth of 12,615 reads, drawn in the same three columns against the same season axis so that the two rows can be read against one another; boxes show the median and interquartile range, points are individual samples, white diamonds are season means, and the grey segment joins those means. The slope that rises in all three columns of (A) rises only at q = 0 here and falls at q = 1 and q = 2 — that reversal is the crossover. Annotations give the year-adjusted summer/winter ratio and its p-value from a gamma GLM fitted to the plotted per-sample values (Table S9); the q = 0 contrast depends on the model family (p = 0.026–0.29; Table S9b), the q = 1 and q = 2 contrasts do not. Both rows scale y freely within each column, because the three Hill orders differ by an order of magnitude. **(C)** The mechanism: per-sample top-1-OTU read share and Pielou evenness *J*, both on a 0–1 scale, with symbols as in (B) and brackets giving the Wilcoxon rank-sum result (Table S10). **(D)** The identity of the dominants — the five OTUs with the highest mean within-season read share in each season, coloured by functional guild under the rule of Section 8.1. Bar labels give that mean share and, in parentheses, the number of the season's 26 samples in which the OTU was detected at all. Taxa are named at the finest confidently assigned rank, so an OTU with no genus appears under its family, or as *unclassified* plus its order or class. *Candida parapsilosis* is coloured plant-associated because its compound FUNGuild string contains `Epiphyte`; the rule is applied unchanged rather than special-cased, so that Figures 1 and 3 and Sections 8–9 classify every OTU identically.
+<!-- CLAUDE DRAFT 2026-09-29 (caption rewritten for the revised model): rewrite freely -->
+**Figure 3**: A joint species distribution model places the seasonal axis at OTU level and sizes it against the variation among individual droppings. Both panels come from one abundance (CLR) HMSC model fitted to 226 OTUs in 55 droppings, with each dropping's two PCR replicates averaged, Season and Year as fixed effects, and the dropping as random level (Section 9.1). **(A)** Per-OTU Season coefficient in CLR units — positive = higher relative abundance in summer — for the 22 OTUs that each account for at least 1% of modelled-OTU read share, 73% of all modelled reads between them, ordered by coefficient and coloured by functional guild, with 95% credible intervals. One interval, OTU1369's, extends beyond the axis and is clipped at −6 with an arrowhead (it reaches −6.48). Filled points are the 16 resolved at HMSC's 0.95 posterior-support convention; community-wide, 74 of 226 OTUs have a 95% credible interval excluding zero. The lower block gives each guild's arithmetic mean of the per-OTU posterior means (diamond) with their interquartile range, taken over all OTUs in that guild rather than only the 22 plotted; it is a descriptive summary of the points above, not a credible interval. The model's own guild-level estimate is the trait-level Gamma (Section 9.3, Table S-HMSCd2). The four MCMC chains agree on every plotted estimate (Beta PSRF ≤ 1.01; Table S-HMSCb). **(B)** Mean share of per-OTU explained variance attributed to Season, Year and the dropping, for all 226 OTUs and then within each guild (Table S-HMSCc). The italic right-hand column is not part of that partition. It is the share of each OTU's total CLR variance that lies between the two PCR replicates of a dropping, measured outside the model (Table S-HMSCc2), and it mostly reflects rare taxa detected by one replicate but not the other. The three highlighted rows are drawn larger because they are the groups this study is about. The five guild classes are the model's trait and differ slightly from the display split used in Figure 1: 46 OTUs carrying a genus but no FUNGuild call sit in "Other assigned" here and in "Unassigned / dark" there (`tables/guild_scheme_crosswalk.csv`, Section 8.1).
 
-Panels A and B put the same question to two scales and get opposite answers, and that disagreement is the result rather than a problem with it. Pooled across a season and with sequencing depth held equal, summer is the richer assemblage at every Hill order — 548 against winter's 383 OTUs at q = 0, and the gap widens under abundance weighting (412 vs 261 at q = 1; 287 vs 162 at q = 2). Within a single dropping the ordering reverses as soon as abundance enters: winter droppings are significantly more diverse at q = 1 (14.9 vs 7.4 effective OTUs; summer/winter 0.46, p = 0.001) and q = 2 (10.1 vs 4.6; 0.40, p < 0.001), whereas at q = 0 summer's higher mean (48.3 vs 31.3) is a weak, family-dependent difference carried by a few very rich summer samples (Tables S9, S9b). Panel C locates the reversal in dominance rather than in the species lists: an average summer sample gives 56% of its reads to a single OTU against 25% in winter, and Pielou evenness falls from 0.72 to 0.38 (both p \< 0.001). Summer droppings are far more top-heavy, which is precisely what depresses q = 1 and q = 2 even where a dropping's species list is as long as, or longer than, a winter one. Panel D names the taxa responsible, and they are the ones a coprophilous account predicts: *Thelebolus*, *Coniochaeta* and *Sporormiella intermedia* together take 44% of summer reads and are all dung saprotrophs, whereas winter's leading OTUs are mostly unclassified below class and carry no guild call at all — among them OTU1369, an unclassified Dothideomycete that is winter's most abundant OTU and is present in 20 of 26 winter samples, and which is taken up as a dark taxon in Section 3.4. Two caveats travel with the figure. The per-sample richness contrast in (B) is not robust to the choice of model family (Table S9b), so the crossover is firm at q = 1 and q = 2 and in the pooled estimates of (A), but not as a per-dropping richness gain. And the shares in (D) are seasonal averages, not universals — *Thelebolus* reaches its 24.9% mean while being detected in only 15 of the 26 summer droppings.
+Panel A makes the seasonal signal concrete at the level of individual lineages, and it does so among the taxa that actually constitute the community: the 22 OTUs plotted are every OTU holding at least 1% of modelled read share, and they carry 73% of the modelled reads between them. <!-- CLAUDE DRAFT 2026-09-29 (numbers and claims updated to the revised model): rewrite freely -->
+Read from the top, the panel is the study's taxonomic result in one column. The summer end is an unbroken block of coprophilous dung saprotrophs — *Thelebolus* (OTU1, β = +4.17), *Sporormiella* (OTU636, +3.52), *Coniochaeta* (OTU1225, +3.44) and two further Sporormiaceae and Coniochaetaceae lineages — every one of them resolved. The winter end is a block dominated by dark, taxonomically unresolved taxa, ending at OTU1369 (−5.00), the unclassified Dothideomycete that dominates winter read share in Figure 5. Plant-associated taxa straddle zero between them. The guild means below make the same statement over all 226 OTUs rather than the 22 shown. Dung saprotrophs (+1.32) have by far the most summer-shifted mean; dark/unassigned taxa (−0.31) and pathotrophs (−0.33) lean winter; and the yeast-rich "other" group is weakly positive (+0.22). The model's trait-level estimate agrees: the dung-saprotroph guild's Season effect is positive with posterior support 0.994, and dark/unassigned, pathotroph and plant-associated OTUs respond clearly less summer-ward (Section 9.3). Panel B sizes these effects. Season accounts for 31.5% of the variance the model explains and Year for 18.5%, while half (49.9%) sits among droppings — one dropping to the next. The Season share is largest for dung saprotrophs (49.8%): coprophiles are the taxa whose abundance season determines most. Measured separately, a further 32% of total CLR variance is replicate-to-replicate noise within a dropping, most of it whether rare taxa are detected at all; coprophiles are the most repeatable guild (17%). Taken together the panels state the central quantitative claim in one place: seasonal turnover is real, directional and consistent across methods, yet it sits beside large idiosyncrasy among individual droppings — which is why the model explains the samples it has seen (R² ≈ 0.29) but predicts held-out droppings far less well (cross-validated R² ≈ 0.03; Section 9.7).
 
 ```{r fig3-build}
 #| eval: false
 #| echo: !expr knitr::is_html_output()
 #| code-fold: true
-#| code-summary: "Full build code for Figure 3 — the source of truth for figures/main/Fig3_richness_evenness_crossover.{png,jpg,pdf}"
+#| code-summary: "Full build code for Figure 3 — the source of truth for figures/main/Fig3_hmsc_synthesis.{png,jpg,pdf}"
 
-# Figure 3 -- Richness rises, evenness collapses (H2).
-# Panels A and B share one grammar (Season on x, diversity on y, faceted by Hill
-# order) and one set of facet strips, so the crossover is a single visual event:
-# the same three columns, with the Winter->Summer slope flipping between rows.
-# C then gives the mechanism (dominance) and D the identity of the dominants.
-# Per-sample quantities are recomputed from the canonical objects (Fig. 1
-# precedent) via the shared hill_size_helper.R; every pooled estimate and test
-# statistic is READ from a committed tables/ CSV (Fig. 2 precedent), with guards
-# asserting the two agree.
-# Rebuild:  conda run -n r_env Rscript build_main_figure.R fig3-build
-
-suppressPackageStartupMessages({
-  library(phyloseq); library(ggplot2); library(patchwork); library(iNEXT.3D)
-})
-# Size-standardised Hill numbers: the SAME single source the sec5-build chunk
-# uses, so Figure 3 panel B and Section 5.2 cannot drift apart.
-source("hill_size_helper.R")
-
-rdata <- if (file.exists("eco_analysis.RData")) "eco_analysis.RData" else
-         "/home/daniel/Ptarmigan/trimmed/mergedPlates/eco_analysis.RData"
-load(rdata)
-stopifnot(exists("alldat"), exists("alldat.rfy"), exists("alldat_full"),
-          exists("funguild_otu"))                 # funguild_otu <- 8_functional_guilds.R
-tab_dir <- if (dir.exists("tables")) "tables" else
-           "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
-out_dir <- "figures/main"
-dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-grDevices::pdf(NULL)                                 # headless: no X11 fallback
-
-# ---- shared style ----------------------------------------------------------
-# Season and guild palettes are the repo standard (8_functional_guilds.R), so one
-# colour means one thing across Fig. 1, Fig. 2 and Fig. 3.
-season_cols  <- c(Winter = "#0072B2", Summer = "#D55E00")
-guild_cols   <- c("Dung saprotroph" = "#E69F00", "Plant-associated" = "#009E73",
-                  "Pathotroph" = "#CC79A7", "Other assigned" = "#56B4E9",
-                  "Unassigned / dark" = "#999999")
-GUILD_LEVELS <- names(guild_cols)
-
-# The one facet vocabulary shared by panels A and B. A carries the strips; B
-# repeats the columns beneath it and blanks them, exactly as Fig. 1B does.
-Q_LEVELS <- c("q = 0  (richness)", "q = 1  (Shannon)", "q = 2  (Simpson)")
-
-base_theme <- theme_classic(base_size = 12) +
-  theme(strip.background = element_blank(),
-        strip.text       = element_text(face = "bold"),
-        plot.tag         = element_text(face = "bold", size = 14),
-        plot.subtitle    = element_text(size = 9, colour = "grey30"),
-        panel.spacing    = unit(0.8, "lines"),
-        legend.key.size  = unit(0.42, "cm"),
-        legend.title     = element_text(size = 10),
-        legend.text      = element_text(size = 9))
-
-# All in-plot text is ASCII. save_fig() falls back to grDevices::pdf when cairo
-# is unavailable, and that device silently substitutes a dot for a Unicode minus
-# or delta -- a corrupted PDF that would not fail the build.
-pfmt <- function(p) ifelse(is.na(p), "p = NA",
-                    ifelse(p < 0.001, "p < 0.001", sprintf("p = %.3f", p)))
-to_season <- function(x) factor(c(winter = "Winter", summer = "Summer")[as.character(x)],
-                                levels = c("Winter", "Summer"))
-
-# ============================================================================
-# Panel A -- season-pool diversity (Section 5.1, Table S8)
-# ============================================================================
-# Read, never recomputed: 50 rarefaction draws x 100 bootstraps are expensive
-# and the estimates are already committed. Pooling samples within a Season asks
-# about the Season's whole species pool. These are the DEPTH-CONTROLLED,
-# coverage-standardised estimates of Table S8 (every sample rarefied to 12,615
-# reads, common coverage), not asymptotic ones: asymptotic richness extrapolates
-# to ~2x observed here, and raw incidence carries summer's ~2.6x depth advantage.
-asy <- read.csv(file.path(tab_dir, "H2_iNEXT3D_TD_coverage_rarefied.csv"), check.names = FALSE)
-stopifnot(setequal(asy$Season, c("Summer", "Winter")), setequal(asy$Order.q, 0:2))
-asy$q      <- factor(Q_LEVELS[asy$Order.q + 1], levels = Q_LEVELS)
-asy$Season <- factor(asy$Season, levels = c("Winter", "Summer"))
-asy$TD_asy <- asy$qTD                                 # plotted estimate (name kept for the ggplot below)
-sc_level   <- unique(asy$SC); stopifnot(length(sc_level) == 1L)
-
-pick  <- function(sea) { d <- asy[asy$Season == sea, ]
-                         d[match(Q_LEVELS, as.character(d$q)), ] }
-A_sum <- pick("Summer"); A_win <- pick("Winter")
-# The panel's whole claim in one line: summer above winter at every order, with
-# 95% CIs that do not overlap. If that ever stops being true, the build stops.
-stopifnot(all(A_sum$qTD.LCL > A_win$qTD.UCL))
-
-pA <- ggplot(asy, aes(Season, TD_asy)) +
-  geom_line(aes(group = 1), colour = "grey55", linewidth = 0.4) +
-  geom_errorbar(aes(ymin = qTD.LCL, ymax = qTD.UCL, colour = Season),
-                width = 0.12, linewidth = 0.6, show.legend = FALSE) +
-  geom_point(aes(fill = Season), shape = 21, size = 3.4,
-             colour = "grey25", stroke = 0.4, show.legend = FALSE) +
-  facet_wrap(~ q, nrow = 1, scales = "free_y") +
-  scale_fill_manual(values = season_cols) +
-  scale_colour_manual(values = season_cols) +
-  scale_y_continuous(expand = expansion(mult = c(0.18, 0.18))) +
-  labs(x = NULL, y = "Season pool\n(effective no. of OTUs)",
-       subtitle = sprintf("Pooled-season diversity at equal depth (12,615 reads/sample) and equal coverage (%.2f); iNEXT3D, incidence,\nmedian over 50 rarefaction draws; bars are 95%% CIs. Summer exceeds winter at every order.", sc_level)) +
-  base_theme +
-  # A's x axis is identical to B's directly below, so only B prints it.
-  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
-  guides(fill = "none", colour = "none")
-
-# ============================================================================
-# Panel B -- per-sample diversity (Section 5.2, Fig. S9 + Table S9)
-# ============================================================================
-# Raw counts: iNEXT.3D size-standardises internally to rfy_depth, the same depth
-# alldat.rfy is rarefied to. Deterministic (an analytic expectation, not one
-# rarefaction draw), so no seed is involved; the guard makes that testable.
-ps_rfy <- alldat$nopool
-m_rfy  <- as(otu_table(ps_rfy), "matrix")
-if (taxa_are_rows(ps_rfy)) m_rfy <- t(m_rfy)         # sites x species
-rfy_depth <- min(rowSums(m_rfy))
-stopifnot(nsamples(ps_rfy) == 52L,
-          rfy_depth == unique(rowSums(otu_mat_of(alldat.rfy$nopool))))
-
-md_rfy <- data.frame(as(sample_data(ps_rfy), "data.frame"), stringsAsFactors = FALSE)
-stopifnot(identical(rownames(m_rfy), rownames(md_rfy)))
-season_rfy <- to_season(md_rfy$Season); stopifnot(!anyNA(season_rfy))
-
-hill_raw <- hill_inext_size(ps_rfy, level = rfy_depth, label = "Figure 3B")
-stopifnot(identical(hill_raw$row, rownames(m_rfy)))
-hill <- data.frame(Season = season_rfy,
-                   q0 = hill_raw$q0, q1 = hill_raw$q1, q2 = hill_raw$q2)
-hill_long <- data.frame(
-  Season = rep(hill$Season, times = 3),
-  q      = factor(rep(Q_LEVELS, each = nrow(hill)), levels = Q_LEVELS),
-  value  = c(hill$q0, hill$q1, hill$q2))
-
-# The annotated contrast is Table S9: a gamma GLM (log link, q ~ Season + Year)
-# fitted to exactly the per-sample values plotted here (n = 52), so the figure
-# and its test are on the same unit. Guards: the CSV's season means must equal
-# the recomputed ones, and the model ratio must agree in direction with them.
-lmm <- read.csv(file.path(tab_dir, "H2_season_effect_per_sample.csv"), check.names = FALSE)
-stopifnot(setequal(lmm$metric, c("q0", "q1", "q2")), all(lmm$n == nrow(hill)))
-lmm <- lmm[match(c("q0", "q1", "q2"), lmm$metric), ]
-obs_diff <- vapply(c("q0", "q1", "q2"), function(q)
-  mean(hill[[q]][hill$Season == "Summer"]) - mean(hill[[q]][hill$Season == "Winter"]),
-  numeric(1))
-stopifnot(max(abs(lmm$mean_summer - lmm$mean_winter - obs_diff)) < 1e-8,
-          all(sign(obs_diff) == sign(log(lmm$ratio_summer_winter))))
-
-# Boxes show medians, but Section 5.3's text quotes MEANS -- so the means are
-# drawn, and the segment joining them is what makes the slope flip legible
-# against panel A directly above.
-meanB <- aggregate(value ~ q + Season, hill_long, mean)
-y_top <- as.numeric(tapply(hill_long$value, hill_long$q, max)[Q_LEVELS])
-ann_B <- data.frame(q     = factor(Q_LEVELS, levels = Q_LEVELS),
-                    value = y_top * 1.32,
-                    lab   = sprintf("summer / winter\n%.2fx, %s",
-                                    lmm$ratio_summer_winter, pfmt(lmm$p_season)))
-
-# seed = on the jitter: save_fig() prints the object once per device, and an
-# unseeded jitter would place the points differently in the PNG, the JPG and the
-# PDF -- three subtly different figures from one build.
-pB <- ggplot(hill_long, aes(Season, value)) +
-  geom_boxplot(aes(fill = Season), outlier.shape = NA, width = 0.6, alpha = 0.85) +
-  geom_point(position = position_jitter(width = 0.14, height = 0, seed = 1),
-             size = 1.1, alpha = 0.55, colour = "grey20") +
-  geom_line(data = meanB, aes(group = 1), colour = "grey35", linewidth = 0.4) +
-  geom_point(data = meanB, shape = 23, size = 2.4, stroke = 0.5,
-             fill = "white", colour = "grey15") +
-  geom_text(data = ann_B, aes(x = 1.5, label = lab), inherit.aes = TRUE,
-            size = 2.9, lineheight = 0.95, vjust = 1) +
-  facet_wrap(~ q, nrow = 1, scales = "free_y") +
-  scale_fill_manual(values = season_cols) +
-  # Linear, not log: a Hill number is an effective number of OTUs and is meant to
-  # be read off the axis. free_y absorbs the 164-vs-32 range difference instead.
-  scale_y_continuous(expand = expansion(mult = c(0.04, 0.36))) +
-  labs(x = NULL, y = "Per sample\n(effective no. of OTUs)",
-       subtitle = sprintf("Per-sample Hill numbers (n = %d, iNEXT3D size-standardised to %s reads); white diamonds are season means.\nAnnotations: year-adjusted summer/winter ratio, gamma GLM on these values (Table S9).",
-                          nrow(hill), format(rfy_depth, big.mark = ","))) +
-  base_theme +
-  # B repeats A's facet columns exactly, so its strips are dropped as redundant.
-  theme(strip.text = element_blank()) +
-  guides(fill = guide_legend(order = 1))
-
-# ============================================================================
-# Panel C -- dominance and evenness, the mechanism (Section 5.3, Table S10)
-# ============================================================================
-ps  <- alldat$nopool                                 # canonical, raw counts
-m   <- as(otu_table(ps), "matrix")
-if (!taxa_are_rows(ps)) m <- t(m)                    # taxa x samples, as 5.3 uses
-rel <- sweep(m, 2, colSums(m), "/")
-stopifnot(all(abs(colSums(rel) - 1) < 1e-10))
-md  <- data.frame(as(sample_data(ps), "data.frame"), stringsAsFactors = FALSE)
-stopifnot(identical(colnames(rel), rownames(md)),
-          setequal(colnames(rel), rownames(m_rfy)))  # B and C/D are the same 52 birds
-season_c <- to_season(md$Season)
-
-pielou_J <- function(p) { p <- p[p > 0]; -sum(p * log(p)) / log(length(p)) }
-dom <- data.frame(Season    = season_c,
-                  top1_prop = apply(rel, 2, max),
-                  pielou_J  = apply(rel, 2, pielou_J))
-
-# Drift guard: the recomputed means must reproduce committed Table S10 exactly at
-# the precision the CSV stores (1 dp for the percentage, 2 dp for J).
-dom_csv <- read.csv(file.path(tab_dir, "report_dominance_summary.csv"), check.names = FALSE)
-dom_csv <- dom_csv[match(c("winter", "summer"), dom_csv$Season), ]
-obs_top1 <- tapply(dom$top1_prop, dom$Season, mean)
-obs_J    <- tapply(dom$pielou_J,  dom$Season, mean)
-stopifnot(max(abs(round(100 * as.numeric(obs_top1[c("Winter","Summer")]), 1) -
-                  dom_csv$mean_top1_prop_pct)) < 1e-8,
-          max(abs(round(as.numeric(obs_J[c("Winter","Summer")]), 2) -
-                  dom_csv$mean_pielou_J)) < 1e-8)
-p_top1 <- unique(dom_csv$wilcox_p_top1_prop); p_J <- unique(dom_csv$wilcox_p_pielou_J)
-stopifnot(length(p_top1) == 1L, length(p_J) == 1L)
-
-# Both metrics live on 0-1, so one shared axis works and the mechanism reads as a
-# single picture: the seasons swap sides between the two metric groups.
-# <br> not \n: these labels are rendered by element_markdown, which honours HTML
-# breaks. Wrapped because the two names collide at this panel's width.
-M_LEVELS <- c("Top-1 OTU<br>read share", "Pielou<br>evenness *J*")
-dom_long <- data.frame(
-  Season = rep(dom$Season, times = 2),
-  Metric = factor(rep(M_LEVELS, each = nrow(dom)), levels = M_LEVELS),
-  value  = c(dom$top1_prop, dom$pielou_J))
-meanC <- aggregate(value ~ Metric + Season, dom_long, mean)
-brk   <- data.frame(Metric = factor(M_LEVELS, levels = M_LEVELS),
-                    lab    = pfmt(c(p_top1, p_J)),
-                    xmid   = seq_along(M_LEVELS))
-brk$xmin <- brk$xmid - 0.19; brk$xmax <- brk$xmid + 0.19  # dodge(0.75) box centres
-
-pC <- ggplot(dom_long, aes(Metric, value, fill = Season)) +
-  geom_boxplot(outlier.shape = NA, width = 0.65, alpha = 0.85,
-               position = position_dodge(width = 0.75)) +
-  geom_point(position = position_jitterdodge(jitter.width = 0.12, dodge.width = 0.75,
-                                             seed = 1),
-             size = 1.1, alpha = 0.55, colour = "grey20", show.legend = FALSE) +
-  geom_point(data = meanC, aes(group = Season), inherit.aes = TRUE,
-             position = position_dodge(width = 0.75), shape = 23, size = 2.3,
-             stroke = 0.5, fill = "white", colour = "grey15", show.legend = FALSE) +
-  geom_segment(data = brk, aes(x = xmin, xend = xmax, y = 1.03, yend = 1.03),
-               inherit.aes = FALSE, linewidth = 0.3) +
-  geom_text(data = brk, aes(x = xmid, y = 1.055, label = lab), inherit.aes = FALSE,
-            size = 3, vjust = 0) +
-  scale_fill_manual(values = season_cols) +
-  scale_y_continuous(limits = c(0, 1.13), breaks = seq(0, 1, 0.25)) +
-  labs(x = NULL, y = "Per-sample value (proportion)",
-       subtitle = "White diamonds are season means;\nbrackets give the Wilcoxon rank-sum test (Table S10).") +
-  base_theme +
-  # The x labels carry markdown (*J*); without element_markdown the asterisks
-  # print literally, and this theme() must come after base_theme to win.
-  theme(axis.text.x = ggtext::element_markdown(size = 9)) +
-  guides(fill = "none")
-
-# ============================================================================
-# Panel D -- who the dominants are (Section 5.4, Table S11), by guild
-# ============================================================================
-top5 <- do.call(rbind, lapply(levels(season_c), function(s) {
-  cols   <- colnames(rel)[season_c == s]
-  shares <- rowMeans(rel[, cols, drop = FALSE])      # mean WITHIN-season share
-  ids    <- names(sort(shares, decreasing = TRUE))[1:5]
-  data.frame(Season = s, OTU = ids, share = 100 * shares[ids],
-             n_detect = rowSums(rel[ids, cols, drop = FALSE] > 0),
-             n_season = length(cols), stringsAsFactors = FALSE, row.names = NULL)
-}))
-top5$Season <- factor(top5$Season, levels = c("Winter", "Summer"))
-
-# Drift guard: same OTUs, same order, same shares as committed Table S11.
-t5_csv <- read.csv(file.path(tab_dir, "report_top5_otu_by_season.csv"),
-                   stringsAsFactors = FALSE)
-t5_csv$Season <- to_season(t5_csv$Season)
-t5_csv <- t5_csv[order(t5_csv$Season, -t5_csv$mean_pct_share), ]
-chk    <- top5[order(top5$Season, -top5$share), ]
-stopifnot(identical(paste(chk$Season, chk$OTU), paste(t5_csv$Season, t5_csv$OTU)),
-          max(abs(round(chk$share, 2) - t5_csv$mean_pct_share)) < 1e-8)
-
-# UNITE taxonomy carries rank prefixes ("g__Thelebolus") and, at species level, a
-# trailing hypothesis index ("intermedia 1"). Labels fall back down the ranks
-# until something is assigned: a family name stands alone unambiguously, an order
-# or class does not and is prefixed "unclassified". Markdown asterisks italicise
-# real Latin names only -- never a rank name, never an Incertae sedis placeholder.
-tax <- data.frame(as(tax_table(ps), "matrix"), stringsAsFactors = FALSE)
-strip_rank <- function(x) sub("^[a-z]__", "", x)
-clean_rank <- function(x) { x <- strip_rank(x)
-  x[is.na(x) | x == "" | x == "NA" | grepl("unidentified", x, ignore.case = TRUE)] <- NA_character_
-  x }
-otu_label <- function(otu) {
-  rk <- lapply(c("Genus", "Species", "Family", "Order", "Class"),
-               function(r) clean_rank(tax[otu, r]))
-  names(rk) <- c("Genus", "Species", "Family", "Order", "Class")
-  incertae <- function(x) !is.na(x) && grepl("Incertae_sedis", x)
-  nm <-
-    if (!is.na(rk$Genus) && !incertae(rk$Genus)) {
-      if (!is.na(rk$Species))
-        paste0("*", rk$Genus, " ", sub("[ _]+[0-9]+$", "", rk$Species), "*")
-      else paste0("*", rk$Genus, "*")
-    } else if (incertae(rk$Genus))                      sub("_gen_Incertae_sedis", " (unclass.)", rk$Genus)
-      else if (!is.na(rk$Family) && !incertae(rk$Family)) rk$Family
-      else if (!is.na(rk$Order))                        paste("unclassified", rk$Order)
-      else if (!is.na(rk$Class))                        paste("unclassified", rk$Class)
-      else                                              "unclassified fungus"
-  paste0(nm, " (", otu, ")")
-}
-top5$label <- unname(vapply(top5$OTU, otu_label, character(1)))
-stopifnot(!anyDuplicated(top5$label))
-
-# Guild rule VERBATIM from the Fig. 1 chunk (itself from 8_functional_guilds.R),
-# including its genus cleaning, so Fig. 1, Fig. 3, Section 8 and Section 9 all
-# classify an OTU identically. One consequence is visible here: FUNGuild returns
-# a compound string for Candida parapsilosis containing "Epiphyte", so the
-# priority rule lands OTU136 in Plant-associated. That is an artifact of compound
-# FUNGuild strings, not a claim about the taxon -- but the rule is applied
-# unchanged rather than special-cased, because cross-section consistency is worth
-# more than one prettier label.
-COPRO_GENERA <- c("Sordaria","Podospora","Cercophora","Chaetomium","Schizothecium",
-                  "Preussia","Delitschia","Pilobolus","Ascobolus","Saccobolus",
-                  "Sporormiella","Coprinopsis","Thelebolus","Coniochaeta")
-gen       <- strip_rank(tax$Genus[match(top5$OTU, rownames(tax))])
-gen       <- ifelse(gen %in% c("", "NA"), NA, gen)
-guild_str <- funguild_otu$Guild[match(top5$OTU, funguild_otu$OTU_ID)]
-is_copro  <- (!is.na(guild_str) & grepl("Dung Saprotroph", guild_str)) |
-             (!is.na(gen)       & gen %in% COPRO_GENERA)
-is_plant  <- !is_copro & !is.na(guild_str) &
-             grepl("Endophyte|Plant Saprotroph|Plant Pathogen|Epiphyte", guild_str)
-is_patho  <- !is_copro & !is_plant & !is.na(guild_str) & grepl("Pathogen|Parasite", guild_str)
-top5$Guild <- factor(
-  ifelse(is_copro, "Dung saprotroph",
-  ifelse(is_plant, "Plant-associated",
-  ifelse(is_patho, "Pathotroph",
-  ifelse(!is.na(guild_str), "Other assigned", "Unassigned / dark")))),
-  levels = GUILD_LEVELS)
-
-# The two seasons' top-5 sets are disjoint, so one global factor ordered
-# (Season, share) gives each facet its own descending bars under free_y.
-top5 <- top5[order(top5$Season, top5$share), ]
-top5$label <- factor(top5$label, levels = top5$label)
-n_lab <- setNames(sprintf("%s (n = %d)", levels(season_c), as.integer(table(season_c))),
-                  levels(season_c))
-
-pD <- ggplot(top5, aes(share, label, fill = Guild)) +
-  geom_col(width = 0.72, colour = "grey30", linewidth = 0.15) +
-  geom_text(aes(label = sprintf("%.1f%%  (%d/%d)", share, n_detect, n_season)),
-            hjust = -0.12, size = 2.8, colour = "grey25") +
-  facet_grid(Season ~ ., scales = "free_y", space = "free_y",
-             labeller = labeller(Season = n_lab)) +
-  # drop = TRUE: "Other assigned" has no member among these ten OTUs and a key
-  # with no bar is noise; the level ORDER stays the repo-canonical one.
-  scale_fill_manual(values = guild_cols, name = "Functional guild", drop = TRUE) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0.32))) +
-  labs(x = "Mean within-season read share (%)", y = NULL,
-       subtitle = "Bar labels give the mean share and, in parentheses,\nthe number of that season's samples with any detection.") +
-  base_theme +
-  theme(axis.text.y = ggtext::element_markdown(size = 9)) +
-  guides(fill = guide_legend(order = 2, nrow = 2))
-
-# ---- assemble and write ----------------------------------------------------
-# An explicit design grid, not nested `/` and `|`: patchwork FLATTENS a chain of
-# `/`, so (pA / pB) / (pC | pD) silently becomes a three-row layout and errors.
-# The grid also guarantees what panel A and B depend on -- one shared column
-# geometry, so their facet columns line up and the slope flip reads vertically.
-# D gets five of the eight columns because its taxon labels are up to 38 chars.
-design <- "
-AAAAAAAA
-BBBBBBBB
-CCCDDDDD
-"
-fig3 <- pA + pB + pC + pD +
-  plot_layout(design = design, heights = c(1, 1.18, 1.55), guides = "collect") +
-  plot_annotation(tag_levels = "A") &
-  theme(legend.position = "bottom", legend.box = "horizontal")
-
-# Every main figure is written three ways: PNG and JPG (600 dpi raster, for
-# submission systems that demand one or the other) and PDF (vector, for print).
-save_fig <- function(stem, obj, width, height, res = 600) {
-  one <- function(open_dev) { open_dev(); on.exit(grDevices::dev.off()); print(obj) }
-  one(function() grDevices::png(paste0(stem, ".png"), width = width, height = height,
-                                units = "in", res = res))
-  one(function() grDevices::jpeg(paste0(stem, ".jpg"), width = width, height = height,
-                                 units = "in", res = res, quality = 95))
-  pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
-  one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
-}
-save_fig(file.path(out_dir, "Fig3_richness_evenness_crossover"), fig3, 10, 10.4)
-
-# ---- console summary -------------------------------------------------------
-cat("Season-pool diversity, depth-controlled and coverage-standardised (Table S8):\n")
-print(data.frame(q = Q_LEVELS,
-                 summer = sprintf("%.0f [%.0f, %.0f]", A_sum$TD_asy, A_sum$qTD.LCL, A_sum$qTD.UCL),
-                 winter = sprintf("%.0f [%.0f, %.0f]", A_win$TD_asy, A_win$qTD.LCL, A_win$qTD.UCL)),
-      row.names = FALSE)
-hill_means <- aggregate(cbind(q0, q1, q2) ~ Season, hill, mean)
-hill_means[-1] <- round(hill_means[-1], 2)
-cat(sprintf("\nPer-sample Hill means (n = %d, size-standardised to %d reads):\n", nrow(hill), rfy_depth))
-print(hill_means, row.names = FALSE)
-cat("\nPer-sample gamma GLM, summer/winter ratio (n = 52; Table S9):\n")
-print(data.frame(metric = lmm$metric, ratio = round(lmm$ratio_summer_winter, 3),
-                 lwr = round(lmm$ratio_lwr, 3), upr = round(lmm$ratio_upr, 3),
-                 p = signif(lmm$p_season, 3)), row.names = FALSE)
-cat(sprintf("\nTop-1 OTU read share: summer %.1f%% vs winter %.1f%%  (%s)\n",
-            100 * obs_top1[["Summer"]], 100 * obs_top1[["Winter"]], pfmt(p_top1)))
-cat(sprintf("Pielou evenness J   : summer %.2f  vs winter %.2f   (%s)\n",
-            obs_J[["Summer"]], obs_J[["Winter"]], pfmt(p_J)))
-cat("\nTop-5 OTUs per season (mean within-season read share):\n")
-print(data.frame(Season = chk$Season, OTU = chk$OTU, share_pct = round(chk$share, 2),
-                 detected = sprintf("%d/%d", chk$n_detect, chk$n_season),
-                 guild = as.character(top5$Guild[match(chk$OTU, top5$OTU)])),
-      row.names = FALSE)
-```
-
-### 10.4 Figure 4 — Dark, largely novel lineages dominate winter dung (E1)
-
-:::: {.content-visible when-profile="docs"}
-*Provenance: all three panels come from Section 3.4. Fig. 4A is the main-text version of Figure S-E1b, with the last two placement categories merged; Fig. 4B is built from `tables/E1_SH_readshare_by_sample.csv`, written by `9_dark_taxa_SH_matching.R` Section 4b; Fig. 4C plots Table S-E1b. Every value is read from the committed `tables/` CSVs written by `9_dark_taxa_SH_matching.R` — nothing is recomputed from sequence data, because the Species Hypothesis assignment is an external pipeline step (a containerised run of the TU-NHM `sh_matching` workflow against the UNITE reference). The best-hit similarity histogram that was Fig. 4A in an earlier version is now supplementary only (Figure S-E1a).*
-::::
-
-![](figures/main/Fig4_dark_taxa_SH.png)
-
-**Figure 4**: Winter dung is dominated by fungal lineages that carry no confident genus, and most of that fraction is not merely unnamed but absent from the reference database. **(A)** UNITE Species Hypothesis placement of all 493 dark OTUs — those the naïve-Bayes classifier leaves without a confident genus. The second and third categories are the same kind of outcome: neither falls inside an existing named Species Hypothesis, and they differ only in whether the sequence has any UNITE relative at all. "Candidate novel SH" has one (median best hit 92.0% identity across these 228 OTUs) and so inherits a partial lineage from its neighbours; "no reference within 80% id" has none, and additionally absorbs 13 OTUs that the pipeline filtered before the matching step. Together they are 331 of the 493 dark OTUs (67%). **(B)** Mean per-sample read share of the same categories, by season, with the named fraction added to reach 100% of reads (52 droppings, 26 per season; segments below 5% are unlabelled). This is the read-weighted counterpart to (A): counting OTUs says nothing about how much of a dropping they are. Candidate-novel lineages hold 29% of winter reads against 7% of summer reads (Wilcoxon *p* = 1.9 × 10⁻⁵), and the dark fraction as a whole is 51% of winter against 31% of summer reads. **(C)** The 30 dark OTUs with the highest mean winter read share (Table S-E1b), plotted as prevalence — the number of the 26 winter samples with any detection — against that mean share, coloured as in (A). OTU1369 is labelled: it is winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings, yet its best UNITE hit is only 85% similar, so it forms a candidate new Species Hypothesis rather than matching anything named.
-
-Roughly half of a typical winter dropping is reads that the canonical taxonomy cannot name (Section 3.4), and that single label covers two different problems. A little over a third of dark OTUs are near-identical to a UNITE reference and are dark only because `minBoot = 80` declines to commit to a genus at that bootstrap — a cost of conservatism, and one that Species Hypothesis matching largely recovers (of the 390 dark OTUs with a best hit at all, 37% sit at ≥ 99% identity; Figure S-E1a). But a comparable fraction of them (38%) sits below 95% identity, where no threshold adjustment would help, and panel A shows where that leads: 228 of the 493 dark OTUs (46%) form candidate new Species Hypotheses rather than matching an existing one, and a further 103 (21%) have no UNITE reference within 80% identity at all. Two thirds of the unnamed community is therefore unnamed because the reference lacks it, not because the classifier was cautious. Panel B supplies the weight behind that count, and it is strongly seasonal: candidate-novel lineages account for 29% of winter reads but only 7% of summer reads, so winter dung is not merely more dark than summer dung, it is dark in a different way — dominated by lineages with no named counterpart rather than by unnamed relatives of known ones. Panel C locates that signal in individual taxa: the dark OTUs carrying real winter read share are predominantly candidate-novel, and the most extreme of them, OTU1369, is simultaneously the most abundant and among the most prevalent OTUs in winter dung while being only 85% similar to its nearest named relative. One caveat travels with the figure throughout. "Candidate novel" is a statement about the reference database rather than a taxonomic claim: these are unimprinted clusters awaiting public sequence deposition and PlutoF registration (Section 3.4), so none of them yet carries a permanent identifier.
-
-```{r fig4-build}
-#| eval: false
-#| echo: !expr knitr::is_html_output()
-#| code-fold: true
-#| code-summary: "Full build code for Figure 4 — the source of truth for figures/main/Fig4_dark_taxa_SH.{png,jpg,pdf}"
-
-# Figure 4 -- Winter dung is dominated by unclassified, largely candidate-novel
-# lineages (E1). Every quantity here is READ from committed tables/ CSVs written
-# by 9_dark_taxa_SH_matching.R; nothing is recomputed from sequence data, because
-# the SH assignment itself is the expensive external step (a Singularity run of
-# the TU-NHM sh_matching pipeline against the UNITE reference, ~90 min).
-#   A  tables/E1_SH_assignment_summary.csv     (the 493 dark OTUs' placement)
-#   B  tables/E1_SH_readshare_by_sample.csv    (script 9 Section 4b, 52 samples)
-#   C  tables/E1_winter_dominant_dark_taxa_SH.csv (top 30 by winter read share)
-# tables/dark_taxa_SH_matching.csv is the per-OTU table all three are derived
-# from; it is read here purely as a drift guard on A and C.
-# Rebuild:  conda run -n r_env Rscript build_main_figure.R fig4-build
-
-suppressPackageStartupMessages({
-  library(ggplot2); library(patchwork)
-})
-
-tab_dir <- if (dir.exists("tables")) "tables" else
-           "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
-out_dir <- "figures/main"
-dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-grDevices::pdf(NULL)                                 # headless: no X11 fallback
-
-# ---- shared style ----------------------------------------------------------
-# ONE colour dimension across all three panels, so every coloured mark in the
-# figure means exactly one thing. Panels A and C show dark OTUs only and use the
-# last three levels; panel B adds the named fraction to reach 100% of reads.
-#
-# "Candidate novel SH" and "No reference within 80% id" are the SAME kind of
-# outcome -- neither falls inside an existing named SH -- and differ only in
-# whether the sequence has any UNITE relative at all. The palette says so: the
-# third level is a lightness tint of the second rather than an unrelated hue.
-# (Lightness contrast survives every form of colour-vision deficiency, so the
-# pair stays separable while still reading as one family.)
-STRAT_LEVELS <- c("Named (genus assigned)", "Placeable to existing SH",
-                  "Candidate novel SH", "No reference within 80% id")
-strat_cols <- c("Named (genus assigned)"     = "#B8B8B8",   # not a dark OTU
-                "Placeable to existing SH"   = "#0072B2",   # resolved
-                "Candidate novel SH"         = "#D55E00",   # the novel signal
-                "No reference within 80% id" = "#E8A87C")   # novel, no relative
-SH_LEVELS <- STRAT_LEVELS[-1]                        # the dark-OTU categories
-
-base_theme <- theme_classic(base_size = 12) +
-  theme(strip.background = element_blank(),
-        strip.text       = element_text(face = "bold"),
-        plot.tag         = element_text(face = "bold", size = 14),
-        plot.subtitle    = element_text(size = 9, colour = "grey30"),
-        panel.spacing    = unit(0.8, "lines"),
-        legend.key.size  = unit(0.42, "cm"),
-        legend.title     = element_text(size = 10),
-        legend.text      = element_text(size = 9))
-
-# One scale object reused by all three panels: patchwork can only collect guides
-# that are identical, so `limits` (not the data) fixes the key order everywhere.
-fill_scale <- scale_fill_manual(values = strat_cols, name = "Taxonomy / SH placement",
-                                limits = STRAT_LEVELS, drop = FALSE)
-
-# All in-plot text is ASCII: save_fig() falls back to grDevices::pdf when cairo is
-# unavailable, and that device silently substitutes a dot for a Unicode glyph.
-# no_SH_match and excluded_nonITS collapse into one displayed category -- see the
-# caption; Section 3.4 keeps them separate.
-sh_class_map <- c(placeable_existing_SH = "Placeable to existing SH",
-                  novel_new_SH          = "Candidate novel SH",
-                  no_SH_match           = "No reference within 80% id",
-                  excluded_nonITS       = "No reference within 80% id")
-
-# ============================================================================
-# Panel A -- where the 493 dark OTUs land
-# ============================================================================
-sh <- read.csv(file.path(tab_dir, "dark_taxa_SH_matching.csv"), stringsAsFactors = FALSE)
-stopifnot(is.logical(sh$is_dark), !anyNA(sh$is_dark), nrow(sh) == 1129L,
-          all(sh$SH_class %in% names(sh_class_map)))
-
-asum <- read.csv(file.path(tab_dir, "E1_SH_assignment_summary.csv"), check.names = FALSE)
-stopifnot(nrow(asum) == 1L)
-
-# Tabulated from the per-OTU table rather than read off the summary's four
-# fields, because two of those fields now collapse into one displayed bar.
-dark_cat <- factor(unname(sh_class_map[sh$SH_class[sh$is_dark]]), levels = SH_LEVELS)
-bdf <- data.frame(cat = factor(SH_LEVELS, levels = SH_LEVELS),
-                  n   = as.integer(table(dark_cat)[SH_LEVELS]))
-# Drift guard: the committed summary must still agree with the per-OTU table,
-# both in total and in the merge that produces the third bar.
-stopifnot(asum$n_dark == sum(sh$is_dark), sum(bdf$n) == asum$n_dark,
-          sum(asum$placeable_existing_SH, asum$novel_new_SH,
-              asum$no_SH_match, asum$excluded_nonITS) == asum$n_dark,
-          bdf$n[3] == asum$no_SH_match + asum$excluded_nonITS)
-bdf$pct <- 100 * bdf$n / asum$n_dark
-bdf$cat <- factor(bdf$cat, levels = rev(SH_LEVELS))   # first category at the top
-
-pA <- ggplot(bdf, aes(n, cat, fill = cat)) +
-  geom_col(width = 0.68, colour = "grey30", linewidth = 0.15) +
-  geom_text(aes(label = sprintf("%d  (%.0f%%)", n, pct)), hjust = -0.12,
-            size = 3.1, colour = "grey25") +
-  fill_scale +
-  scale_x_continuous(expand = expansion(mult = c(0, 0.42))) +
-  scale_y_discrete(labels = function(x) sub(" (to existing SH|within 80% id)",
-                                            "\n\\1", x)) +
-  labs(x = sprintf("Dark OTUs (n = %d)", asum$n_dark), y = NULL,
-       subtitle = "Every OTU with no\nconfident genus\nassignment.") +
-  base_theme +
-  guides(fill = "none")
-
-# ============================================================================
-# Panel B -- how much of a dropping each stratum accounts for, by season
-# ============================================================================
-# Panel A counts OTUs, which says nothing about how much of the community they
-# are; this panel is the read-weighted view and the one that carries the
-# figure's claim. Written per sample by 9_dark_taxa_SH_matching.R Section 4b, so
-# the mean and the test below come from the same committed file.
-rs <- read.csv(file.path(tab_dir, "E1_SH_readshare_by_sample.csv"),
-               stringsAsFactors = FALSE)
-rs_map <- c("Named"                   = "Named (genus assigned)",
-            "Dark: placeable"         = "Placeable to existing SH",
-            "Dark: candidate novel"   = "Candidate novel SH",
-            "Dark: no reference <80%" = "No reference within 80% id")
-stopifnot(all(rs$stratum %in% names(rs_map)), all(rs$Season %in% c("winter", "summer")))
-rs$cat <- factor(unname(rs_map[rs$stratum]), levels = STRAT_LEVELS)
-# Compositional guard: the four strata must exhaust each sample's reads.
-stopifnot(abs(tapply(rs$read_share, rs$sample, sum) - 1) < 1e-6,
-          length(unique(rs$sample)) == 52L)
-
-# Season is capitalised for display only; winter first because the figure's
-# subject is the winter community.
-rs$Season <- factor(sub("^(.)", "\\U\\1", rs$Season, perl = TRUE),
-                    levels = c("Winter", "Summer"))
-bar <- aggregate(read_share ~ Season + cat, data = rs, FUN = mean)
-bar$pct <- 100 * bar$read_share
-bar <- bar[order(bar$Season, bar$cat), ]
-# Label positions are computed here rather than left to position_stack. The text
-# layer plots a SUBSET (segments too thin to hold a label), and position_stack
-# re-stacks whatever data it is given -- so the two layers would silently drift
-# apart in any season where a segment is dropped. geom_col stacks the first
-# factor level on top, hence the descending cumulative.
-bar$ymid <- unlist(lapply(split(bar$pct, bar$Season), function(v)
-  (sum(v) - cumsum(c(0, head(v, -1)))) - v / 2))
-# Drift guard: these means must reproduce the per-OTU table's season columns,
-# which are computed independently (script 9 Section 4, not 4b).
-chk <- vapply(split(seq_len(nrow(sh)), factor(
-                ifelse(sh$is_dark, unname(sh_class_map[sh$SH_class]),
-                       "Named (genus assigned)"), levels = STRAT_LEVELS)),
-              function(i) sum(sh$winter_mean_share[i]), numeric(1))
-win <- setNames(bar$read_share[bar$Season == "Winter"],
-                as.character(bar$cat[bar$Season == "Winter"]))
-stopifnot(max(abs(chk[STRAT_LEVELS] - win[STRAT_LEVELS])) < 1e-6)
-
-nov <- rs[rs$cat == "Candidate novel SH", ]
-nov_p <- wilcox.test(read_share ~ Season, data = nov)$p.value
-nov_m <- tapply(100 * nov$read_share, nov$Season, mean)
-
-pB <- ggplot(bar, aes(Season, pct, fill = cat)) +
-  geom_col(width = 0.62, colour = "grey30", linewidth = 0.15) +
-  # Labelled inside the segment it belongs to; segments under 5% have no room,
-  # and the axis already places them.
-  geom_text(data = bar[bar$pct >= 5, ],
-            aes(y = ymid, label = sprintf("%.0f%%", pct),
-                colour = cat == "Candidate novel SH"),
-            size = 3.0, show.legend = FALSE) +
-  scale_colour_manual(values = c(`TRUE` = "white", `FALSE` = "grey20")) +
-  fill_scale +
-  # coord_cartesian, not scale limits: position_stack sums to 1 and the scale is
-  # applied AFTER stacking, so a limit of exactly 100 drops the top segment on a
-  # floating-point overshoot (ggplot2 4.0 warns "Removed 1 row").
-  scale_y_continuous(breaks = seq(0, 100, 25), expand = expansion(mult = c(0, 0.02))) +
-  coord_cartesian(ylim = c(0, 100)) +
-  labs(x = NULL, y = "Mean per-sample read share (%)",
-       subtitle = sprintf("Mean per-sample read share.\nCandidate-novel: %.0f%% winter vs\n%.0f%% summer (p = %s).",
-                          nov_m[["Winter"]], nov_m[["Summer"]],
-                          format(signif(nov_p, 2), scientific = TRUE))) +
-  base_theme +
-  # The figure's one legend lives here: panel B is the only one that carries all
-  # four levels, and its geom_col draws square keys, which read correctly for
-  # both the bars here and the points in C. A and C suppress theirs.
-  guides(fill = guide_legend(order = 1, nrow = 1))
-
-# ============================================================================
-# Panel C -- the winter-abundant dark OTUs
-# ============================================================================
-# The committed top-30-by-winter-read-share table, so the panel's membership is a
-# published definition rather than a threshold invented for the figure.
-wd <- read.csv(file.path(tab_dir, "E1_winter_dominant_dark_taxa_SH.csv"),
-               stringsAsFactors = FALSE)
-stopifnot(nrow(wd) == 30L, all(wd$winter_n == 26L), all(wd$OTU_ID %in% sh$OTU_ID))
-wd$cat <- factor(unname(sh_class_map[wd$SH_class]), levels = SH_LEVELS)
-wd$share_pct <- 100 * wd$winter_mean_share
-# Drift guard: this table must be the top 30 of the per-OTU table it came from.
-top30 <- sh$OTU_ID[sh$is_dark][order(-sh$winter_mean_share[sh$is_dark])][1:30]
-stopifnot(setequal(wd$OTU_ID, top30))
-
-lab <- wd[wd$OTU_ID == "OTU1369", ]
-stopifnot(nrow(lab) == 1L, lab$winter_occ == 20L)     # agrees with Fig. 3D
-lab$txt <- sprintf("OTU1369\ncandidate novel SH, %.0f%% id\n%.1f%% of winter reads, %d/%d samples",
-                   lab$similarity_percentage, lab$share_pct, lab$winter_occ, lab$winter_n)
-
-pC <- ggplot(wd, aes(winter_occ, share_pct, fill = cat)) +
-  geom_point(shape = 21, size = 3.2, colour = "grey25", stroke = 0.4, alpha = 0.9) +
-  # Hung below-left of the marker rather than centred on it, so the point stays
-  # visibly a data point instead of reading as punctuation inside the text.
-  geom_text(data = lab, aes(label = txt), inherit.aes = FALSE,
-            x = lab$winter_occ - 0.8, y = lab$share_pct - 0.7, hjust = 1, vjust = 1,
-            size = 2.9, lineheight = 1.05, colour = "grey20") +
-  fill_scale +
-  scale_x_continuous(limits = c(0, 26), breaks = seq(0, 25, 5),
-                     expand = expansion(mult = c(0.02, 0.02))) +
-  scale_y_continuous(expand = expansion(mult = c(0.04, 0.10))) +
-  labs(x = sprintf("Prevalence (of %d winter samples)", wd$winter_n[1]),
-       y = "Mean winter read share (%)",
-       subtitle = "The 30 dark OTUs with the\nhighest mean winter read\nshare (Table S-E1b).") +
-  base_theme +
-  guides(fill = "none")
-
-# ---- assemble and write ----------------------------------------------------
-# Explicit widths rather than nested `/` and `|`: patchwork FLATTENS a chain of
-# `/`, so a mixed layout can silently become extra rows.
-fig4 <- pA + pB + pC +
-  plot_layout(nrow = 1, widths = c(1.1, 0.75, 1.5), guides = "collect") +
-  plot_annotation(tag_levels = "A") &
-  theme(legend.position = "bottom", legend.box = "horizontal")
-
-# Every main figure is written three ways: PNG and JPG (600 dpi raster, for
-# submission systems that demand one or the other) and PDF (vector, for print).
-save_fig <- function(stem, obj, width, height, res = 600) {
-  one <- function(open_dev) { open_dev(); on.exit(grDevices::dev.off()); print(obj) }
-  one(function() grDevices::png(paste0(stem, ".png"), width = width, height = height,
-                                units = "in", res = res))
-  one(function() grDevices::jpeg(paste0(stem, ".jpg"), width = width, height = height,
-                                 units = "in", res = res, quality = 95))
-  pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
-  one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
-}
-save_fig(file.path(out_dir, "Fig4_dark_taxa_SH"), fig4, 10, 5.0)
-
-# ---- console summary -------------------------------------------------------
-cat(sprintf("Dark OTUs (n = %d) by SH placement:\n", asum$n_dark))
-print(data.frame(placement = SH_LEVELS,
-                 n = bdf$n[match(SH_LEVELS, as.character(bdf$cat))],
-                 pct = round(bdf$pct[match(SH_LEVELS, as.character(bdf$cat))], 1)),
-      row.names = FALSE)
-cat("\nMean per-sample read share (%), by season:\n")
-print(round(100 * xtabs(read_share ~ cat + Season, data = bar), 2))
-cat(sprintf("\nCandidate-novel read share: winter %.1f%% vs summer %.1f%%, Wilcoxon p = %.3g\n",
-            nov_m[["Winter"]], nov_m[["Summer"]], nov_p))
-cat("\nTop 10 winter-abundant dark OTUs:\n")
-o <- order(-wd$share_pct)[1:10]
-print(data.frame(OTU = wd$OTU_ID[o], class = sub("^c__", "", wd$Class[o]),
-                 winter_pct = round(wd$share_pct[o], 2),
-                 prevalence = sprintf("%d/%d", wd$winter_occ[o], wd$winter_n[o]),
-                 id = wd$similarity_percentage[o],
-                 placement = as.character(wd$cat[o])), row.names = FALSE)
-```
-
-### 10.5 Figure 5 — A reproducible seasonal axis inside large among-individual variation (HMSC synthesis)
-
-:::: {.content-visible when-profile="docs"}
-*Provenance: both panels of Fig. 5 come from the same abundance (CLR) HMSC model of Section 9. Fig. 5A is the per-OTU seasonal niche of Section 9.4 (Tables S-HMSCe(i) and S-HMSCe(ii)), restricted to the 22 OTUs that each hold at least 1% of modelled read share and augmented with a guild-mean block; Figure S-HMSCc is the same quantity for all 226 OTUs ranked by effect size rather than by abundance. Fig. 5B is the variance partition of Section 9.2 (Table S-HMSCc); its right-hand column is the model-free PCR-replicate share of Table S-HMSCc2 (`tables/hmsc_pcr_replicate_variance.csv`). The read shares behind the selection rule come from `tables/dark_taxa_SH_matching.csv` (Section 3.4), which is also the source of the finest-rank labels for OTUs with no genus. Both panels read committed `tables/*.csv` written by `10_hmsc.R` and `9_dark_taxa_SH_matching.R`, so the figure cannot drift from Sections 9 and 3.4.*
-::::
-
-![](figures/main/Fig5_hmsc_synthesis.png)
-
-<!-- CLAUDE DRAFT 2026-09-29 (caption rewritten for the revised model): rewrite freely -->
-**Figure 5**: A joint species distribution model places the seasonal axis at OTU level and sizes it against the variation among individual droppings. Both panels come from one abundance (CLR) HMSC model fitted to 226 OTUs in 55 droppings, with each dropping's two PCR replicates averaged, Season and Year as fixed effects, and the dropping as random level (Section 9.1). **(A)** Per-OTU Season coefficient in CLR units — positive = higher relative abundance in summer — for the 22 OTUs that each account for at least 1% of modelled-OTU read share, 73% of all modelled reads between them, ordered by coefficient and coloured by functional guild, with 95% credible intervals. One interval, OTU1369's, extends beyond the axis and is clipped at −6 with an arrowhead (it reaches −6.48). Filled points are the 16 resolved at HMSC's 0.95 posterior-support convention; community-wide, 74 of 226 OTUs have a 95% credible interval excluding zero. The lower block gives each guild's arithmetic mean of the per-OTU posterior means (diamond) with their interquartile range, taken over all OTUs in that guild rather than only the 22 plotted; it is a descriptive summary of the points above, not a credible interval. The model's own guild-level estimate is the trait-level Gamma (Section 9.3, Table S-HMSCd2). The four MCMC chains agree on every plotted estimate (Beta PSRF ≤ 1.01; Table S-HMSCb). **(B)** Mean share of per-OTU explained variance attributed to Season, Year and the dropping, for all 226 OTUs and then within each guild (Table S-HMSCc). The italic right-hand column is not part of that partition. It is the share of each OTU's total CLR variance that lies between the two PCR replicates of a dropping, measured outside the model (Table S-HMSCc2), and it mostly reflects rare taxa detected by one replicate but not the other. The three highlighted rows are drawn larger because they are the groups this study is about. The five guild classes are the model's trait and differ slightly from the display split used in Figure 1: 46 OTUs carrying a genus but no FUNGuild call sit in "Other assigned" here and in "Unassigned / dark" there (`tables/guild_scheme_crosswalk.csv`, Section 8.1).
-
-Panel A makes the seasonal signal concrete at the level of individual lineages, and it does so among the taxa that actually constitute the community: the 22 OTUs plotted are every OTU holding at least 1% of modelled read share, and they carry 73% of the modelled reads between them. <!-- CLAUDE DRAFT 2026-09-29 (numbers and claims updated to the revised model): rewrite freely -->
-Read from the top, the panel is the study's taxonomic result in one column. The summer end is an unbroken block of coprophilous dung saprotrophs — *Thelebolus* (OTU1, β = +4.17), *Sporormiella* (OTU636, +3.52), *Coniochaeta* (OTU1225, +3.44) and two further Sporormiaceae and Coniochaetaceae lineages — every one of them resolved. The winter end is a block dominated by dark, taxonomically unresolved taxa, ending at OTU1369 (−5.00), the unclassified Dothideomycete that dominates winter read share in Figure 4. Plant-associated taxa straddle zero between them. The guild means below make the same statement over all 226 OTUs rather than the 22 shown. Dung saprotrophs (+1.32) have by far the most summer-shifted mean; dark/unassigned taxa (−0.31) and pathotrophs (−0.33) lean winter; and the yeast-rich "other" group is weakly positive (+0.22). The model's trait-level estimate agrees: the dung-saprotroph guild's Season effect is positive with posterior support 0.994, and dark/unassigned, pathotroph and plant-associated OTUs respond clearly less summer-ward (Section 9.3). Panel B sizes these effects. Season accounts for 31.5% of the variance the model explains and Year for 18.5%, while half (49.9%) sits among droppings — one dropping to the next. The Season share is largest for dung saprotrophs (49.8%): coprophiles are the taxa whose abundance season determines most. Measured separately, a further 32% of total CLR variance is replicate-to-replicate noise within a dropping, most of it whether rare taxa are detected at all; coprophiles are the most repeatable guild (17%). Taken together the panels state the central quantitative claim in one place: seasonal turnover is real, directional and consistent across methods, yet it sits beside large idiosyncrasy among individual droppings — which is why the model explains the samples it has seen (R² ≈ 0.29) but predicts held-out droppings far less well (cross-validated R² ≈ 0.03; Section 9.7).
-
-```{r fig5-build}
-#| eval: false
-#| echo: !expr knitr::is_html_output()
-#| code-fold: true
-#| code-summary: "Full build code for Figure 5 — the source of truth for figures/main/Fig5_hmsc_synthesis.{png,jpg,pdf}"
-
-# Figure 5 -- HMSC synthesis: per-OTU seasonal niche + variance partition.
+# Figure 3 -- HMSC synthesis: per-OTU seasonal niche + variance partition.
 # Every number is READ from committed tables/ CSVs; no model is loaded or
 # refitted here (the fits are ~200 MB each and the figure needs only their
 # posterior summaries).
@@ -3320,8 +2636,8 @@ Read from the top, the panel is the study's taxonomic result in one column. The 
 # deliberately NOT mixed into this figure: on the occurrence scale the whole
 # community shifts summer-ward (157/226 OTUs positive), which ranks rare taxa at
 # the extremes and puts "other assigned" ahead of dung saprotrophs -- a richness
-# result already carried by Figure 3.
-# Rebuild:  conda run -n r_env Rscript build_main_figure.R fig5-build
+# result already carried by Figure 4.
+# Rebuild:  conda run -n r_env Rscript build_main_figure.R fig3-build
 
 suppressPackageStartupMessages({
   library(ggplot2); library(patchwork); library(ggtext)
@@ -3406,7 +2722,7 @@ b$rel <- b$share / sum(b$share)
 
 # Selection rule: a stated threshold rather than an arbitrary top-N, so the
 # panel's membership is reproducible and cannot be read as cherry-picked. It
-# also ties Figure 5 to Figure 1, which is likewise read-share weighted.
+# also ties Figure 3 to Figure 1, which is likewise read-share weighted.
 SHARE_MIN <- 0.01
 sel <- b[b$rel >= SHARE_MIN, ]
 sel <- sel[order(-sel$beta_season_mean), ]
@@ -3668,7 +2984,7 @@ pB <- ggplot(rect) +
   guides(fill = guide_legend(nrow = 1), x = guide_axis(cap = "both"))
 
 # ---- assemble and write ----------------------------------------------------
-fig5 <- (pA | pB) +
+fig3 <- (pA | pB) +
   plot_layout(widths = c(1.25, 1), guides = "collect") +
   plot_annotation(tag_levels = "A") &
   # VERIFIED the hard way: the three collected key blocks (guild, support,
@@ -3691,7 +3007,7 @@ save_fig <- function(stem, obj, width, height, res = 600) {
   pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
   one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
 }
-save_fig(file.path(out_dir, "Fig5_hmsc_synthesis"), fig5, 11.5, 6.4)
+save_fig(file.path(out_dir, "Fig3_hmsc_synthesis"), fig3, 11.5, 6.4)
 
 # ---- console summary -------------------------------------------------------
 cat(sprintf("Panel A: %d OTUs at >= %.0f%% modelled read share each = %.1f%% of modelled reads.\n",
@@ -3717,6 +3033,690 @@ cat("\nVariance partition (mean % per OTU):\n")
 print(data.frame(group = sprintf("%s (n = %d)", vpm$grp, vpm$n),
                  round(100 * vpm[, VP_LEVELS], 1), check.names = FALSE),
       row.names = FALSE)
+```
+
+### 10.4 Figure 4 — Richness rises, evenness collapses (H2)
+
+:::: {.content-visible when-profile="docs"}
+*Provenance: Fig. 4A is the coverage-based pooled-season iNEXT3D analysis of Section 5.1 (Table S8); Fig. 4B the size-standardised per-sample iNEXT3D Hill numbers of Section 5.2 (Figure S8), annotated with the per-sample gamma-GLM contrasts of Table S9; Fig. 4C the dominance and evenness metrics of Section 5.3 (Table S10); Fig. 4D the top-5 dominant OTUs of Section 5.4 (Table S11), coloured by the guild rule of Section 8.1. Panels B–D are computed on the canonical 52-sample object (`alldat$nopool`); panel B standardises it to 12,615 reads through the shared `hill_size_helper.R`, the same single source Section 5.2 uses. Panel A's estimates and every test statistic are read from the committed `tables/` CSVs, so the figure cannot drift from Section 5.*
+::::
+
+![](figures/main/Fig4_richness_evenness_crossover.png)
+
+**Figure 4**: The summer dung mycobiome is the richer assemblage when droppings are pooled, yet each individual dropping is far less even. **(A)** Taxonomic diversity of each season's pooled sample set at Hill orders q = 0, 1 and 2, at equal sequencing depth (every sample rarefied to 12,615 reads) and equal sample coverage (0.65) (iNEXT3D, incidence data); points are the median estimate over 50 rarefaction draws, bars the median 95% confidence interval, and the grey segment joins the two seasons within an order. Summer exceeds winter at every order (Table S8). **(B)** Per-sample Hill numbers for the same 52 samples, size-standardised with iNEXT3D to a common depth of 12,615 reads, drawn in the same three columns against the same season axis so that the two rows can be read against one another; boxes show the median and interquartile range, points are individual samples, white diamonds are season means, and the grey segment joins those means. The slope that rises in all three columns of (A) rises only at q = 0 here and falls at q = 1 and q = 2 — that reversal is the crossover. Annotations give the year-adjusted summer/winter ratio and its p-value from a gamma GLM fitted to the plotted per-sample values (Table S9); the q = 0 contrast depends on the model family (p = 0.026–0.29; Table S9b), the q = 1 and q = 2 contrasts do not. Both rows scale y freely within each column, because the three Hill orders differ by an order of magnitude. **(C)** The mechanism: per-sample top-1-OTU read share and Pielou evenness *J*, both on a 0–1 scale, with symbols as in (B) and brackets giving the Wilcoxon rank-sum result (Table S10). **(D)** The identity of the dominants — the five OTUs with the highest mean within-season read share in each season, coloured by functional guild under the rule of Section 8.1. Bar labels give that mean share and, in parentheses, the number of the season's 26 samples in which the OTU was detected at all. Taxa are named at the finest confidently assigned rank, so an OTU with no genus appears under its family, or as *unclassified* plus its order or class. *Candida parapsilosis* is coloured plant-associated because its compound FUNGuild string contains `Epiphyte`; the rule is applied unchanged rather than special-cased, so that Figures 1 and 4 and Sections 8–9 classify every OTU identically.
+
+Panels A and B put the same question to two scales and get opposite answers, and that disagreement is the result rather than a problem with it. Pooled across a season and with sequencing depth held equal, summer is the richer assemblage at every Hill order — 548 against winter's 383 OTUs at q = 0, and the gap widens under abundance weighting (412 vs 261 at q = 1; 287 vs 162 at q = 2). Within a single dropping the ordering reverses as soon as abundance enters: winter droppings are significantly more diverse at q = 1 (14.9 vs 7.4 effective OTUs; summer/winter 0.46, p = 0.001) and q = 2 (10.1 vs 4.6; 0.40, p < 0.001), whereas at q = 0 summer's higher mean (48.3 vs 31.3) is a weak, family-dependent difference carried by a few very rich summer samples (Tables S9, S9b). Panel C locates the reversal in dominance rather than in the species lists: an average summer sample gives 56% of its reads to a single OTU against 25% in winter, and Pielou evenness falls from 0.72 to 0.38 (both p \< 0.001). Summer droppings are far more top-heavy, which is precisely what depresses q = 1 and q = 2 even where a dropping's species list is as long as, or longer than, a winter one. Panel D names the taxa responsible, and they are the ones a coprophilous account predicts: *Thelebolus*, *Coniochaeta* and *Sporormiella intermedia* together take 44% of summer reads and are all dung saprotrophs, whereas winter's leading OTUs are mostly unclassified below class and carry no guild call at all — among them OTU1369, an unclassified Dothideomycete that is winter's most abundant OTU and is present in 20 of 26 winter samples, and which is taken up as a dark taxon in Section 3.4. Two caveats travel with the figure. The per-sample richness contrast in (B) is not robust to the choice of model family (Table S9b), so the crossover is firm at q = 1 and q = 2 and in the pooled estimates of (A), but not as a per-dropping richness gain. And the shares in (D) are seasonal averages, not universals — *Thelebolus* reaches its 24.9% mean while being detected in only 15 of the 26 summer droppings.
+
+```{r fig4-build}
+#| eval: false
+#| echo: !expr knitr::is_html_output()
+#| code-fold: true
+#| code-summary: "Full build code for Figure 4 — the source of truth for figures/main/Fig4_richness_evenness_crossover.{png,jpg,pdf}"
+
+# Figure 4 -- Richness rises, evenness collapses (H2).
+# Panels A and B share one grammar (Season on x, diversity on y, faceted by Hill
+# order) and one set of facet strips, so the crossover is a single visual event:
+# the same three columns, with the Winter->Summer slope flipping between rows.
+# C then gives the mechanism (dominance) and D the identity of the dominants.
+# Per-sample quantities are recomputed from the canonical objects (Fig. 1
+# precedent) via the shared hill_size_helper.R; every pooled estimate and test
+# statistic is READ from a committed tables/ CSV (Fig. 2 precedent), with guards
+# asserting the two agree.
+# Rebuild:  conda run -n r_env Rscript build_main_figure.R fig4-build
+
+suppressPackageStartupMessages({
+  library(phyloseq); library(ggplot2); library(patchwork); library(iNEXT.3D)
+})
+# Size-standardised Hill numbers: the SAME single source the sec5-build chunk
+# uses, so Figure 4 panel B and Section 5.2 cannot drift apart.
+source("hill_size_helper.R")
+
+rdata <- if (file.exists("eco_analysis.RData")) "eco_analysis.RData" else
+         "/home/daniel/Ptarmigan/trimmed/mergedPlates/eco_analysis.RData"
+load(rdata)
+stopifnot(exists("alldat"), exists("alldat.rfy"), exists("alldat_full"),
+          exists("funguild_otu"))                 # funguild_otu <- 8_functional_guilds.R
+tab_dir <- if (dir.exists("tables")) "tables" else
+           "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
+out_dir <- "figures/main"
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+grDevices::pdf(NULL)                                 # headless: no X11 fallback
+
+# ---- shared style ----------------------------------------------------------
+# Season and guild palettes are the repo standard (8_functional_guilds.R), so one
+# colour means one thing across Fig. 1, Fig. 2 and Fig. 4.
+season_cols  <- c(Winter = "#0072B2", Summer = "#D55E00")
+guild_cols   <- c("Dung saprotroph" = "#E69F00", "Plant-associated" = "#009E73",
+                  "Pathotroph" = "#CC79A7", "Other assigned" = "#56B4E9",
+                  "Unassigned / dark" = "#999999")
+GUILD_LEVELS <- names(guild_cols)
+
+# The one facet vocabulary shared by panels A and B. A carries the strips; B
+# repeats the columns beneath it and blanks them, exactly as Fig. 1B does.
+Q_LEVELS <- c("q = 0  (richness)", "q = 1  (Shannon)", "q = 2  (Simpson)")
+
+base_theme <- theme_classic(base_size = 12) +
+  theme(strip.background = element_blank(),
+        strip.text       = element_text(face = "bold"),
+        plot.tag         = element_text(face = "bold", size = 14),
+        plot.subtitle    = element_text(size = 9, colour = "grey30"),
+        panel.spacing    = unit(0.8, "lines"),
+        legend.key.size  = unit(0.42, "cm"),
+        legend.title     = element_text(size = 10),
+        legend.text      = element_text(size = 9))
+
+# All in-plot text is ASCII. save_fig() falls back to grDevices::pdf when cairo
+# is unavailable, and that device silently substitutes a dot for a Unicode minus
+# or delta -- a corrupted PDF that would not fail the build.
+pfmt <- function(p) ifelse(is.na(p), "p = NA",
+                    ifelse(p < 0.001, "p < 0.001", sprintf("p = %.3f", p)))
+to_season <- function(x) factor(c(winter = "Winter", summer = "Summer")[as.character(x)],
+                                levels = c("Winter", "Summer"))
+
+# ============================================================================
+# Panel A -- season-pool diversity (Section 5.1, Table S8)
+# ============================================================================
+# Read, never recomputed: 50 rarefaction draws x 100 bootstraps are expensive
+# and the estimates are already committed. Pooling samples within a Season asks
+# about the Season's whole species pool. These are the DEPTH-CONTROLLED,
+# coverage-standardised estimates of Table S8 (every sample rarefied to 12,615
+# reads, common coverage), not asymptotic ones: asymptotic richness extrapolates
+# to ~2x observed here, and raw incidence carries summer's ~2.6x depth advantage.
+asy <- read.csv(file.path(tab_dir, "H2_iNEXT3D_TD_coverage_rarefied.csv"), check.names = FALSE)
+stopifnot(setequal(asy$Season, c("Summer", "Winter")), setequal(asy$Order.q, 0:2))
+asy$q      <- factor(Q_LEVELS[asy$Order.q + 1], levels = Q_LEVELS)
+asy$Season <- factor(asy$Season, levels = c("Winter", "Summer"))
+asy$TD_asy <- asy$qTD                                 # plotted estimate (name kept for the ggplot below)
+sc_level   <- unique(asy$SC); stopifnot(length(sc_level) == 1L)
+
+pick  <- function(sea) { d <- asy[asy$Season == sea, ]
+                         d[match(Q_LEVELS, as.character(d$q)), ] }
+A_sum <- pick("Summer"); A_win <- pick("Winter")
+# The panel's whole claim in one line: summer above winter at every order, with
+# 95% CIs that do not overlap. If that ever stops being true, the build stops.
+stopifnot(all(A_sum$qTD.LCL > A_win$qTD.UCL))
+
+pA <- ggplot(asy, aes(Season, TD_asy)) +
+  geom_line(aes(group = 1), colour = "grey55", linewidth = 0.4) +
+  geom_errorbar(aes(ymin = qTD.LCL, ymax = qTD.UCL, colour = Season),
+                width = 0.12, linewidth = 0.6, show.legend = FALSE) +
+  geom_point(aes(fill = Season), shape = 21, size = 3.4,
+             colour = "grey25", stroke = 0.4, show.legend = FALSE) +
+  facet_wrap(~ q, nrow = 1, scales = "free_y") +
+  scale_fill_manual(values = season_cols) +
+  scale_colour_manual(values = season_cols) +
+  scale_y_continuous(expand = expansion(mult = c(0.18, 0.18))) +
+  labs(x = NULL, y = "Season pool\n(effective no. of OTUs)",
+       subtitle = sprintf("Pooled-season diversity at equal depth (12,615 reads/sample) and equal coverage (%.2f); iNEXT3D, incidence,\nmedian over 50 rarefaction draws; bars are 95%% CIs. Summer exceeds winter at every order.", sc_level)) +
+  base_theme +
+  # A's x axis is identical to B's directly below, so only B prints it.
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+  guides(fill = "none", colour = "none")
+
+# ============================================================================
+# Panel B -- per-sample diversity (Section 5.2, Fig. S9 + Table S9)
+# ============================================================================
+# Raw counts: iNEXT.3D size-standardises internally to rfy_depth, the same depth
+# alldat.rfy is rarefied to. Deterministic (an analytic expectation, not one
+# rarefaction draw), so no seed is involved; the guard makes that testable.
+ps_rfy <- alldat$nopool
+m_rfy  <- as(otu_table(ps_rfy), "matrix")
+if (taxa_are_rows(ps_rfy)) m_rfy <- t(m_rfy)         # sites x species
+rfy_depth <- min(rowSums(m_rfy))
+stopifnot(nsamples(ps_rfy) == 52L,
+          rfy_depth == unique(rowSums(otu_mat_of(alldat.rfy$nopool))))
+
+md_rfy <- data.frame(as(sample_data(ps_rfy), "data.frame"), stringsAsFactors = FALSE)
+stopifnot(identical(rownames(m_rfy), rownames(md_rfy)))
+season_rfy <- to_season(md_rfy$Season); stopifnot(!anyNA(season_rfy))
+
+hill_raw <- hill_inext_size(ps_rfy, level = rfy_depth, label = "Figure 4B")
+stopifnot(identical(hill_raw$row, rownames(m_rfy)))
+hill <- data.frame(Season = season_rfy,
+                   q0 = hill_raw$q0, q1 = hill_raw$q1, q2 = hill_raw$q2)
+hill_long <- data.frame(
+  Season = rep(hill$Season, times = 3),
+  q      = factor(rep(Q_LEVELS, each = nrow(hill)), levels = Q_LEVELS),
+  value  = c(hill$q0, hill$q1, hill$q2))
+
+# The annotated contrast is Table S9: a gamma GLM (log link, q ~ Season + Year)
+# fitted to exactly the per-sample values plotted here (n = 52), so the figure
+# and its test are on the same unit. Guards: the CSV's season means must equal
+# the recomputed ones, and the model ratio must agree in direction with them.
+lmm <- read.csv(file.path(tab_dir, "H2_season_effect_per_sample.csv"), check.names = FALSE)
+stopifnot(setequal(lmm$metric, c("q0", "q1", "q2")), all(lmm$n == nrow(hill)))
+lmm <- lmm[match(c("q0", "q1", "q2"), lmm$metric), ]
+obs_diff <- vapply(c("q0", "q1", "q2"), function(q)
+  mean(hill[[q]][hill$Season == "Summer"]) - mean(hill[[q]][hill$Season == "Winter"]),
+  numeric(1))
+stopifnot(max(abs(lmm$mean_summer - lmm$mean_winter - obs_diff)) < 1e-8,
+          all(sign(obs_diff) == sign(log(lmm$ratio_summer_winter))))
+
+# Boxes show medians, but Section 5.3's text quotes MEANS -- so the means are
+# drawn, and the segment joining them is what makes the slope flip legible
+# against panel A directly above.
+meanB <- aggregate(value ~ q + Season, hill_long, mean)
+y_top <- as.numeric(tapply(hill_long$value, hill_long$q, max)[Q_LEVELS])
+ann_B <- data.frame(q     = factor(Q_LEVELS, levels = Q_LEVELS),
+                    value = y_top * 1.32,
+                    lab   = sprintf("summer / winter\n%.2fx, %s",
+                                    lmm$ratio_summer_winter, pfmt(lmm$p_season)))
+
+# seed = on the jitter: save_fig() prints the object once per device, and an
+# unseeded jitter would place the points differently in the PNG, the JPG and the
+# PDF -- three subtly different figures from one build.
+pB <- ggplot(hill_long, aes(Season, value)) +
+  geom_boxplot(aes(fill = Season), outlier.shape = NA, width = 0.6, alpha = 0.85) +
+  geom_point(position = position_jitter(width = 0.14, height = 0, seed = 1),
+             size = 1.1, alpha = 0.55, colour = "grey20") +
+  geom_line(data = meanB, aes(group = 1), colour = "grey35", linewidth = 0.4) +
+  geom_point(data = meanB, shape = 23, size = 2.4, stroke = 0.5,
+             fill = "white", colour = "grey15") +
+  geom_text(data = ann_B, aes(x = 1.5, label = lab), inherit.aes = TRUE,
+            size = 2.9, lineheight = 0.95, vjust = 1) +
+  facet_wrap(~ q, nrow = 1, scales = "free_y") +
+  scale_fill_manual(values = season_cols) +
+  # Linear, not log: a Hill number is an effective number of OTUs and is meant to
+  # be read off the axis. free_y absorbs the 164-vs-32 range difference instead.
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.36))) +
+  labs(x = NULL, y = "Per sample\n(effective no. of OTUs)",
+       subtitle = sprintf("Per-sample Hill numbers (n = %d, iNEXT3D size-standardised to %s reads); white diamonds are season means.\nAnnotations: year-adjusted summer/winter ratio, gamma GLM on these values (Table S9).",
+                          nrow(hill), format(rfy_depth, big.mark = ","))) +
+  base_theme +
+  # B repeats A's facet columns exactly, so its strips are dropped as redundant.
+  theme(strip.text = element_blank()) +
+  guides(fill = guide_legend(order = 1))
+
+# ============================================================================
+# Panel C -- dominance and evenness, the mechanism (Section 5.3, Table S10)
+# ============================================================================
+ps  <- alldat$nopool                                 # canonical, raw counts
+m   <- as(otu_table(ps), "matrix")
+if (!taxa_are_rows(ps)) m <- t(m)                    # taxa x samples, as 5.3 uses
+rel <- sweep(m, 2, colSums(m), "/")
+stopifnot(all(abs(colSums(rel) - 1) < 1e-10))
+md  <- data.frame(as(sample_data(ps), "data.frame"), stringsAsFactors = FALSE)
+stopifnot(identical(colnames(rel), rownames(md)),
+          setequal(colnames(rel), rownames(m_rfy)))  # B and C/D are the same 52 birds
+season_c <- to_season(md$Season)
+
+pielou_J <- function(p) { p <- p[p > 0]; -sum(p * log(p)) / log(length(p)) }
+dom <- data.frame(Season    = season_c,
+                  top1_prop = apply(rel, 2, max),
+                  pielou_J  = apply(rel, 2, pielou_J))
+
+# Drift guard: the recomputed means must reproduce committed Table S10 exactly at
+# the precision the CSV stores (1 dp for the percentage, 2 dp for J).
+dom_csv <- read.csv(file.path(tab_dir, "report_dominance_summary.csv"), check.names = FALSE)
+dom_csv <- dom_csv[match(c("winter", "summer"), dom_csv$Season), ]
+obs_top1 <- tapply(dom$top1_prop, dom$Season, mean)
+obs_J    <- tapply(dom$pielou_J,  dom$Season, mean)
+stopifnot(max(abs(round(100 * as.numeric(obs_top1[c("Winter","Summer")]), 1) -
+                  dom_csv$mean_top1_prop_pct)) < 1e-8,
+          max(abs(round(as.numeric(obs_J[c("Winter","Summer")]), 2) -
+                  dom_csv$mean_pielou_J)) < 1e-8)
+p_top1 <- unique(dom_csv$wilcox_p_top1_prop); p_J <- unique(dom_csv$wilcox_p_pielou_J)
+stopifnot(length(p_top1) == 1L, length(p_J) == 1L)
+
+# Both metrics live on 0-1, so one shared axis works and the mechanism reads as a
+# single picture: the seasons swap sides between the two metric groups.
+# <br> not \n: these labels are rendered by element_markdown, which honours HTML
+# breaks. Wrapped because the two names collide at this panel's width.
+M_LEVELS <- c("Top-1 OTU<br>read share", "Pielou<br>evenness *J*")
+dom_long <- data.frame(
+  Season = rep(dom$Season, times = 2),
+  Metric = factor(rep(M_LEVELS, each = nrow(dom)), levels = M_LEVELS),
+  value  = c(dom$top1_prop, dom$pielou_J))
+meanC <- aggregate(value ~ Metric + Season, dom_long, mean)
+brk   <- data.frame(Metric = factor(M_LEVELS, levels = M_LEVELS),
+                    lab    = pfmt(c(p_top1, p_J)),
+                    xmid   = seq_along(M_LEVELS))
+brk$xmin <- brk$xmid - 0.19; brk$xmax <- brk$xmid + 0.19  # dodge(0.75) box centres
+
+pC <- ggplot(dom_long, aes(Metric, value, fill = Season)) +
+  geom_boxplot(outlier.shape = NA, width = 0.65, alpha = 0.85,
+               position = position_dodge(width = 0.75)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.12, dodge.width = 0.75,
+                                             seed = 1),
+             size = 1.1, alpha = 0.55, colour = "grey20", show.legend = FALSE) +
+  geom_point(data = meanC, aes(group = Season), inherit.aes = TRUE,
+             position = position_dodge(width = 0.75), shape = 23, size = 2.3,
+             stroke = 0.5, fill = "white", colour = "grey15", show.legend = FALSE) +
+  geom_segment(data = brk, aes(x = xmin, xend = xmax, y = 1.03, yend = 1.03),
+               inherit.aes = FALSE, linewidth = 0.3) +
+  geom_text(data = brk, aes(x = xmid, y = 1.055, label = lab), inherit.aes = FALSE,
+            size = 3, vjust = 0) +
+  scale_fill_manual(values = season_cols) +
+  scale_y_continuous(limits = c(0, 1.13), breaks = seq(0, 1, 0.25)) +
+  labs(x = NULL, y = "Per-sample value (proportion)",
+       subtitle = "White diamonds are season means;\nbrackets give the Wilcoxon rank-sum test (Table S10).") +
+  base_theme +
+  # The x labels carry markdown (*J*); without element_markdown the asterisks
+  # print literally, and this theme() must come after base_theme to win.
+  theme(axis.text.x = ggtext::element_markdown(size = 9)) +
+  guides(fill = "none")
+
+# ============================================================================
+# Panel D -- who the dominants are (Section 5.4, Table S11), by guild
+# ============================================================================
+top5 <- do.call(rbind, lapply(levels(season_c), function(s) {
+  cols   <- colnames(rel)[season_c == s]
+  shares <- rowMeans(rel[, cols, drop = FALSE])      # mean WITHIN-season share
+  ids    <- names(sort(shares, decreasing = TRUE))[1:5]
+  data.frame(Season = s, OTU = ids, share = 100 * shares[ids],
+             n_detect = rowSums(rel[ids, cols, drop = FALSE] > 0),
+             n_season = length(cols), stringsAsFactors = FALSE, row.names = NULL)
+}))
+top5$Season <- factor(top5$Season, levels = c("Winter", "Summer"))
+
+# Drift guard: same OTUs, same order, same shares as committed Table S11.
+t5_csv <- read.csv(file.path(tab_dir, "report_top5_otu_by_season.csv"),
+                   stringsAsFactors = FALSE)
+t5_csv$Season <- to_season(t5_csv$Season)
+t5_csv <- t5_csv[order(t5_csv$Season, -t5_csv$mean_pct_share), ]
+chk    <- top5[order(top5$Season, -top5$share), ]
+stopifnot(identical(paste(chk$Season, chk$OTU), paste(t5_csv$Season, t5_csv$OTU)),
+          max(abs(round(chk$share, 2) - t5_csv$mean_pct_share)) < 1e-8)
+
+# UNITE taxonomy carries rank prefixes ("g__Thelebolus") and, at species level, a
+# trailing hypothesis index ("intermedia 1"). Labels fall back down the ranks
+# until something is assigned: a family name stands alone unambiguously, an order
+# or class does not and is prefixed "unclassified". Markdown asterisks italicise
+# real Latin names only -- never a rank name, never an Incertae sedis placeholder.
+tax <- data.frame(as(tax_table(ps), "matrix"), stringsAsFactors = FALSE)
+strip_rank <- function(x) sub("^[a-z]__", "", x)
+clean_rank <- function(x) { x <- strip_rank(x)
+  x[is.na(x) | x == "" | x == "NA" | grepl("unidentified", x, ignore.case = TRUE)] <- NA_character_
+  x }
+otu_label <- function(otu) {
+  rk <- lapply(c("Genus", "Species", "Family", "Order", "Class"),
+               function(r) clean_rank(tax[otu, r]))
+  names(rk) <- c("Genus", "Species", "Family", "Order", "Class")
+  incertae <- function(x) !is.na(x) && grepl("Incertae_sedis", x)
+  nm <-
+    if (!is.na(rk$Genus) && !incertae(rk$Genus)) {
+      if (!is.na(rk$Species))
+        paste0("*", rk$Genus, " ", sub("[ _]+[0-9]+$", "", rk$Species), "*")
+      else paste0("*", rk$Genus, "*")
+    } else if (incertae(rk$Genus))                      sub("_gen_Incertae_sedis", " (unclass.)", rk$Genus)
+      else if (!is.na(rk$Family) && !incertae(rk$Family)) rk$Family
+      else if (!is.na(rk$Order))                        paste("unclassified", rk$Order)
+      else if (!is.na(rk$Class))                        paste("unclassified", rk$Class)
+      else                                              "unclassified fungus"
+  paste0(nm, " (", otu, ")")
+}
+top5$label <- unname(vapply(top5$OTU, otu_label, character(1)))
+stopifnot(!anyDuplicated(top5$label))
+
+# Guild rule VERBATIM from the Fig. 1 chunk (itself from 8_functional_guilds.R),
+# including its genus cleaning, so Fig. 1, Fig. 4, Section 8 and Section 9 all
+# classify an OTU identically. One consequence is visible here: FUNGuild returns
+# a compound string for Candida parapsilosis containing "Epiphyte", so the
+# priority rule lands OTU136 in Plant-associated. That is an artifact of compound
+# FUNGuild strings, not a claim about the taxon -- but the rule is applied
+# unchanged rather than special-cased, because cross-section consistency is worth
+# more than one prettier label.
+COPRO_GENERA <- c("Sordaria","Podospora","Cercophora","Chaetomium","Schizothecium",
+                  "Preussia","Delitschia","Pilobolus","Ascobolus","Saccobolus",
+                  "Sporormiella","Coprinopsis","Thelebolus","Coniochaeta")
+gen       <- strip_rank(tax$Genus[match(top5$OTU, rownames(tax))])
+gen       <- ifelse(gen %in% c("", "NA"), NA, gen)
+guild_str <- funguild_otu$Guild[match(top5$OTU, funguild_otu$OTU_ID)]
+is_copro  <- (!is.na(guild_str) & grepl("Dung Saprotroph", guild_str)) |
+             (!is.na(gen)       & gen %in% COPRO_GENERA)
+is_plant  <- !is_copro & !is.na(guild_str) &
+             grepl("Endophyte|Plant Saprotroph|Plant Pathogen|Epiphyte", guild_str)
+is_patho  <- !is_copro & !is_plant & !is.na(guild_str) & grepl("Pathogen|Parasite", guild_str)
+top5$Guild <- factor(
+  ifelse(is_copro, "Dung saprotroph",
+  ifelse(is_plant, "Plant-associated",
+  ifelse(is_patho, "Pathotroph",
+  ifelse(!is.na(guild_str), "Other assigned", "Unassigned / dark")))),
+  levels = GUILD_LEVELS)
+
+# The two seasons' top-5 sets are disjoint, so one global factor ordered
+# (Season, share) gives each facet its own descending bars under free_y.
+top5 <- top5[order(top5$Season, top5$share), ]
+top5$label <- factor(top5$label, levels = top5$label)
+n_lab <- setNames(sprintf("%s (n = %d)", levels(season_c), as.integer(table(season_c))),
+                  levels(season_c))
+
+pD <- ggplot(top5, aes(share, label, fill = Guild)) +
+  geom_col(width = 0.72, colour = "grey30", linewidth = 0.15) +
+  geom_text(aes(label = sprintf("%.1f%%  (%d/%d)", share, n_detect, n_season)),
+            hjust = -0.12, size = 2.8, colour = "grey25") +
+  facet_grid(Season ~ ., scales = "free_y", space = "free_y",
+             labeller = labeller(Season = n_lab)) +
+  # drop = TRUE: "Other assigned" has no member among these ten OTUs and a key
+  # with no bar is noise; the level ORDER stays the repo-canonical one.
+  scale_fill_manual(values = guild_cols, name = "Functional guild", drop = TRUE) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.32))) +
+  labs(x = "Mean within-season read share (%)", y = NULL,
+       subtitle = "Bar labels give the mean share and, in parentheses,\nthe number of that season's samples with any detection.") +
+  base_theme +
+  theme(axis.text.y = ggtext::element_markdown(size = 9)) +
+  guides(fill = guide_legend(order = 2, nrow = 2))
+
+# ---- assemble and write ----------------------------------------------------
+# An explicit design grid, not nested `/` and `|`: patchwork FLATTENS a chain of
+# `/`, so (pA / pB) / (pC | pD) silently becomes a three-row layout and errors.
+# The grid also guarantees what panel A and B depend on -- one shared column
+# geometry, so their facet columns line up and the slope flip reads vertically.
+# D gets five of the eight columns because its taxon labels are up to 38 chars.
+design <- "
+AAAAAAAA
+BBBBBBBB
+CCCDDDDD
+"
+fig4 <- pA + pB + pC + pD +
+  plot_layout(design = design, heights = c(1, 1.18, 1.55), guides = "collect") +
+  plot_annotation(tag_levels = "A") &
+  theme(legend.position = "bottom", legend.box = "horizontal")
+
+# Every main figure is written three ways: PNG and JPG (600 dpi raster, for
+# submission systems that demand one or the other) and PDF (vector, for print).
+save_fig <- function(stem, obj, width, height, res = 600) {
+  one <- function(open_dev) { open_dev(); on.exit(grDevices::dev.off()); print(obj) }
+  one(function() grDevices::png(paste0(stem, ".png"), width = width, height = height,
+                                units = "in", res = res))
+  one(function() grDevices::jpeg(paste0(stem, ".jpg"), width = width, height = height,
+                                 units = "in", res = res, quality = 95))
+  pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
+  one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
+}
+save_fig(file.path(out_dir, "Fig4_richness_evenness_crossover"), fig4, 10, 10.4)
+
+# ---- console summary -------------------------------------------------------
+cat("Season-pool diversity, depth-controlled and coverage-standardised (Table S8):\n")
+print(data.frame(q = Q_LEVELS,
+                 summer = sprintf("%.0f [%.0f, %.0f]", A_sum$TD_asy, A_sum$qTD.LCL, A_sum$qTD.UCL),
+                 winter = sprintf("%.0f [%.0f, %.0f]", A_win$TD_asy, A_win$qTD.LCL, A_win$qTD.UCL)),
+      row.names = FALSE)
+hill_means <- aggregate(cbind(q0, q1, q2) ~ Season, hill, mean)
+hill_means[-1] <- round(hill_means[-1], 2)
+cat(sprintf("\nPer-sample Hill means (n = %d, size-standardised to %d reads):\n", nrow(hill), rfy_depth))
+print(hill_means, row.names = FALSE)
+cat("\nPer-sample gamma GLM, summer/winter ratio (n = 52; Table S9):\n")
+print(data.frame(metric = lmm$metric, ratio = round(lmm$ratio_summer_winter, 3),
+                 lwr = round(lmm$ratio_lwr, 3), upr = round(lmm$ratio_upr, 3),
+                 p = signif(lmm$p_season, 3)), row.names = FALSE)
+cat(sprintf("\nTop-1 OTU read share: summer %.1f%% vs winter %.1f%%  (%s)\n",
+            100 * obs_top1[["Summer"]], 100 * obs_top1[["Winter"]], pfmt(p_top1)))
+cat(sprintf("Pielou evenness J   : summer %.2f  vs winter %.2f   (%s)\n",
+            obs_J[["Summer"]], obs_J[["Winter"]], pfmt(p_J)))
+cat("\nTop-5 OTUs per season (mean within-season read share):\n")
+print(data.frame(Season = chk$Season, OTU = chk$OTU, share_pct = round(chk$share, 2),
+                 detected = sprintf("%d/%d", chk$n_detect, chk$n_season),
+                 guild = as.character(top5$Guild[match(chk$OTU, top5$OTU)])),
+      row.names = FALSE)
+```
+
+### 10.5 Figure 5 — Dark, largely novel lineages dominate winter dung (E1)
+
+:::: {.content-visible when-profile="docs"}
+*Provenance: all three panels come from Section 3.4. Fig. 5A is the main-text version of Figure S-E1b, with the last two placement categories merged; Fig. 5B is built from `tables/E1_SH_readshare_by_sample.csv`, written by `9_dark_taxa_SH_matching.R` Section 4b; Fig. 5C plots Table S-E1b. Every value is read from the committed `tables/` CSVs written by `9_dark_taxa_SH_matching.R` — nothing is recomputed from sequence data, because the Species Hypothesis assignment is an external pipeline step (a containerised run of the TU-NHM `sh_matching` workflow against the UNITE reference). The best-hit similarity histogram that was Fig. 5A in an earlier version is now supplementary only (Figure S-E1a).*
+::::
+
+![](figures/main/Fig5_dark_taxa_SH.png)
+
+**Figure 5**: Winter dung is dominated by fungal lineages that carry no confident genus, and most of that fraction is not merely unnamed but absent from the reference database. **(A)** UNITE Species Hypothesis placement of all 493 dark OTUs — those the naïve-Bayes classifier leaves without a confident genus. The second and third categories are the same kind of outcome: neither falls inside an existing named Species Hypothesis, and they differ only in whether the sequence has any UNITE relative at all. "Candidate novel SH" has one (median best hit 92.0% identity across these 228 OTUs) and so inherits a partial lineage from its neighbours; "no reference within 80% id" has none, and additionally absorbs 13 OTUs that the pipeline filtered before the matching step. Together they are 331 of the 493 dark OTUs (67%). **(B)** Mean per-sample read share of the same categories, by season, with the named fraction added to reach 100% of reads (52 droppings, 26 per season; segments below 5% are unlabelled). This is the read-weighted counterpart to (A): counting OTUs says nothing about how much of a dropping they are. Candidate-novel lineages hold 29% of winter reads against 7% of summer reads (Wilcoxon *p* = 1.9 × 10⁻⁵), and the dark fraction as a whole is 51% of winter against 31% of summer reads. **(C)** The 30 dark OTUs with the highest mean winter read share (Table S-E1b), plotted as prevalence — the number of the 26 winter samples with any detection — against that mean share, coloured as in (A). OTU1369 is labelled: it is winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings, yet its best UNITE hit is only 85% similar, so it forms a candidate new Species Hypothesis rather than matching anything named.
+
+Roughly half of a typical winter dropping is reads that the canonical taxonomy cannot name (Section 3.4), and that single label covers two different problems. A little over a third of dark OTUs are near-identical to a UNITE reference and are dark only because `minBoot = 80` declines to commit to a genus at that bootstrap — a cost of conservatism, and one that Species Hypothesis matching largely recovers (of the 390 dark OTUs with a best hit at all, 37% sit at ≥ 99% identity; Figure S-E1a). But a comparable fraction of them (38%) sits below 95% identity, where no threshold adjustment would help, and panel A shows where that leads: 228 of the 493 dark OTUs (46%) form candidate new Species Hypotheses rather than matching an existing one, and a further 103 (21%) have no UNITE reference within 80% identity at all. Two thirds of the unnamed community is therefore unnamed because the reference lacks it, not because the classifier was cautious. Panel B supplies the weight behind that count, and it is strongly seasonal: candidate-novel lineages account for 29% of winter reads but only 7% of summer reads, so winter dung is not merely more dark than summer dung, it is dark in a different way — dominated by lineages with no named counterpart rather than by unnamed relatives of known ones. Panel C locates that signal in individual taxa: the dark OTUs carrying real winter read share are predominantly candidate-novel, and the most extreme of them, OTU1369, is simultaneously the most abundant and among the most prevalent OTUs in winter dung while being only 85% similar to its nearest named relative. One caveat travels with the figure throughout. "Candidate novel" is a statement about the reference database rather than a taxonomic claim: these are unimprinted clusters awaiting public sequence deposition and PlutoF registration (Section 3.4), so none of them yet carries a permanent identifier.
+
+```{r fig5-build}
+#| eval: false
+#| echo: !expr knitr::is_html_output()
+#| code-fold: true
+#| code-summary: "Full build code for Figure 5 — the source of truth for figures/main/Fig5_dark_taxa_SH.{png,jpg,pdf}"
+
+# Figure 5 -- Winter dung is dominated by unclassified, largely candidate-novel
+# lineages (E1). Every quantity here is READ from committed tables/ CSVs written
+# by 9_dark_taxa_SH_matching.R; nothing is recomputed from sequence data, because
+# the SH assignment itself is the expensive external step (a Singularity run of
+# the TU-NHM sh_matching pipeline against the UNITE reference, ~90 min).
+#   A  tables/E1_SH_assignment_summary.csv     (the 493 dark OTUs' placement)
+#   B  tables/E1_SH_readshare_by_sample.csv    (script 9 Section 4b, 52 samples)
+#   C  tables/E1_winter_dominant_dark_taxa_SH.csv (top 30 by winter read share)
+# tables/dark_taxa_SH_matching.csv is the per-OTU table all three are derived
+# from; it is read here purely as a drift guard on A and C.
+# Rebuild:  conda run -n r_env Rscript build_main_figure.R fig5-build
+
+suppressPackageStartupMessages({
+  library(ggplot2); library(patchwork)
+})
+
+tab_dir <- if (dir.exists("tables")) "tables" else
+           "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
+out_dir <- "figures/main"
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+grDevices::pdf(NULL)                                 # headless: no X11 fallback
+
+# ---- shared style ----------------------------------------------------------
+# ONE colour dimension across all three panels, so every coloured mark in the
+# figure means exactly one thing. Panels A and C show dark OTUs only and use the
+# last three levels; panel B adds the named fraction to reach 100% of reads.
+#
+# "Candidate novel SH" and "No reference within 80% id" are the SAME kind of
+# outcome -- neither falls inside an existing named SH -- and differ only in
+# whether the sequence has any UNITE relative at all. The palette says so: the
+# third level is a lightness tint of the second rather than an unrelated hue.
+# (Lightness contrast survives every form of colour-vision deficiency, so the
+# pair stays separable while still reading as one family.)
+STRAT_LEVELS <- c("Named (genus assigned)", "Placeable to existing SH",
+                  "Candidate novel SH", "No reference within 80% id")
+strat_cols <- c("Named (genus assigned)"     = "#B8B8B8",   # not a dark OTU
+                "Placeable to existing SH"   = "#0072B2",   # resolved
+                "Candidate novel SH"         = "#D55E00",   # the novel signal
+                "No reference within 80% id" = "#E8A87C")   # novel, no relative
+SH_LEVELS <- STRAT_LEVELS[-1]                        # the dark-OTU categories
+
+base_theme <- theme_classic(base_size = 12) +
+  theme(strip.background = element_blank(),
+        strip.text       = element_text(face = "bold"),
+        plot.tag         = element_text(face = "bold", size = 14),
+        plot.subtitle    = element_text(size = 9, colour = "grey30"),
+        panel.spacing    = unit(0.8, "lines"),
+        legend.key.size  = unit(0.42, "cm"),
+        legend.title     = element_text(size = 10),
+        legend.text      = element_text(size = 9))
+
+# One scale object reused by all three panels: patchwork can only collect guides
+# that are identical, so `limits` (not the data) fixes the key order everywhere.
+fill_scale <- scale_fill_manual(values = strat_cols, name = "Taxonomy / SH placement",
+                                limits = STRAT_LEVELS, drop = FALSE)
+
+# All in-plot text is ASCII: save_fig() falls back to grDevices::pdf when cairo is
+# unavailable, and that device silently substitutes a dot for a Unicode glyph.
+# no_SH_match and excluded_nonITS collapse into one displayed category -- see the
+# caption; Section 3.4 keeps them separate.
+sh_class_map <- c(placeable_existing_SH = "Placeable to existing SH",
+                  novel_new_SH          = "Candidate novel SH",
+                  no_SH_match           = "No reference within 80% id",
+                  excluded_nonITS       = "No reference within 80% id")
+
+# ============================================================================
+# Panel A -- where the 493 dark OTUs land
+# ============================================================================
+sh <- read.csv(file.path(tab_dir, "dark_taxa_SH_matching.csv"), stringsAsFactors = FALSE)
+stopifnot(is.logical(sh$is_dark), !anyNA(sh$is_dark), nrow(sh) == 1129L,
+          all(sh$SH_class %in% names(sh_class_map)))
+
+asum <- read.csv(file.path(tab_dir, "E1_SH_assignment_summary.csv"), check.names = FALSE)
+stopifnot(nrow(asum) == 1L)
+
+# Tabulated from the per-OTU table rather than read off the summary's four
+# fields, because two of those fields now collapse into one displayed bar.
+dark_cat <- factor(unname(sh_class_map[sh$SH_class[sh$is_dark]]), levels = SH_LEVELS)
+bdf <- data.frame(cat = factor(SH_LEVELS, levels = SH_LEVELS),
+                  n   = as.integer(table(dark_cat)[SH_LEVELS]))
+# Drift guard: the committed summary must still agree with the per-OTU table,
+# both in total and in the merge that produces the third bar.
+stopifnot(asum$n_dark == sum(sh$is_dark), sum(bdf$n) == asum$n_dark,
+          sum(asum$placeable_existing_SH, asum$novel_new_SH,
+              asum$no_SH_match, asum$excluded_nonITS) == asum$n_dark,
+          bdf$n[3] == asum$no_SH_match + asum$excluded_nonITS)
+bdf$pct <- 100 * bdf$n / asum$n_dark
+bdf$cat <- factor(bdf$cat, levels = rev(SH_LEVELS))   # first category at the top
+
+pA <- ggplot(bdf, aes(n, cat, fill = cat)) +
+  geom_col(width = 0.68, colour = "grey30", linewidth = 0.15) +
+  geom_text(aes(label = sprintf("%d  (%.0f%%)", n, pct)), hjust = -0.12,
+            size = 3.1, colour = "grey25") +
+  fill_scale +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.42))) +
+  scale_y_discrete(labels = function(x) sub(" (to existing SH|within 80% id)",
+                                            "\n\\1", x)) +
+  labs(x = sprintf("Dark OTUs (n = %d)", asum$n_dark), y = NULL,
+       subtitle = "Every OTU with no\nconfident genus\nassignment.") +
+  base_theme +
+  guides(fill = "none")
+
+# ============================================================================
+# Panel B -- how much of a dropping each stratum accounts for, by season
+# ============================================================================
+# Panel A counts OTUs, which says nothing about how much of the community they
+# are; this panel is the read-weighted view and the one that carries the
+# figure's claim. Written per sample by 9_dark_taxa_SH_matching.R Section 4b, so
+# the mean and the test below come from the same committed file.
+rs <- read.csv(file.path(tab_dir, "E1_SH_readshare_by_sample.csv"),
+               stringsAsFactors = FALSE)
+rs_map <- c("Named"                   = "Named (genus assigned)",
+            "Dark: placeable"         = "Placeable to existing SH",
+            "Dark: candidate novel"   = "Candidate novel SH",
+            "Dark: no reference <80%" = "No reference within 80% id")
+stopifnot(all(rs$stratum %in% names(rs_map)), all(rs$Season %in% c("winter", "summer")))
+rs$cat <- factor(unname(rs_map[rs$stratum]), levels = STRAT_LEVELS)
+# Compositional guard: the four strata must exhaust each sample's reads.
+stopifnot(abs(tapply(rs$read_share, rs$sample, sum) - 1) < 1e-6,
+          length(unique(rs$sample)) == 52L)
+
+# Season is capitalised for display only; winter first because the figure's
+# subject is the winter community.
+rs$Season <- factor(sub("^(.)", "\\U\\1", rs$Season, perl = TRUE),
+                    levels = c("Winter", "Summer"))
+bar <- aggregate(read_share ~ Season + cat, data = rs, FUN = mean)
+bar$pct <- 100 * bar$read_share
+bar <- bar[order(bar$Season, bar$cat), ]
+# Label positions are computed here rather than left to position_stack. The text
+# layer plots a SUBSET (segments too thin to hold a label), and position_stack
+# re-stacks whatever data it is given -- so the two layers would silently drift
+# apart in any season where a segment is dropped. geom_col stacks the first
+# factor level on top, hence the descending cumulative.
+bar$ymid <- unlist(lapply(split(bar$pct, bar$Season), function(v)
+  (sum(v) - cumsum(c(0, head(v, -1)))) - v / 2))
+# Drift guard: these means must reproduce the per-OTU table's season columns,
+# which are computed independently (script 9 Section 4, not 4b).
+chk <- vapply(split(seq_len(nrow(sh)), factor(
+                ifelse(sh$is_dark, unname(sh_class_map[sh$SH_class]),
+                       "Named (genus assigned)"), levels = STRAT_LEVELS)),
+              function(i) sum(sh$winter_mean_share[i]), numeric(1))
+win <- setNames(bar$read_share[bar$Season == "Winter"],
+                as.character(bar$cat[bar$Season == "Winter"]))
+stopifnot(max(abs(chk[STRAT_LEVELS] - win[STRAT_LEVELS])) < 1e-6)
+
+nov <- rs[rs$cat == "Candidate novel SH", ]
+nov_p <- wilcox.test(read_share ~ Season, data = nov)$p.value
+nov_m <- tapply(100 * nov$read_share, nov$Season, mean)
+
+pB <- ggplot(bar, aes(Season, pct, fill = cat)) +
+  geom_col(width = 0.62, colour = "grey30", linewidth = 0.15) +
+  # Labelled inside the segment it belongs to; segments under 5% have no room,
+  # and the axis already places them.
+  geom_text(data = bar[bar$pct >= 5, ],
+            aes(y = ymid, label = sprintf("%.0f%%", pct),
+                colour = cat == "Candidate novel SH"),
+            size = 3.0, show.legend = FALSE) +
+  scale_colour_manual(values = c(`TRUE` = "white", `FALSE` = "grey20")) +
+  fill_scale +
+  # coord_cartesian, not scale limits: position_stack sums to 1 and the scale is
+  # applied AFTER stacking, so a limit of exactly 100 drops the top segment on a
+  # floating-point overshoot (ggplot2 4.0 warns "Removed 1 row").
+  scale_y_continuous(breaks = seq(0, 100, 25), expand = expansion(mult = c(0, 0.02))) +
+  coord_cartesian(ylim = c(0, 100)) +
+  labs(x = NULL, y = "Mean per-sample read share (%)",
+       subtitle = sprintf("Mean per-sample read share.\nCandidate-novel: %.0f%% winter vs\n%.0f%% summer (p = %s).",
+                          nov_m[["Winter"]], nov_m[["Summer"]],
+                          format(signif(nov_p, 2), scientific = TRUE))) +
+  base_theme +
+  # The figure's one legend lives here: panel B is the only one that carries all
+  # four levels, and its geom_col draws square keys, which read correctly for
+  # both the bars here and the points in C. A and C suppress theirs.
+  guides(fill = guide_legend(order = 1, nrow = 1))
+
+# ============================================================================
+# Panel C -- the winter-abundant dark OTUs
+# ============================================================================
+# The committed top-30-by-winter-read-share table, so the panel's membership is a
+# published definition rather than a threshold invented for the figure.
+wd <- read.csv(file.path(tab_dir, "E1_winter_dominant_dark_taxa_SH.csv"),
+               stringsAsFactors = FALSE)
+stopifnot(nrow(wd) == 30L, all(wd$winter_n == 26L), all(wd$OTU_ID %in% sh$OTU_ID))
+wd$cat <- factor(unname(sh_class_map[wd$SH_class]), levels = SH_LEVELS)
+wd$share_pct <- 100 * wd$winter_mean_share
+# Drift guard: this table must be the top 30 of the per-OTU table it came from.
+top30 <- sh$OTU_ID[sh$is_dark][order(-sh$winter_mean_share[sh$is_dark])][1:30]
+stopifnot(setequal(wd$OTU_ID, top30))
+
+lab <- wd[wd$OTU_ID == "OTU1369", ]
+stopifnot(nrow(lab) == 1L, lab$winter_occ == 20L)     # agrees with Fig. 4D
+lab$txt <- sprintf("OTU1369\ncandidate novel SH, %.0f%% id\n%.1f%% of winter reads, %d/%d samples",
+                   lab$similarity_percentage, lab$share_pct, lab$winter_occ, lab$winter_n)
+
+pC <- ggplot(wd, aes(winter_occ, share_pct, fill = cat)) +
+  geom_point(shape = 21, size = 3.2, colour = "grey25", stroke = 0.4, alpha = 0.9) +
+  # Hung below-left of the marker rather than centred on it, so the point stays
+  # visibly a data point instead of reading as punctuation inside the text.
+  geom_text(data = lab, aes(label = txt), inherit.aes = FALSE,
+            x = lab$winter_occ - 0.8, y = lab$share_pct - 0.7, hjust = 1, vjust = 1,
+            size = 2.9, lineheight = 1.05, colour = "grey20") +
+  fill_scale +
+  scale_x_continuous(limits = c(0, 26), breaks = seq(0, 25, 5),
+                     expand = expansion(mult = c(0.02, 0.02))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.10))) +
+  labs(x = sprintf("Prevalence (of %d winter samples)", wd$winter_n[1]),
+       y = "Mean winter read share (%)",
+       subtitle = "The 30 dark OTUs with the\nhighest mean winter read\nshare (Table S-E1b).") +
+  base_theme +
+  guides(fill = "none")
+
+# ---- assemble and write ----------------------------------------------------
+# Explicit widths rather than nested `/` and `|`: patchwork FLATTENS a chain of
+# `/`, so a mixed layout can silently become extra rows.
+fig5 <- pA + pB + pC +
+  plot_layout(nrow = 1, widths = c(1.1, 0.75, 1.5), guides = "collect") +
+  plot_annotation(tag_levels = "A") &
+  theme(legend.position = "bottom", legend.box = "horizontal")
+
+# Every main figure is written three ways: PNG and JPG (600 dpi raster, for
+# submission systems that demand one or the other) and PDF (vector, for print).
+save_fig <- function(stem, obj, width, height, res = 600) {
+  one <- function(open_dev) { open_dev(); on.exit(grDevices::dev.off()); print(obj) }
+  one(function() grDevices::png(paste0(stem, ".png"), width = width, height = height,
+                                units = "in", res = res))
+  one(function() grDevices::jpeg(paste0(stem, ".jpg"), width = width, height = height,
+                                 units = "in", res = res, quality = 95))
+  pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
+  one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
+}
+save_fig(file.path(out_dir, "Fig5_dark_taxa_SH"), fig5, 10, 5.0)
+
+# ---- console summary -------------------------------------------------------
+cat(sprintf("Dark OTUs (n = %d) by SH placement:\n", asum$n_dark))
+print(data.frame(placement = SH_LEVELS,
+                 n = bdf$n[match(SH_LEVELS, as.character(bdf$cat))],
+                 pct = round(bdf$pct[match(SH_LEVELS, as.character(bdf$cat))], 1)),
+      row.names = FALSE)
+cat("\nMean per-sample read share (%), by season:\n")
+print(round(100 * xtabs(read_share ~ cat + Season, data = bar), 2))
+cat(sprintf("\nCandidate-novel read share: winter %.1f%% vs summer %.1f%%, Wilcoxon p = %.3g\n",
+            nov_m[["Winter"]], nov_m[["Summer"]], nov_p))
+cat("\nTop 10 winter-abundant dark OTUs:\n")
+o <- order(-wd$share_pct)[1:10]
+print(data.frame(OTU = wd$OTU_ID[o], class = sub("^c__", "", wd$Class[o]),
+                 winter_pct = round(wd$share_pct[o], 2),
+                 prevalence = sprintf("%d/%d", wd$winter_occ[o], wd$winter_n[o]),
+                 id = wd$similarity_percentage[o],
+                 placement = as.character(wd$cat[o])), row.names = FALSE)
 ```
 
 ::: {.content-visible when-profile="docs"}
