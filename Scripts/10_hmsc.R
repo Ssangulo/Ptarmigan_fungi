@@ -68,7 +68,8 @@
 #            hmsc_probit_beta_season.csv, hmsc_vs_gllvm_season.csv,
 #            hmsc_omega_sample.csv, hmsc_predictive_R2.csv,
 #            hmsc_predictive_R2_summary.csv, hmsc_pcr_replicate_variance.csv,
-#            hmsc_pcr_replicate_variance_perOTU.csv, hmsc_rho_phylo.csv
+#            hmsc_pcr_replicate_variance_perOTU.csv, hmsc_rho_phylo.csv,
+#            hmsc_phylo_season_correlogram.csv
 #   plots/   hmsc_variance_partition.png, hmsc_gamma.png, hmsc_probit_gamma.png,
 #            hmsc_beta_season.png, hmsc_vs_gllvm_season.png,
 #            hmsc_omega_sample.png, hmsc_R2_explanatory_vs_cv.png,
@@ -763,6 +764,44 @@ if (!is.null(m_phy)) {
               rho_tbl$beta_season_cor_vs_main, rho_tbl$gamma_cor_vs_main))
 } else cat("Phylo variant not run (HMSC_RUN_PHYLO != 1); hmsc_rho_phylo.csv left as is.\n")
 
+# -----------------------------------------------------------------------------
+# SECTION 6.6b -- WHERE in the tree the seasonal similarity sits (correlogram)
+# rho is one number for the whole tree. This asks at which phylogenetic scale
+# related OTUs respond alike to Season: pairs of OTUs are binned by patristic
+# distance (ML GTR+I+G tree from 6_diversity_analyses.R, expected substitutions
+# per site) and, within each bin, the two OTUs' Season responses are
+# correlated. It uses the HEADLINE model's standardised Season Beta, which
+# contains no phylogeny, so it is not circular with rho. Null: OTU labels
+# permuted over the tree (500 permutations) -- the correlation expected if
+# responses were unrelated to ancestry. Nothing is removed: near-identical OTUs
+# are LULU survivors (distinct co-occurrence), so they stay in.
+# -----------------------------------------------------------------------------
+tree_path <- "/home/daniel/Ptarmigan/trimmed/mergedPlates/tree.rds"
+if (file.exists(tree_path)) {
+  tro <- readRDS(tree_path); tro <- if (inherits(tro, "phyloseq")) phy_tree(tro) else tro
+  tr_c <- ape::keep.tip(tro, intersect(tro$tip.label, beta_tbl$OTU_ID))
+  stopifnot(setequal(tr_c$tip.label, beta_tbl$OTU_ID))
+  Dp <- ape::cophenetic.phylo(tr_c)[beta_tbl$OTU_ID, beta_tbl$OTU_ID]
+  xs <- setNames(beta_tbl$beta_season_std_mean, beta_tbl$OTU_ID)
+  ij <- which(upper.tri(Dp), arr.ind = TRUE); dd <- Dp[ij]
+  DIST_BREAKS <- c(0, 0.005, 0.02, 0.1, 0.5, 1, 1.5, Inf)
+  cls <- cut(dd, DIST_BREAKS, include.lowest = TRUE)
+  pair_cor <- function(v, w) cor(c(v[ij[w, 1]], v[ij[w, 2]]), c(v[ij[w, 2]], v[ij[w, 1]]))
+  set.seed(20260930)
+  perms <- replicate(500, sample(xs), simplify = FALSE)
+  cgram <- do.call(rbind, lapply(levels(cls), function(k) {
+    w <- which(cls == k); r <- pair_cor(xs, w)
+    nul <- vapply(perms, function(p) pair_cor(p, w), numeric(1))
+    data.frame(distance_class = k, n_pairs = length(w), r = round(r, 3),
+               null_2.5 = round(quantile(nul, 0.025), 3), null_97.5 = round(quantile(nul, 0.975), 3),
+               p_two_sided = round(mean(abs(nul) >= abs(r)), 3), stringsAsFactors = FALSE)
+  }))
+  n_near <- sum(apply(Dp + diag(Inf, nrow(Dp)), 1, min) <= 0.005)
+  cgram$n_otu_with_neighbour_le_0.005 <- n_near
+  write_tab(cgram, "hmsc_phylo_season_correlogram.csv")
+  cat(sprintf("Season-response correlogram (%d OTUs with a neighbour within 0.005):\n", n_near)); print(cgram)
+}
+
 # =============================================================================
 # SECTION 6.7 -- PCR-REPLICATE VARIANCE, model-free
 # =============================================================================
@@ -857,7 +896,7 @@ if (dir.exists(SUPP_DIR)) {
             "hmsc_beta_season.csv","hmsc_probit_beta_season.csv","hmsc_vs_gllvm_season.csv",
             "hmsc_predictive_R2.csv","hmsc_predictive_R2_summary.csv",
             "hmsc_pcr_replicate_variance.csv","hmsc_pcr_replicate_variance_perOTU.csv",
-            "hmsc_rho_phylo.csv")
+            "hmsc_rho_phylo.csv","hmsc_phylo_season_correlogram.csv")
   figs <- figs[file.exists(file.path(plot_dir, figs))]
   tabs <- tabs[file.exists(file.path(out_dir,  tabs))]
   invisible(file.copy(file.path(plot_dir, figs), supp_fig, overwrite = TRUE))
