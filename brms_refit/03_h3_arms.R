@@ -6,6 +6,14 @@
 #             L2 : negbinomial, shape ~ 1 + (1 | OTU)
 #             L3 : hurdle_negbinomial, hu ~ 1 + Season + (1 + Season || OTU)
 #             L4 : zero_inflated_negbinomial, zi ~ 1 + (1 | OTU)
+#             L5 : as L3, plus the plant slopes (global + per OTU) in hu as well,
+#                  so plants can act on OCCURRENCE and not only on abundance
+#                  given presence (added after the first pilot round: L3 was the
+#                  only arm to converge and reproduce the data)
+#             L6 : as L5, plus Year (global + per OTU) in hu -- winter diet
+#                  variation is concentrated in 2022, so without it an
+#                  occurrence plant slope can be a per-OTU 2022 effect.
+#                  Requires H3_STRUCT=SY.
 #   H3_STRUCT S  : per-OTU Season + plant slopes
 #             SY : per-OTU Season + Year + plant slopes
 #   H3_PRED   species (4: Betula, V. myrtillus, V. uliginosum, E. nigrum) | genus (3)
@@ -28,7 +36,7 @@ STRUCT <- Sys.getenv("H3_STRUCT", "S")
 PRED   <- Sys.getenv("H3_PRED", "species")
 MODE   <- Sys.getenv("H3_MODE", "pilot")
 ADAPT  <- as.numeric(Sys.getenv("H3_ADAPT_DELTA", "0.95"))
-stopifnot(ARM %in% c("L1","L2","L3","L4"), STRUCT %in% c("S","SY"),
+stopifnot(ARM %in% c("L1","L2","L3","L4","L5","L6"), STRUCT %in% c("S","SY"),
           PRED %in% c("species","genus"), MODE %in% c("pilot","prod"))
 
 here <- dirname(sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1]))
@@ -55,9 +63,15 @@ form <- switch(ARM,
   L1 = bf(mu_form),
   L2 = bf(mu_form, shape ~ 1 + (1 | OTU)),
   L3 = bf(mu_form, hu ~ 1 + Season + (1 + Season || OTU)),
-  L4 = bf(mu_form, zi ~ 1 + (1 | OTU)))
-fam <- switch(ARM, L1 = negbinomial(), L2 = negbinomial(),
-              L3 = hurdle_negbinomial(), L4 = zero_inflated_negbinomial())
+  L4 = bf(mu_form, zi ~ 1 + (1 | OTU)),
+  L5 = bf(mu_form, as.formula(sprintf("hu ~ 1 + Season + %s + (1 + Season + %s || OTU)",
+                                      plant_terms, plant_terms))),
+  L6 = bf(mu_form, as.formula(sprintf(
+    "hu ~ 1 + Season + Year + %s + (1 + Season + Year + %s || OTU)", plant_terms, plant_terms))))
+fam <- switch(ARM, L1 = negbinomial(), L2 = negbinomial(), L3 = hurdle_negbinomial(),
+              L4 = zero_inflated_negbinomial(), L5 = hurdle_negbinomial(),
+              L6 = hurdle_negbinomial())
+stopifnot(ARM != "L6" || STRUCT == "SY")
 
 # Priors: b / Intercept / plant-slope SDs verbatim from script 6; the OTU
 # intercept, Season and Year SDs are widened so season-exclusive OTUs are
@@ -68,6 +82,12 @@ pri <- c(set_prior("normal(0,1)",        class = "b"),
          set_prior("student_t(3,0,0.5)", class = "sd"),
          do.call(c, lapply(wide, function(cf)
            set_prior("student_t(3,0,2.5)", class = "sd", group = "OTU", coef = cf))))
+# L5: same regularisation for the occurrence-part plant slopes as for the
+# abundance-part ones (logit scale).
+if (ARM %in% c("L5", "L6")) pri <- c(pri,
+  set_prior("normal(0,1)", class = "b", dpar = "hu"),
+  do.call(c, lapply(plant_var, function(cf)
+    set_prior("student_t(3,0,0.5)", class = "sd", group = "OTU", coef = cf, dpar = "hu"))))
 
 fit <- brm(form, data = long, family = fam, prior = pri,
            chains = 4, iter = mc$iter, warmup = mc$warmup, cores = 4,

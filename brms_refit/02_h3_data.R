@@ -170,16 +170,45 @@ score_h3 <- function(fit, plant_var, tag, ppc_draws = 500) {
   res90_dom <- (s_l90[idx] > 0) | (s_u90[idx] < 0)
   res95_any <- rowSums((s_l95 > 0) | (s_u95 < 0)) > 0
 
+  # occurrence-part plant slopes, when the arm has them (hurdle arm L5).
+  # NB hu is P(zero): a NEGATIVE hu slope means the OTU is detected MORE often.
+  hu_idx <- match(paste0("hu_", plant_var), dimnames(co)[[3]])
+  hu <- if (anyNA(hu_idx)) NULL else {
+    hs <- co[, , hu_idx, drop = FALSE]
+    list(med = apply(hs, c(2, 3), median),
+         l95 = apply(hs, c(2, 3), quantile, 0.025), u95 = apply(hs, c(2, 3), quantile, 0.975))
+  }
+
   gg <- guild_groups(otu_ids)
-  contrast_of <- function(grp, label) {
+  # OTU-specific DEVIATIONS from the community-wide plant slope. H3 asks whether
+  # OTUs differ from one another, so a slope shared by every OTU (a global plant
+  # effect) is not specificity; the deviation is.
+  re <- ranef(fit, summary = FALSE)$OTU
+  dev_block <- function(prefix) {
+    i <- match(paste0(prefix, plant_var), dimnames(re)[[3]]); if (anyNA(i)) return(NULL)
+    a <- re[, , i, drop = FALSE]
+    l <- apply(a, c(2, 3), quantile, 0.025); u <- apply(a, c(2, 3), quantile, 0.975)
+    list(med = apply(a, c(2, 3), median), l95 = l, u95 = u,
+         n_by_plant = setNames(colSums((l > 0) | (u < 0)), plant_var))
+  }
+  dev_mu <- dev_block(""); dev_hu <- dev_block("hu_")
+  hu_spec <- if (is.null(hu)) NULL else {
+    hs <- abs(co[, , hu_idx, drop = FALSE])
+    list(hhi_pt = apply(hu$med, 1, hhi_of),
+         hhi_dr = sapply(seq_along(otu_ids), function(o) { a <- hs[, o, ]; rowSums((a / rowSums(a))^2) }),
+         p_top  = t(sapply(seq_along(otu_ids), function(o)
+                    tabulate(max.col(hs[, o, ], ties.method = "first"), nbins = k) / dim(hs)[1])))
+  }
+
+  contrast_of <- function(grp, label, part = "abundance", hp = hhi_pt, hd = hhi_dr, pt = p_top) {
     ci <- which(grp == "coprophilous"); pi <- which(grp == "plant_associated")
-    dd <- rowMeans(hhi_dr[, ci, drop = FALSE]) - rowMeans(hhi_dr[, pi, drop = FALSE])
-    data.frame(tag = tag, grouping = label, n_copro = length(ci), n_plant = length(pi),
-      copro_hhi_med = median(hhi_pt[ci]), plant_hhi_med = median(hhi_pt[pi]),
-      wilcox_p_copro_lower = suppressWarnings(wilcox.test(hhi_pt[ci], hhi_pt[pi], alternative = "less")$p.value),
+    dd <- rowMeans(hd[, ci, drop = FALSE]) - rowMeans(hd[, pi, drop = FALSE])
+    data.frame(tag = tag, part = part, grouping = label, n_copro = length(ci), n_plant = length(pi),
+      copro_hhi_med = median(hp[ci]), plant_hhi_med = median(hp[pi]),
+      wilcox_p_copro_lower = suppressWarnings(wilcox.test(hp[ci], hp[pi], alternative = "less")$p.value),
       P_copro_more_diffuse = mean(dd < 0),
-      copro_ptop_med = median(apply(p_top[ci, , drop = FALSE], 1, max)),
-      plant_ptop_med = median(apply(p_top[pi, , drop = FALSE], 1, max)),
+      copro_ptop_med = median(apply(pt[ci, , drop = FALSE], 1, max)),
+      plant_ptop_med = median(apply(pt[pi, , drop = FALSE], 1, max)),
       stringsAsFactors = FALSE)
   }
 
@@ -204,6 +233,11 @@ score_h3 <- function(fit, plant_var, tag, ppc_draws = 500) {
     sd_plant_max = max(sapply(plant_var, function(v) sdv(paste0("sd_OTU__", v)))),
     n_otu_dom_resolved90 = sum(res90_dom), n_otu_any_resolved95 = sum(res95_any),
     n_otu_ptop_gt_0.8 = sum(apply(p_top, 1, max) > 0.8),
+    sd_hu_plant_min = if (is.null(hu)) NA_real_ else min(sapply(plant_var, function(v) sdv(paste0("sd_OTU__hu_", v)))),
+    sd_hu_plant_max = if (is.null(hu)) NA_real_ else max(sapply(plant_var, function(v) sdv(paste0("sd_OTU__hu_", v)))),
+    n_otu_hu_any_resolved95 = if (is.null(hu)) NA_integer_ else sum(rowSums((hu$l95 > 0) | (hu$u95 < 0)) > 0),
+    n_dev_resolved95_mu = sum(dev_mu$n_by_plant),
+    n_dev_resolved95_hu = if (is.null(dev_hu)) NA_integer_ else sum(dev_hu$n_by_plant),
     stringsAsFactors = FALSE)
   card$pass_convergence <- with(card, divergences == 0 & max_rhat < 1.01 & min_ess_bulk > 400)
   card$pass_ppc <- with(card, obs_mean >= ppc_mean_lwr & obs_mean <= ppc_mean_upr &
@@ -217,7 +251,13 @@ score_h3 <- function(fit, plant_var, tag, ppc_draws = 500) {
                         stringsAsFactors = FALSE)
   sd_tab <- smx[grepl("^(sd_|shape$|b_)", smx$variable), ]
   list(card = card, per_otu = per_otu, slope_med = s_med, slope_l95 = s_l95, slope_u95 = s_u95,
-       p_top = p_top, contrast = rbind(contrast_of(gg$guild_group, "FUNGuild"),
-                                       contrast_of(gg$group_genus, "COPRO_GENERA")),
+       p_top = p_top, hu = hu, dev_mu = dev_mu, dev_hu = dev_hu,
+       contrast = rbind(contrast_of(gg$guild_group, "FUNGuild"),
+                        contrast_of(gg$group_genus, "COPRO_GENERA"),
+                        if (!is.null(hu_spec)) rbind(
+                          contrast_of(gg$guild_group, "FUNGuild", "occurrence",
+                                      hu_spec$hhi_pt, hu_spec$hhi_dr, hu_spec$p_top),
+                          contrast_of(gg$group_genus, "COPRO_GENERA", "occurrence",
+                                      hu_spec$hhi_pt, hu_spec$hhi_dr, hu_spec$p_top))),
        hyper = as.data.frame(sd_tab), loo = lo)
 }
