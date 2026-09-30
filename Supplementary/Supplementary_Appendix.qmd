@@ -2156,26 +2156,48 @@ The biological-sample latent factors capture the co-occurrence structure that re
 
 ### 9.6 Phylogenetic signal in seasonal niches
 
-::: callout-warning
-**Not yet re-run on the revised model (2026-09-29).** The phylogenetic variant below was fitted on the superseded, non-converged CLR structure (Section 9.1). Its ρ and the correlations with the main model in Table S-HMSCf refer to that structure. Re-fitting it on the headline model is pending a decision (`HMSC_RUN_PHYLO=1` in `Scripts/10_hmsc.R`).
-:::
-
-Adding the OTU phylogeny to the CLR model estimates rho, the degree to which closely related fungi share environmental niches. The signal is substantial and well-identified.
+<!-- CLAUDE DRAFT 2026-09-30 (phylogeny re-run on the headline model): rewrite freely -->
+Adding the OTU phylogeny (the maximum-likelihood ITS2 tree of `Scripts/6_diversity_analyses.R`, pruned to the 226 modelled OTUs) to the headline model estimates ρ: the share of the OTU-to-OTU variation in responses, left after the guild trait, that follows the phylogeny under a Brownian-motion model. The chains converge and agree on ρ (Table S-HMSCb, Table S-HMSCf), and adding the phylogeny leaves the per-OTU niches and the guild link essentially unchanged.
 
 ```{r tab-hmsc-rho}
 #| echo: false
 library(knitr)
 rh <- read.csv("tables/hmsc_rho_phylo.csv", stringsAsFactors = FALSE)
 kable(data.frame(
-  `ρ (median)` = round(rh$median, 2),
-  `95% CrI` = sprintf("[%.2f, %.2f]", rh$CrI_2.5, rh$CrI_97.5),
-  `P(ρ>0)` = rh$P_gt0, ESS = rh$ess, PSRF = round(rh$psrf, 2),
+  `ρ (median)` = round(rh$median, 3),
+  `95% CrI` = sprintf("[%.3f, %.3f]", rh$CrI_2.5, rh$CrI_97.5),
+  `P(ρ>0)` = rh$P_gt0, ESS = rh$ess, PSRF = round(rh$psrf, 3),
+  `Chain medians` = rh$rho_chain_medians,
   check.names = FALSE),
   row.names = FALSE,
-  caption = "Table S-HMSCf. Phylogenetic signal parameter ρ from the phylogeny-augmented CLR model. Adding the phylogeny leaves the per-OTU niches and trait link essentially unchanged (Beta / Gamma correlation with the main model ≈ 0.94 / 0.90), so ρ is a genuine additional signal rather than a re-description of the fixed effects.")
+  caption = sprintf("Table S-HMSCf. Phylogenetic signal parameter ρ from the phylogeny-augmented version of the headline CLR model (same data and structure). ρ is sampled on a grid with steps of 0.005 from 0.905 to 0.995 and 0.05 below; the prior keeps HMSC's usual 0.5 point mass at ρ = 0 and spreads the rest uniformly over (0, 1). Adding the phylogeny leaves the per-OTU niches and trait link essentially unchanged (Season Beta / Gamma correlation with the headline model %.2f / %.2f).",
+                    rh$beta_season_cor_vs_main, rh$gamma_cor_vs_main))
 ```
 
-With **ρ ≈ 0.72 (95% CrI \[0.60, 0.80\], P(ρ \> 0) = 1)**, seasonal niches are **phylogenetically conserved**: related lineages tend to shift together between winter and summer. This dovetails with the guild result — because guild is itself partly phylogenetically structured, the coprophilous summer signature is echoed as a broader phylogenetic pattern. It is reported as a secondary, exploratory result (the phylogeny-augmented model is a supplementary variant), but it is a clean, non-trivial one.
+<!-- CLAUDE DRAFT 2026-09-30: rewrite freely -->
+**ρ is effectively 1.** Its posterior median is 0.985 (95% CrI \[0.945, 0.995\]), and the posterior rises steadily toward the top of the grid, with a quarter of all draws on its highest point. That upper limit is set by the grid, not the data: ρ = 1 itself cannot be fitted, because OTUs with near-identical sequences have near-zero branch lengths and the phylogenetic covariance becomes singular. Under the model, essentially all of the variation in responses left after guild is phylogenetically structured. This replaces the ρ ≈ 0.72 reported from the earlier, non-converged model structure (Section 9.1), whose uncapped latent factors absorbed part of the same variation. Note that ρ applies to an OTU's responses jointly — baseline abundance, Season and Year together.
+
+A single ρ does not say at which scale relatives resemble each other, and it does not isolate Season. Table S-HMSCf2 therefore correlates the Season responses of every pair of OTUs, binned by their distance in the tree. It uses the headline model's coefficients, which contain no phylogeny, so the comparison is not circular.
+
+```{r tab-hmsc-correlogram}
+#| echo: false
+library(knitr)
+cg <- read.csv("tables/hmsc_phylo_season_correlogram.csv", stringsAsFactors = FALSE)
+kable(data.frame(
+  `Tree distance (subst./site)` = cg$distance_class,
+  `OTU pairs` = format(cg$n_pairs, big.mark = ","),
+  `Correlation of Season responses` = sprintf("%.2f", cg$r),
+  `Range expected by chance (95%)` = sprintf("[%.2f, %.2f]", cg$null_2.5, cg$null_97.5),
+  p = ifelse(cg$p_two_sided < 0.002, "< 0.002", sprintf("%.3f", cg$p_two_sided)),
+  check.names = FALSE),
+  row.names = FALSE,
+  caption = sprintf("Table S-HMSCf2. Phylogenetic correlogram of seasonal responses. All %s pairs of the 226 modelled OTUs are binned by patristic distance in the ML tree (expected substitutions per site); within each bin, the two OTUs' standardised Season coefficients from the headline model are correlated (symmetric pairwise correlation). The chance range and p come from 500 permutations of OTU labels over the tree. Nothing is excluded: the %d OTUs with a neighbour within 0.005 are kept.",
+                    format(sum(cg$n_pairs), big.mark = ","), cg$n_otu_with_neighbour_le_0.005[1]))
+```
+
+Close relatives respond alike, and the resemblance reaches well beyond near-identical sequences. The 27 pairs within 0.005 substitutions per site correlate at 0.82, pairs up to 0.1 at 0.63–0.65, and the 1,283 pairs at 0.1–0.5 — roughly genus-to-family distance — still at 0.40, each far above the range expected by chance. The resemblance fades by 0.5–1 (0.08) and reverses at the deepest splits (−0.10): the most distant lineages tend to respond to season in opposite directions. Near-identical sequences therefore do not drive the signal — they are 27 of about 25,000 pairs — and they are retained: they survived LULU curation, which merges a sequence into a close relative only when the two co-occur, so they are distinct units rather than sequencing duplicates.
+
+Seasonal niches are **phylogenetically conserved**, most clearly at the genus-to-family scale, with the deepest lineages contrasting. This dovetails with the guild result — because guild is itself partly phylogenetically structured, the coprophilous summer signature is echoed as a broader phylogenetic pattern. It is reported as a secondary, exploratory result: the phylogeny-augmented model is a supplementary variant, and ρ at the upper edge of its range is better read as "strongly structured" than as a precise value.
 
 ### 9.7 What the model predicts — and its honest limit
 
