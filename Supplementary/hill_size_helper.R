@@ -1,6 +1,6 @@
 # Shared helper: size-standardised Hill numbers via iNEXT.3D.
 #
-# SINGLE SOURCE for the appendix. Sourced by the `sec5-build` and `fig3-build`
+# SINGLE SOURCE for the appendix. Sourced by the `sec5-build` and `fig4-build`
 # chunks of Supplementary_Appendix.qmd so Section 5 and main-text Figure 3
 # cannot drift apart. `Scripts/6_diversity_analyses.R` carries a verbatim copy
 # of the same two functions (it must stay standalone, like every numbered

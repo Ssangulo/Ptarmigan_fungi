@@ -270,7 +270,7 @@ sh <- left_join(sh, occ, by = "OTU_ID")
 # candidate-novel lineages dominate winter dung") can be shown and tested rather
 # than asserted. Strata collapse no_SH_match together with excluded_nonITS: both
 # mean "no UNITE reference within 80% identity was established for this OTU", and
-# the figure draws them as one bar (see the appendix Section 10.4 caption).
+# the figure draws them as one bar (see the appendix Section 10.5 caption).
 sh_stratum <- c(placeable_existing_SH = "Dark: placeable",
                 novel_new_SH          = "Dark: candidate novel",
                 no_SH_match           = "Dark: no reference <80%",
@@ -462,7 +462,7 @@ invisible(file.copy(file.path(plot_dir, c("E1_SH_similarity_hist.png",
                                           "E1_dark_taxa_novel_vs_placeable.png")),
                     supp_fig, overwrite = TRUE))
 # dark_taxa_SH_matching.csv is staged too: it is the per-OTU source main-text
-# Fig. 4 (appendix Section 10.4) uses as its drift guard. The three E1_* files
+# Fig. 5 (appendix Section 10.5) uses as its drift guard. The three E1_* files
 # below serve its panels: assignment_summary + the per-OTU table for A,
 # readshare_by_sample (Section 4b) for B, winter_dominant for C.
 invisible(file.copy(file.path(out_dir, c("E1_SH_assignment_summary.csv",

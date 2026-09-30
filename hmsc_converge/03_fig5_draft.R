@@ -1,7 +1,7 @@
 # =============================================================================
 # hmsc_converge/03_fig5_draft.R  (branch exp/hmsc-converge -- experimental)
-# Draft Figure 5 from a new fit WITHOUT copying or editing the figure code: the
-# fig5-build chunk is read from main's Supplementary_Appendix.qmd, its input
+# Draft Figure 3 (the HMSC figure; Figure 5 before the 2026-09-30 renumber) from a new fit WITHOUT copying or editing the figure code: the
+# fig3-build chunk is read from main's Supplementary_Appendix.qmd, its input
 # (tab_dir) and output (out_dir) are repointed at models|plots/hmsc_v2, and its
 # drift guards are downgraded to messages -- so every guard that trips is a
 # printed list of exactly which quoted numbers the new model moves.
@@ -26,7 +26,7 @@ supp_tab <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
 file.copy(file.path(supp_tab, "dark_taxa_SH_matching.csv"), tdir, overwrite = TRUE)
 
 lines <- readLines(qmd)
-s <- grep("^```\\{r fig5-build\\}", lines)
+s <- grep("^```\\{r fig3-build\\}", lines)
 e <- s + which(lines[(s + 1):length(lines)] == "```")[1]
 code <- lines[(s + 1):(e - 1)]
 code <- code[!grepl("^#\\|", code)]
@@ -38,7 +38,7 @@ sub1 <- function(pat, rep) {
 }
 sub1('^tab_dir <- if \\(dir.exists\\("tables"\\)\\)', sprintf('tab_dir <- "%s"; if (FALSE)', tdir))
 sub1('^out_dir <- "figures/main"', sprintf('out_dir <- "%s"', odir))
-sub1('^save_fig\\(file.path\\(out_dir, "Fig5_hmsc_synthesis"\\)',
+sub1('^save_fig\\(file.path\\(out_dir, "Fig3_hmsc_synthesis"\\)',
      sprintf('save_fig(file.path(out_dir, "%s_Fig5_draft"), fig5, 11.5, 6.4)', tag))
 
 # The converged model's CLR-unit effects run to about +/-5 (the non-converged
