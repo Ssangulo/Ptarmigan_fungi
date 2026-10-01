@@ -1,0 +1,3 @@
+"fit","divergences","max_rhat","min_ess_bulk","min_ess_tail","obs_mean_count","pred_mean_lwr95","pred_mean_upr95","zero_frac_cor_by_OTU","zero_frac_max_gap","P_pred_max_le_max_library"
+"four diet species (primary)",0,1.00387847296378,1033.61258193954,1400.51113627935,2113.53043478261,1828.18529891304,13473.6071557971,0.989311806461962,0.042,0.154
+"three diet genera (sensitivity)",0,1.00711865518593,878.598607032251,1299.84405255481,2113.53043478261,1790.2035326087,10997.769990942,0.987642484480098,0.0456,0.142

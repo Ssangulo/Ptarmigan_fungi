@@ -1,0 +1,11 @@
+"OTU_ID","plant","part","Genus","guild_group","dev_med","slope_med","gllvm_slope","gllvm_lwr95","gllvm_upr95","separation","same_sign","gllvm_ci_excl0"
+"OTU1225","Betula","occurrence","Coniochaeta","coprophilous",-1.291,-1.252,-7.669,-12.863,-2.474,FALSE,TRUE,TRUE
+"OTU1305","Betula","occurrence",NA,"coprophilous",-1.241,-1.204,-6.66,-11.532,-1.789,FALSE,TRUE,TRUE
+"OTU1369","Betula","occurrence",NA,"other/unassigned",1.315,1.354,3.837,-0.171,7.844,FALSE,TRUE,FALSE
+"OTU2","Empetrum nigrum","occurrence","Myriangiales_gen_Incertae_sedis","other/unassigned",0.627,0.951,3.782,0.391,7.172,FALSE,TRUE,TRUE
+"OTU45","Empetrum nigrum","occurrence","Coleophoma","plant_associated",0.764,1.086,8.69,0.129,17.25,FALSE,TRUE,TRUE
+"OTU483","Betula","occurrence",NA,"plant_associated",-1.217,-1.178,2.51,-2.283,7.303,FALSE,FALSE,FALSE
+"OTU554","Betula","occurrence","Exobasidium","plant_associated",-0.915,-0.885,-20.072,-35.416,-4.729,FALSE,TRUE,TRUE
+"OTU636","Betula","occurrence","Sporormiella","coprophilous",-1.31,-1.275,-5.201,-10.245,-0.157,FALSE,TRUE,TRUE
+"OTU758","Betula","occurrence","Meristemomyces","plant_associated",-1.242,-1.211,-9.068,-21.527,3.39,FALSE,TRUE,FALSE
+"OTU97","Betula","occurrence",NA,"other/unassigned",-1.313,-1.271,3.027,-3.953,10.006,FALSE,FALSE,FALSE

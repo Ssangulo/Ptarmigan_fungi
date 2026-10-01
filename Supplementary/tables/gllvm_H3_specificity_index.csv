@@ -1,47 +1,47 @@
 "OTU_ID","Genus","prevalence","specificity_HHI","diffuse_baseline","dominant_plant","dom_slope_med","dom_slope_lwr90","dom_slope_upr90","resolved_single_plant","separation","guild_group","primary_guild","FUNGuild"
-"OTU628","Frutidella",6,0.394,0.167,"Empetrum",5.613,-1.225,12.451,FALSE,FALSE,"other/unassigned","Lichenized","|Lichenized|"
-"OTU252",NA,13,0.265,0.167,"Vaccinium",2.177,-0.167,4.521,FALSE,FALSE,"plant_associated",NA,"Animal Pathogen-Plant Pathogen-Undefined Saprotroph"
-"OTU636","Sporormiella",8,0.255,0.167,"Vaccinium",12.252,6.696,17.808,TRUE,FALSE,"coprophilous","Plant Saprotroph","Dung Saprotroph-Endophyte-Lichen Parasite-|Plant Saprotroph|"
-"OTU1","Thelebolus",9,0.253,0.167,"Empetrum",-6.05,-13.06,0.961,FALSE,FALSE,"coprophilous","Dung Saprotroph","|Dung Saprotroph|-Endophyte-Plant Saprotroph-Undefined Saprotroph"
-"OTU758","Meristemomyces",7,0.253,0.167,"Empetrum",3.092,1.274,4.909,TRUE,FALSE,"plant_associated","Plant Saprotroph","|Plant Saprotroph|"
-"OTU637",NA,11,0.251,0.167,"Picea",6.685,2.355,11.015,TRUE,FALSE,"other/unassigned",NA,NA
-"OTU45","Coleophoma",8,0.248,0.167,"Vaccinium",-5.156,-8.305,-2.008,TRUE,FALSE,"plant_associated","Plant Pathogen","Endophyte-|Plant Pathogen|-Undefined Saprotroph"
-"OTU1369",NA,16,0.247,0.167,"Empetrum",0.877,-0.368,2.123,FALSE,FALSE,"other/unassigned",NA,NA
-"OTU1289","Dothideales_gen_Incertae_sedis",8,0.242,0.167,"Vaccinium",-1.665,-4.117,0.787,FALSE,FALSE,"other/unassigned",NA,NA
-"OTU691",NA,12,0.236,0.167,"Picea",2.462,-9.909,14.834,FALSE,FALSE,"other/unassigned",NA,NA
-"OTU2","Myriangiales_gen_Incertae_sedis",17,0.235,0.167,"Empetrum",1.697,0.4,2.994,TRUE,FALSE,"other/unassigned",NA,NA
-"OTU9","Cladosporium",6,0.235,0.167,"Picea",3.149,-1.91,8.209,FALSE,FALSE,"plant_associated","Plant Saprotroph","Animal Pathogen-Endophyte-Lichen Parasite-Plant Pathogen-|Plant Saprotroph|-Wood Saprotroph"
-"OTU554","Exobasidium",6,0.23,0.167,"Picea",7.824,-1.869,17.517,FALSE,FALSE,"plant_associated","Plant Pathogen","|Plant Pathogen|"
-"OTU733","Psilolechiaceae_gen_Incertae_sedis",10,0.23,0.167,"Picea",-3.798,-16.844,9.248,FALSE,FALSE,"other/unassigned",NA,"Lichen Parasite-Lichenized"
-"OTU1279",NA,7,0.229,0.167,"Picea",4.888,0.425,9.352,TRUE,FALSE,"other/unassigned",NA,NA
-"OTU320",NA,15,0.222,0.167,"Picea",1.385,-0.812,3.583,FALSE,FALSE,"other/unassigned",NA,NA
-"OTU1370",NA,7,0.222,0.167,"Picea",11.586,-6.132,29.304,FALSE,FALSE,"other/unassigned",NA,NA
-"OTU92",NA,6,0.219,0.167,"Vaccinium",4.791,2.249,7.334,TRUE,FALSE,"coprophilous",NA,"Animal Pathogen-Dung Saprotroph-Endophyte-Lichen Parasite-Plant Pathogen-Undefined Saprotroph"
-"OTU97",NA,5,0.219,0.167,"Vaccinium",6.816,2.663,10.969,TRUE,FALSE,"other/unassigned",NA,NA
-"OTU175","Mrakiaceae_gen_Incertae_sedis",8,0.212,0.167,"Picea",-6.426,-17.238,4.385,FALSE,FALSE,"other/unassigned",NA,NA
-"OTU381",NA,8,0.211,0.167,"Picea",12.224,-2.037,26.485,FALSE,FALSE,"other/unassigned",NA,NA
-"OTU1225","Coniochaeta",7,0.208,0.167,"Vaccinium",5.478,2.269,8.686,TRUE,FALSE,"coprophilous","Undefined Saprotroph","Animal Pathogen-Dung Saprotroph-Endophyte-Lichen Parasite-Plant Pathogen-|Undefined Saprotroph|"
-"OTU1305",NA,7,0.208,0.167,"Vaccinium",4.326,1.452,7.2,TRUE,FALSE,"coprophilous",NA,"Animal Pathogen-Dung Saprotroph-Endophyte-Lichen Parasite-Plant Pathogen-Undefined Saprotroph"
-"OTU176","Dothiora",5,0.206,0.167,"Picea",8.765,4.917,12.614,TRUE,FALSE,"other/unassigned","Wood Saprotroph","Undefined Saprotroph-|Wood Saprotroph|"
-"OTU827",NA,8,0.206,0.167,"Empetrum",-15.94,-25.431,-6.449,TRUE,FALSE,"other/unassigned",NA,NA
-"OTU1427",NA,9,0.203,0.167,"Vaccinium",-4.994,-9.148,-0.84,TRUE,FALSE,"other/unassigned",NA,NA
-"OTU483",NA,7,0.199,0.167,"Empetrum",4.967,3.343,6.591,TRUE,FALSE,"plant_associated",NA,"Endophyte-Plant Pathogen-Undefined Saprotroph"
-"OTU1320",NA,15,0.195,0.167,"Picea",-0.721,-2.283,0.841,FALSE,FALSE,"coprophilous",NA,"Dung Saprotroph-Plant Saprotroph"
-"OTU136","Candida",9,0.193,0.167,"Picea",-2.362,-4.517,-0.206,TRUE,FALSE,"plant_associated","Undefined Saprotroph","Animal Pathogen-Endophyte-Endosymbiont-Epiphyte-|Undefined Saprotroph|"
-"OTU1365","Perusta",6,0.191,0.167,"Vaccinium",-8.906,-17.986,0.174,FALSE,FALSE,"other/unassigned","Undefined Saprotroph","|Undefined Saprotroph|"
-"OTU1271","Aureobasidium",8,0.462,0.167,"Empetrum",6.038,-16.221,28.297,FALSE,TRUE,"plant_associated","Plant Pathogen","Animal Pathogen-Endophyte-Epiphyte-|Plant Pathogen|-Plant Saprotroph-Undefined Saprotroph"
-"OTU1340",NA,5,0.401,0.167,"Empetrum",17.357,-20.615,55.33,FALSE,TRUE,"other/unassigned",NA,NA
-"OTU1183","Phenoliferia",7,0.298,0.167,"Empetrum",6.618,4.53,8.705,FALSE,TRUE,"other/unassigned","Undefined Saprotroph","|Undefined Saprotroph|"
-"OTU594","Taphrina",10,0.274,0.167,"Picea",-4.562,-18.866,9.742,FALSE,TRUE,"plant_associated","Plant Pathogen","|Plant Pathogen|"
-"OTU1226","Phenoliferia",8,0.265,0.167,"Vaccinium",-9.687,-13.274,-6.1,FALSE,TRUE,"other/unassigned","Undefined Saprotroph","|Undefined Saprotroph|"
-"OTU258",NA,5,0.253,0.167,"Vaccinium",-10.784,-22.342,0.773,FALSE,TRUE,"other/unassigned",NA,NA
-"OTU340","Cladosporium",5,0.244,0.167,"Picea",44.359,-95.458,184.176,FALSE,TRUE,"plant_associated","Plant Saprotroph","Animal Pathogen-Endophyte-Lichen Parasite-Plant Pathogen-|Plant Saprotroph|-Wood Saprotroph"
-"OTU1242","Spirographa",6,0.23,0.167,"Picea",-15.359,-43.813,13.096,FALSE,TRUE,"other/unassigned","Lichen Parasite","|Lichen Parasite|"
-"OTU1283",NA,5,0.229,0.167,"Picea",-42.006,-166.689,82.677,FALSE,TRUE,"other/unassigned",NA,NA
-"OTU192","Kabatiella",5,0.222,0.167,"Picea",4.916,-22.053,31.886,FALSE,TRUE,"plant_associated","Plant Pathogen","Endophyte-|Plant Pathogen|-Plant Saprotroph-Undefined Saprotroph"
-"OTU651",NA,5,0.216,0.167,"Vaccinium",-88.596,-106.271,-70.92,FALSE,TRUE,"other/unassigned",NA,NA
-"OTU911",NA,5,0.214,0.167,"Vaccinium",10.259,5.04,15.477,FALSE,TRUE,"other/unassigned",NA,NA
-"OTU715",NA,7,0.209,0.167,"Picea",18.246,-20.736,57.227,FALSE,TRUE,"other/unassigned",NA,NA
-"OTU21","Venturia",7,0.199,0.167,"Picea",1.967,-0.627,4.561,FALSE,TRUE,"plant_associated","Plant Pathogen","|Plant Pathogen|-Plant Saprotroph"
-"OTU32","Phenoliferia",5,0.198,0.167,"Vaccinium",4.163,0.672,7.655,FALSE,TRUE,"other/unassigned","Undefined Saprotroph","|Undefined Saprotroph|"
-"OTU788",NA,6,0.197,0.167,"Vaccinium",-9.812,-21.811,2.187,FALSE,TRUE,"other/unassigned",NA,NA
+"OTU1427",NA,9,0.686,0.25,"Empetrum nigrum",3.129,1.172,5.086,TRUE,FALSE,"other/unassigned",NA,NA
+"OTU136","Candida",9,0.549,0.25,"Betula",-8.091,-17.518,1.336,FALSE,FALSE,"plant_associated","Undefined Saprotroph","Animal Pathogen-Endophyte-Endosymbiont-Epiphyte-|Undefined Saprotroph|"
+"OTU97",NA,5,0.47,0.25,"Vaccinium myrtillus",19.529,3.758,35.3,TRUE,FALSE,"other/unassigned",NA,NA
+"OTU691",NA,12,0.462,0.25,"Betula",9.301,-10.171,28.773,FALSE,FALSE,"other/unassigned",NA,NA
+"OTU1370",NA,7,0.446,0.25,"Betula",27.452,2.673,52.231,TRUE,FALSE,"other/unassigned",NA,NA
+"OTU176","Dothiora",5,0.418,0.25,"Vaccinium uliginosum",-5.921,-9.434,-2.408,TRUE,FALSE,"other/unassigned","Wood Saprotroph","Undefined Saprotroph-|Wood Saprotroph|"
+"OTU1320",NA,15,0.415,0.25,"Empetrum nigrum",4.362,1.676,7.048,TRUE,FALSE,"coprophilous",NA,"Dung Saprotroph-Plant Saprotroph"
+"OTU381",NA,8,0.395,0.25,"Betula",9.307,0.179,18.434,TRUE,FALSE,"other/unassigned",NA,NA
+"OTU175","Mrakiaceae_gen_Incertae_sedis",8,0.38,0.25,"Empetrum nigrum",4.453,1.991,6.915,TRUE,FALSE,"other/unassigned",NA,NA
+"OTU32","Phenoliferia",5,0.366,0.25,"Betula",-2.676,-10.319,4.967,FALSE,FALSE,"other/unassigned","Undefined Saprotroph","|Undefined Saprotroph|"
+"OTU2","Myriangiales_gen_Incertae_sedis",17,0.365,0.25,"Betula",5.458,1.867,9.05,TRUE,FALSE,"other/unassigned",NA,NA
+"OTU1305",NA,7,0.365,0.25,"Betula",-6.66,-10.749,-2.572,TRUE,FALSE,"coprophilous",NA,"Animal Pathogen-Dung Saprotroph-Endophyte-Lichen Parasite-Plant Pathogen-Undefined Saprotroph"
+"OTU1242","Spirographa",6,0.362,0.25,"Betula",13.182,-5.227,31.592,FALSE,FALSE,"other/unassigned","Lichen Parasite","|Lichen Parasite|"
+"OTU788",NA,6,0.357,0.25,"Betula",10.8,-11.3,32.899,FALSE,FALSE,"other/unassigned",NA,NA
+"OTU1","Thelebolus",9,0.356,0.25,"Vaccinium myrtillus",-19.38,-33.899,-4.861,TRUE,FALSE,"coprophilous","Dung Saprotroph","|Dung Saprotroph|-Endophyte-Plant Saprotroph-Undefined Saprotroph"
+"OTU320",NA,15,0.346,0.25,"Vaccinium myrtillus",-16.838,-25.249,-8.427,TRUE,FALSE,"other/unassigned",NA,NA
+"OTU45","Coleophoma",8,0.336,0.25,"Empetrum nigrum",8.69,1.505,15.874,TRUE,FALSE,"plant_associated","Plant Pathogen","Endophyte-|Plant Pathogen|-Undefined Saprotroph"
+"OTU554","Exobasidium",6,0.334,0.25,"Vaccinium myrtillus",-21.168,-34.17,-8.165,TRUE,FALSE,"plant_associated","Plant Pathogen","|Plant Pathogen|"
+"OTU1225","Coniochaeta",7,0.332,0.25,"Betula",-7.669,-12.028,-3.309,TRUE,FALSE,"coprophilous","Undefined Saprotroph","Animal Pathogen-Dung Saprotroph-Endophyte-Lichen Parasite-Plant Pathogen-|Undefined Saprotroph|"
+"OTU637",NA,11,0.33,0.25,"Betula",6.82,1.138,12.501,TRUE,FALSE,"other/unassigned",NA,NA
+"OTU252",NA,13,0.327,0.25,"Betula",14.123,1.076,27.169,TRUE,FALSE,"plant_associated",NA,"Animal Pathogen-Plant Pathogen-Undefined Saprotroph"
+"OTU340","Cladosporium",5,0.327,0.25,"Vaccinium uliginosum",-9.552,-13.795,-5.308,TRUE,FALSE,"plant_associated","Plant Saprotroph","Animal Pathogen-Endophyte-Lichen Parasite-Plant Pathogen-|Plant Saprotroph|-Wood Saprotroph"
+"OTU92",NA,6,0.318,0.25,"Vaccinium myrtillus",-11.188,-25.001,2.625,FALSE,FALSE,"coprophilous",NA,"Animal Pathogen-Dung Saprotroph-Endophyte-Lichen Parasite-Plant Pathogen-Undefined Saprotroph"
+"OTU827",NA,8,0.318,0.25,"Vaccinium myrtillus",-28.774,-49.523,-8.025,TRUE,FALSE,"other/unassigned",NA,NA
+"OTU1369",NA,16,0.313,0.25,"Betula",3.837,0.473,7.2,TRUE,FALSE,"other/unassigned",NA,NA
+"OTU628","Frutidella",6,0.311,0.25,"Vaccinium myrtillus",-3.572,-10.579,3.434,FALSE,FALSE,"other/unassigned","Lichenized","|Lichenized|"
+"OTU9","Cladosporium",6,0.306,0.25,"Vaccinium uliginosum",-7.727,-12.5,-2.954,TRUE,FALSE,"plant_associated","Plant Saprotroph","Animal Pathogen-Endophyte-Lichen Parasite-Plant Pathogen-|Plant Saprotroph|-Wood Saprotroph"
+"OTU483",NA,7,0.302,0.25,"Vaccinium myrtillus",10.552,3.864,17.24,TRUE,FALSE,"plant_associated",NA,"Endophyte-Plant Pathogen-Undefined Saprotroph"
+"OTU636","Sporormiella",8,0.295,0.25,"Empetrum nigrum",-5.632,-8.173,-3.091,TRUE,FALSE,"coprophilous","Plant Saprotroph","Dung Saprotroph-Endophyte-Lichen Parasite-|Plant Saprotroph|"
+"OTU758","Meristemomyces",7,0.291,0.25,"Betula",-9.068,-19.524,1.388,FALSE,FALSE,"plant_associated","Plant Saprotroph","|Plant Saprotroph|"
+"OTU1183","Phenoliferia",7,0.275,0.25,"Vaccinium uliginosum",1.306,-0.362,2.974,FALSE,FALSE,"other/unassigned","Undefined Saprotroph","|Undefined Saprotroph|"
+"OTU1271","Aureobasidium",8,0.508,0.25,"Betula",41.221,16.419,66.023,FALSE,TRUE,"plant_associated","Plant Pathogen","Animal Pathogen-Endophyte-Epiphyte-|Plant Pathogen|-Plant Saprotroph-Undefined Saprotroph"
+"OTU651",NA,5,0.462,0.25,"Empetrum nigrum",15.221,-3.989,34.431,FALSE,TRUE,"other/unassigned",NA,NA
+"OTU1279",NA,7,0.462,0.25,"Betula",27.917,0.34,55.494,FALSE,TRUE,"other/unassigned",NA,NA
+"OTU1365","Perusta",6,0.427,0.25,"Betula",24.013,-7.028,55.054,FALSE,TRUE,"other/unassigned","Undefined Saprotroph","|Undefined Saprotroph|"
+"OTU1283",NA,5,0.414,0.25,"Betula",1179.114,1177.157,1181.071,FALSE,TRUE,"other/unassigned",NA,NA
+"OTU1340",NA,5,0.407,0.25,"Betula",1151.014,1148.733,1153.295,FALSE,TRUE,"other/unassigned",NA,NA
+"OTU733","Psilolechiaceae_gen_Incertae_sedis",10,0.385,0.25,"Vaccinium uliginosum",-15.67,-50.841,19.5,FALSE,TRUE,"other/unassigned",NA,"Lichen Parasite-Lichenized"
+"OTU1226","Phenoliferia",8,0.376,0.25,"Betula",-19.045,-44.708,6.619,FALSE,TRUE,"other/unassigned","Undefined Saprotroph","|Undefined Saprotroph|"
+"OTU192","Kabatiella",5,0.366,0.25,"Vaccinium myrtillus",-432.18,-1410.296,545.936,FALSE,TRUE,"plant_associated","Plant Pathogen","Endophyte-|Plant Pathogen|-Plant Saprotroph-Undefined Saprotroph"
+"OTU258",NA,5,0.361,0.25,"Vaccinium myrtillus",-435.978,-438.023,-433.933,FALSE,TRUE,"other/unassigned",NA,NA
+"OTU1289","Dothideales_gen_Incertae_sedis",8,0.336,0.25,"Betula",7.284,-29.826,44.394,FALSE,TRUE,"other/unassigned",NA,NA
+"OTU21","Venturia",7,0.332,0.25,"Betula",-14.952,-29.746,-0.158,FALSE,TRUE,"plant_associated","Plant Pathogen","|Plant Pathogen|-Plant Saprotroph"
+"OTU715",NA,7,0.295,0.25,"Betula",491.077,472.373,509.782,FALSE,TRUE,"other/unassigned",NA,NA
+"OTU594","Taphrina",10,0.293,0.25,"Vaccinium myrtillus",-25.929,-120.753,68.895,FALSE,TRUE,"plant_associated","Plant Pathogen","|Plant Pathogen|"
+"OTU911",NA,5,0.269,0.25,"Empetrum nigrum",-292.089,-487.7,-96.479,FALSE,TRUE,"other/unassigned",NA,NA

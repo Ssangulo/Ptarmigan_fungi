@@ -72,8 +72,13 @@ load("eco_analysis.RData.bak_20260701_partial", envir = .fit_env)
 alldat_full <- .fit_env$alldat_full
 
 # Canonical output dirs (absolute); saved GLLVM fits live in models/.
-out_dir   <- "/home/daniel/Ptarmigan/models"
-plot_dir  <- "/home/daniel/Ptarmigan/plots"
+# S7_OUT_ROOT / S7_SUPP_DIR redirect everything this script WRITES (same pattern
+# as 10_hmsc.R and 6_diversity_analyses.R) so it can run from a git worktree;
+# model_dir is read-only for the saved H1 fits and always stays canonical.
+OUT_ROOT  <- Sys.getenv("S7_OUT_ROOT", "/home/daniel/Ptarmigan")
+SUPP_DIR  <- Sys.getenv("S7_SUPP_DIR", "/home/daniel/Ptarmigan/Scripts_server/Supplementary")
+out_dir   <- file.path(OUT_ROOT, "models")
+plot_dir  <- file.path(OUT_ROOT, "plots")
 model_dir <- "/home/daniel/Ptarmigan/models"
 dir.create(out_dir,  showWarnings = FALSE, recursive = TRUE)
 dir.create(plot_dir, showWarnings = FALSE, recursive = TRUE)
@@ -591,13 +596,24 @@ save_png(file.path(plot_dir, "panel_AB_heatmap_barplot_season.png"),
 # CURRENT canonical eco_analysis.RData (min_depth_full=1000 PCR-rep object) into
 # its own environment -- the H1 sections above deliberately run on the pre-fix
 # backup, which we leave untouched. Same join/prevalence/plant-transform rules as
-# Section 3c (kept in lock-step so both H3 analyses see n=30, 46 OTUs, 6 genera).
+# Section 3c (kept in lock-step so both H3 analyses see n=30, 46 OTUs, and the
+# same four diet species).
+#
+# REBUILT 2026-10-01 (branch exp/brms-refit) together with Section 3c: the old
+# six-genus decostand("rclr") predictors were EXACTLY rank 3 (vegan imputes zeros
+# by rank-3 matrix completion), which is why many unpooled fixed slopes here ran
+# to +/-10 or more. The predictors are now the full-rank diet-species CLR of
+# Section 3c. GLLVM X coefficients are species-specific by construction, so
+# Season and Year already vary by OTU here, matching the per-OTU Season and Year
+# of the rebuilt Bayesian model. The family stays negative binomial (gllvm has no
+# hurdle family), so each slope here mixes occurrence and abundance.
 
 suppressMessages(library(vegan))
 
 # ---- Tunables (MUST match 6_diversity_analyses.R Section 3c) -----------------
 MIN_OTU_PREV_H3   <- 5      # keep fungal OTUs present in >= this many matched BIOLOGICAL samples
-MIN_PLANT_PREV_H3 <- 4      # keep plant genera present in >= this many matched samples
+H3_ZERO_SHARE     <- 1e-3   # zero plant reads -> this share of the diet before the CLR
+H3_PLANTS <- c("Betula_sp", "Vaccinium_myrtillus", "Vaccinium_uliginosum", "Empetrum_nigrum")
 H3_LV_GRID        <- c(0, 1, 2)   # latent-variable counts to fit + AIC-compare
 H3_DRAWS          <- 2000   # parametric-Gaussian draws for the uncertainty-honest contrast
 # COPRO_GENERA: standard coprophilous-genus list (verbatim from Section 3c /
@@ -606,8 +622,8 @@ COPRO_GENERA <- c("Sordaria","Podospora","Cercophora","Chaetomium","Schizotheciu
                   "Preussia","Delitschia","Pilobolus","Ascobolus","Saccobolus",
                   "Sporormiella","Coprinopsis","Thelebolus","Coniochaeta")
 
-supp_fig <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/figures"
-supp_tab <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
+supp_fig <- file.path(SUPP_DIR, "figures")
+supp_tab <- file.path(SUPP_DIR, "tables")
 
 otu_mat_of <- function(ps) { m <- as(otu_table(ps), "matrix"); if (taxa_are_rows(ps)) m <- t(m); m }
 
@@ -642,31 +658,38 @@ fom_k    <- fom[, keep_otu, drop = FALSE]
 message(sprintf("H3 GLLVM matched subset: %d biological samples (%d PCR-rep rows); %d OTUs (present in >=%d samples).",
                 n_bio, nrow(fom_k), ncol(fom_k), MIN_OTU_PREV_H3))
 
-# ---- Dominant diet-plant genera: collapse -> rCLR -> standardise -------------
+# ---- Diet predictors: fixed-share zero replacement -> CLR -> standardise -----
+# Verbatim logic of 6_diversity_analyses.R Section 3c h3_plant_predictors()
+# ("species" level): plant reads per sample aggregated to species, proportions,
+# zeros -> H3_ZERO_SHARE (multiplicative replacement), CLR over the WHOLE diet
+# composition, the four diet species kept and z-scored. Full rank asserted.
 field_ids <- unique(md_f$Sample_ID_field)
 plant_m <- prune_samples(field_ids, plant)
 plant_m <- prune_taxa(taxa_sums(plant_m) > 0, plant_m)
-pom     <- otu_mat_of(plant_m)
-ptt     <- data.frame(as(tax_table(plant_m), "matrix"), stringsAsFactors = FALSE)
-g_lab <- ptt$Genus[match(colnames(pom), rownames(ptt))]
-g_lab <- ifelse(is.na(g_lab) | g_lab %in% c("", "NA", "g__"), NA, g_lab)   # g__ empty-genus guard
-f_lab <- ptt$Family[match(colnames(pom), rownames(ptt))]
-f_lab <- ifelse(is.na(f_lab) | f_lab %in% c("", "NA", "f__"), NA, f_lab)
-lab   <- ifelse(!is.na(g_lab), g_lab,
-                ifelse(!is.na(f_lab), paste0(f_lab, "_fam"), colnames(pom)))
-pg     <- t(rowsum(t(pom), group = lab))
-gprev  <- colSums(pg > 0)
-keep_g <- names(gprev)[gprev >= MIN_PLANT_PREV_H3]
-keep_g <- keep_g[order(gprev[keep_g], decreasing = TRUE)]
-pg_k   <- pg[, keep_g, drop = FALSE]
-message(sprintf("H3 GLLVM plant predictors: %d genera (>=%d samples): %s",
-                ncol(pg_k), MIN_PLANT_PREV_H3, paste(keep_g, collapse = ", ")))
-# rCLR then z-score; decostand's rclr imputation path drops dimnames -- restore.
-pg_rclr <- vegan::decostand(pg_k, method = "rclr")
-dimnames(pg_rclr) <- dimnames(pg_k)
-pg_z <- scale(pg_rclr)
+pom     <- otu_mat_of(plant_m)[field_ids, , drop = FALSE]
+ptt     <- data.frame(as(tax_table(plant_m), "matrix"), stringsAsFactors = FALSE)[colnames(pom), ]
+.na_lab <- function(x, bad) ifelse(is.na(x) | x %in% bad, NA, x)
+g_lab <- .na_lab(ptt$Genus,   c("", "NA", "g__"))
+f_lab <- .na_lab(ptt$Family,  c("", "NA", "f__"))
+s_lab <- .na_lab(ptt$Species, c("", "NA", "s__"))
+lab   <- ifelse(!is.na(s_lab), s_lab,
+                ifelse(!is.na(g_lab), g_lab,
+                       ifelse(!is.na(f_lab), paste0(f_lab, "_fam"), colnames(pom))))
+Zp <- t(rowsum(t(pom), group = lab)); Zp <- Zp / rowSums(Zp)
+for (i in seq_len(nrow(Zp))) {
+  z <- Zp[i, ] == 0
+  Zp[i, z]  <- H3_ZERO_SHARE
+  Zp[i, !z] <- Zp[i, !z] * (1 - sum(z) * H3_ZERO_SHARE)
+}
+clr  <- log(Zp); clr <- clr - rowMeans(clr)
+stopifnot(all(H3_PLANTS %in% colnames(clr)))
+pg_z <- scale(clr[, H3_PLANTS, drop = FALSE])
+.sv  <- svd(pg_z)$d
+stopifnot(!anyNA(pg_z), qr(pg_z)$rank == ncol(pg_z), max(.sv) / min(.sv) < 10)
+message(sprintf("H3 GLLVM plant predictors: %s (condition number %.2f)",
+                paste(H3_PLANTS, collapse = ", "), max(.sv) / min(.sv)))
 plant_var   <- make.names(colnames(pg_z))
-plant_label <- setNames(colnames(pg_z), plant_var)   # var -> pretty genus name
+plant_label <- setNames(gsub("_", " ", sub("_sp$", "", colnames(pg_z))), plant_var)   # var -> pretty name
 colnames(pg_z) <- plant_var
 # Map plant vectors onto each PCR-rep row via its biological Sample_ID_field.
 field_of <- setNames(md_f$Sample_ID_field, rownames(md_f))
@@ -687,10 +710,12 @@ fx_h3 <- as.formula(paste("~ Season + Year +", paste(plant_var, collapse = " + "
 # gllvm() row.eff=~(1|Sample_ID_field) treats the 2 PCR replicates of a sample
 # as replication (analog of the brms per-OTU biological-sample RE). The plant
 # fixed effects give each OTU its own slope in Xcoef (fourth-corner without
-# traits). Fits are cheap; cache each so reruns are fast. Delete the cached
-# gllvm_H3_fit_lv*.rds if the formula / data change, or a stale fit reloads.
+# traits). Fits are cheap; cache each so reruns are fast. Caches carry "H3sp"
+# (diet-species predictors) so the pre-2026-10 six-genus caches
+# (gllvm_H3_fit_lv*.rds) can never be reloaded by mistake. Delete the cached
+# gllvm_H3sp_*.rds if the formula / data change, or a stale fit reloads.
 fit_h3_of <- function(k) {
-  cache <- file.path(model_dir, sprintf("gllvm_H3_fit_lv%d.rds", k))
+  cache <- file.path(out_dir, sprintf("gllvm_H3sp_fit_lv%d.rds", k))
   if (file.exists(cache)) return(readRDS(cache))
   fit <- gllvm(y = Yh, X = Xh, formula = fx_h3, family = "negative.binomial",
                offset = offH, num.lv = k, sd.errors = TRUE, method = "VA",
@@ -705,7 +730,7 @@ fit_h3  <- h3_fits[[paste0("lv", best_k)]]
 
 # Null model (Season + Year only, no plant predictors) at the selected num.lv,
 # to show whether the plant predictors improve fit at all.
-null_cache <- file.path(model_dir, sprintf("gllvm_H3_null_lv%d.rds", best_k))
+null_cache <- file.path(out_dir, sprintf("gllvm_H3sp_null_lv%d.rds", best_k))
 fit_h3_null <- if (file.exists(null_cache)) readRDS(null_cache) else {
   f <- gllvm(y = Yh, X = Xh, formula = ~ Season + Year, family = "negative.binomial",
              offset = offH, num.lv = best_k, sd.errors = FALSE, method = "VA",
@@ -743,7 +768,7 @@ slope <- Xco[, plant_var, drop = FALSE]     # OTU x plant point estimates
 se    <- Xse[, plant_var, drop = FALSE]     # OTU x plant Wald SEs
 beta0 <- fit_h3$params$beta0[otu_ids]
 
-# Near-separation guard (same thresholds as Section 3b, aggregated over the 6
+# Near-separation guard (same thresholds as Section 3b, aggregated over the
 # plant slopes): an OTU essentially on/off across the diet gradient blows its
 # coefficients toward +/-Inf with tiny or exploding SEs. Flagged, kept in the
 # full table, excluded from specificity ranking / contrast / plots.
@@ -899,10 +924,10 @@ p_hm <- ggplot(hm, aes(plant, OTU_lab, fill = slope)) +
   facet_grid(grp_fac ~ ., scales = "free_y", space = "free_y") +
   scale_fill_gradient2(low = "#2166AC", mid = "white", high = "#B2182B", midpoint = 0,
                        limits = c(-slim, slim), name = "Plant slope\n(GLLVM log-scale)") +
-  labs(title = "H3 (GLLVM): per-OTU covariation with dominant diet-plant genera",
-       subtitle = sprintf("Fixed per-OTU slopes, num.lv=%d, PCR-rep offset; n=%d samples, %d retained OTUs, %d genera (rows by specificity)",
+  labs(title = "H3 (GLLVM): per-OTU covariation with the main diet plants",
+       subtitle = sprintf("Fixed per-OTU slopes, num.lv=%d, PCR-rep offset; n=%d samples, %d retained OTUs, %d diet species (rows by specificity)",
                           best_k, n_bio, length(otu_order), kp),
-       x = "Diet-plant genus (rCLR)", y = NULL,
+       x = "Diet plant (CLR, standardised)", y = NULL,
        caption = "Per-OTU fixed plant slopes (near-separated OTUs excluded); rows grouped by FUNGuild guild class.") +
   theme_bw(base_size = 11) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -939,11 +964,45 @@ if (best_k >= 1) {
   h3_supp_figs <- c(h3_supp_figs, "gllvm_H3_residual_ordination.png")
 }
 
+# ---- Agreement with the Bayesian hurdle model (6_diversity_analyses.R §3c) ---
+# Reads script 6's per-OTU table (H3_perOTU_plant_coef.csv; total slopes, with
+# occurrence on the detection scale) and compares it with the retained GLLVM
+# slopes: (i) per plant and model part, Spearman correlation and sign agreement
+# across OTUs; (ii) for every OTU x plant deviation the Bayesian model resolves
+# (95% CrI excludes 0), the GLLVM slope and its Wald 95% CI. Skipped with a
+# message if script 6 has not been run into the same output root.
+brms_csv <- Sys.getenv("S7_BRMS_H3_CSV", file.path(out_dir, "H3_perOTU_plant_coef.csv"))
+h3_agree_files <- character(0)
+if (file.exists(brms_csv)) {
+  bc <- read.csv(brms_csv, stringsAsFactors = FALSE)
+  gk <- coef_tbl[!coef_tbl$separation, ]
+  agree <- do.call(rbind, lapply(c("abundance", "occurrence"), function(pt)
+    do.call(rbind, lapply(unique(gk$plant), function(pl) {
+      m <- merge(gk[gk$plant == pl, ], bc[bc$part == pt & bc$plant == pl, ], by = "OTU_ID")
+      data.frame(part = pt, plant = pl, n_OTU = nrow(m),
+                 spearman = cor(m$slope, m$slope_med, method = "spearman"),
+                 sign_agreement = mean(sign(m$slope) == sign(m$slope_med)),
+                 stringsAsFactors = FALSE) }))))
+  rb <- bc[bc$dev_resolved95, c("OTU_ID", "part", "plant", "Genus", "guild_group", "dev_med", "slope_med")]
+  rb <- merge(rb, coef_tbl[, c("OTU_ID", "plant", "slope", "slope_lwr95", "slope_upr95", "separation")],
+              by = c("OTU_ID", "plant"), all.x = TRUE)
+  names(rb)[names(rb) %in% c("slope", "slope_lwr95", "slope_upr95")] <-
+    c("gllvm_slope", "gllvm_lwr95", "gllvm_upr95")
+  rb$same_sign      <- sign(rb$gllvm_slope) == sign(rb$slope_med)
+  rb$gllvm_ci_excl0 <- !rb$separation & ((rb$gllvm_lwr95 > 0) | (rb$gllvm_upr95 < 0))
+  write.csv(agree, file.path(out_dir, "gllvm_H3_vs_brms_by_plant.csv"), row.names = FALSE)
+  write.csv(rb,    file.path(out_dir, "gllvm_H3_vs_brms_resolved.csv"), row.names = FALSE)
+  h3_agree_files <- c("gllvm_H3_vs_brms_by_plant.csv", "gllvm_H3_vs_brms_resolved.csv")
+  message(sprintf("H3 GLLVM vs brms: %d of %d Bayesian-resolved deviations have the same GLLVM sign; %d have a GLLVM 95%% CI excluding 0.",
+                  sum(rb$same_sign, na.rm = TRUE), nrow(rb), sum(rb$gllvm_ci_excl0, na.rm = TRUE)))
+} else message("H3 GLLVM vs brms agreement skipped: ", brms_csv, " not found (run script 6 first).")
+
 # ---- Stage H3 GLLVM outputs for the Quarto appendix (Section 7.3) ------------
 invisible(file.copy(file.path(plot_dir, h3_supp_figs), supp_fig, overwrite = TRUE))
 invisible(file.copy(file.path(out_dir, c("gllvm_H3_model_comparison.csv",
                                          "gllvm_H3_specificity_index.csv",
                                          "gllvm_H3_perOTU_plant_coef.csv",
-                                         "gllvm_H3_specificity_contrast.csv")),
+                                         "gllvm_H3_specificity_contrast.csv",
+                                         h3_agree_files)),
                     supp_tab, overwrite = TRUE))
 message("Staged H3 GLLVM figures/tables into Supplementary/figures|tables")

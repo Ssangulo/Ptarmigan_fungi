@@ -49,9 +49,14 @@ setwd("/home/daniel/Ptarmigan/trimmed/mergedPlates/")
 load("eco_analysis.RData")
 
 # Absolute output dirs (independent of the data working dir above), matching
-# the convention set in 5_community_composition.R.
-out_dir  <- "/home/daniel/Ptarmigan/models/"
-plot_dir <- "/home/daniel/Ptarmigan/plots/"
+# the convention set in 5_community_composition.R. S6_OUT_ROOT / S6_SUPP_DIR
+# override them (same pattern as 10_hmsc.R's HMSC_OUT_ROOT / HMSC_SUPP_DIR) so
+# the script can run from a git worktree without writing into the shared
+# models/, plots/ or main Supplementary/. Defaults are the canonical paths.
+OUT_ROOT <- Sys.getenv("S6_OUT_ROOT", "/home/daniel/Ptarmigan")
+SUPP_DIR <- Sys.getenv("S6_SUPP_DIR", "/home/daniel/Ptarmigan/Scripts_server/Supplementary")
+out_dir  <- file.path(OUT_ROOT, "models")
+plot_dir <- file.path(OUT_ROOT, "plots")
 dir.create(out_dir,  showWarnings = FALSE, recursive = TRUE)
 dir.create(plot_dir, showWarnings = FALSE, recursive = TRUE)
 
@@ -615,46 +620,48 @@ cat(sprintf("Bayesian diet-richness model n = %d (metric: fungal %s)\n", nrow(di
 # ---- Bayesian regression (brms) ---------------------------------------------
 # TUNABLE PARAMETERS (documented inline so they're easy to revisit):
 #   - PRIMARY_Q       : which Hill order is the outcome (set above; "q0"/"q1"/"q2").
-#   - priors below     : weakly informative, standardised-slope priors per the
-#                         preregistration ("Normal(0, 1) on standardised slopes").
-#                         Tighten (e.g. normal(0, 0.5)) for a more skeptical
-#                         prior, or widen for a more agnostic one.
-#   - family          : gaussian() on z-scored Hill values. If diagnostics
-#                         (posterior predictive check / residuals) look poor,
-#                         consider modelling fungal_hill directly (unscaled)
-#                         with a lognormal() or Gamma(link="log") family
-#                         instead of z-scoring + gaussian().
-#   - random effects  : NONE. The preregistration named (1|Year) + (1|indivID),
-#                         but on this matched subset (n=30) that model does NOT
-#                         converge -- 477 divergent transitions, max Rhat 1.12,
-#                         RE-SD Bulk_ESS ~50. Cause: 27 of 30 samples are unique
-#                         individuals (indivID is unidentifiable, one obs/group)
-#                         and Year has only 3 levels (RE-SD poorly estimated).
-#                         Year is therefore modelled as a FIXED effect and the
-#                         individual RE dropped. Verified (scratch h2_compare.R):
-#                         this simplified model converges cleanly (0 divergences,
-#                         Rhat 1.001) and LOO is statistically indistinguishable
-#                         from the RE models (elpd_diff < 1.6, se_diff ~0.8).
+#   - family          : Gamma(link = "log") on the RAW Hill number (2026-10-01,
+#                         branch exp/brms-refit). The previous gaussian() on the
+#                         z-scored Hill number failed its posterior-predictive
+#                         skewness check outright (raw q1 runs 1.5-55.8, skew 1.96;
+#                         Bayesian p = 0.000). Gamma passes every check, beats the
+#                         Gaussian by 13.1 +/- 3.5 elpd (LOO, raw-q1 scale), and is
+#                         the family Table S9 already uses for the per-sample
+#                         Season test. Lognormal fits as well (-1.5 +/- 0.9 elpd) and
+#                         is reported beside it in the family-choice table (3b).
+#                         Slopes are on the LOG scale: exp(slope) = multiplicative
+#                         change in fungal Hill diversity per SD of plant richness.
+#   - priors below     : slope ~ Normal(0, 1) per SD of plant richness (log scale),
+#                         intercept ~ Normal(log(median outcome), 1).
+#   - random effects  : NONE. The preregistration named (1|Year) + (1|indivID).
+#                         The individual RE is unidentifiable here: 24 distinct
+#                         birds among the 27 matched samples, so it is the same
+#                         quantity as the residual (an earlier fit with both REs, on
+#                         a stale 30-sample frame, had 477 divergences and max Rhat
+#                         1.12). Year is a FIXED effect (three levels). A (1|Year)-
+#                         only Gaussian fit converges but fits no better than the
+#                         fixed-Year Gaussian (exp/brms-refit pilot memo).
 #   - chains/iter/warmup/adapt_delta/cores : standard brms sampler controls.
 #   - decision threshold : the preregistration's support criterion is
 #                         P(slope_plant_richness > 0) > 0.95 -- change
 #                         `support_threshold` below to explore sensitivity.
 library(brms)
 
-h2_prior <- c(
-  brms::set_prior("normal(0,1)",   class="b"),
-  brms::set_prior("normal(0,0.5)", class="Intercept")
+h2_prior_for <- function(y) c(
+  brms::set_prior("normal(0,1)", class="b"),
+  brms::set_prior(sprintf("normal(%.4f,1)", log(median(y))), class="Intercept")
 )
+h2_prior <- h2_prior_for(diet$fungal_hill)
 
 b_h2 <- brms::brm(
-  fungal_hill_z ~ plant_richness_z + Season + Year,
+  fungal_hill ~ plant_richness_z + Season + Year,
   data    = diet,
-  family  = gaussian(),
+  family  = Gamma(link = "log"),
   prior   = h2_prior,
   chains  = 4, iter = 6000, warmup = 3000, cores = 4,
   control = list(adapt_delta = 0.999, max_treedepth = 15),
   seed    = 1, refresh = 0,
-  file    = file.path(out_dir, "H2_brms_diet_richness")
+  file    = file.path(out_dir, "H2_brms_diet_richness_gamma")
 )
 
 draws_slope <- brms::as_draws_df(b_h2)$b_plant_richness_z
@@ -688,25 +695,26 @@ print(brms::pp_check(b_h2, ndraws=100) + labs(title="H2 mechanism: posterior pre
 dev.off()
 
 # =============================================================================
-# SECTION 3b -- H2-MECHANISM: SECOND MODEL, SENSITIVITY, ROBUSTNESS, STAGING
-# The preregistered RE model (Year + individual random intercepts) does not
-# converge on this n=30 matched subset (see the note at the model call above),
-# so the H2 mechanism is reported as two complementary well-converged models,
+# SECTION 3b -- H2-MECHANISM: SECOND MODEL, FAMILY CHOICE, SENSITIVITY,
+# ROBUSTNESS, STAGING
+# The H2 mechanism is reported as two complementary Gamma(log) models,
 # documented side by side in appendix Section 7.1:
 #   (1) b_h2        : Season-adjusted, Year fixed -- primary (fitted above)
 #   (2) b_h2_noyear : Season only (Year dropped)  -- less-conservative variant
+# plus a small family-choice table recording why Gamma replaced the Gaussian
+# used until 2026-09 (pilot evidence: brms_refit/MEMO_brms_refit.md).
 # =============================================================================
 
 # ---- (2) Drop-Year model ----------------------------------------------------
 b_h2_noyear <- brms::brm(
-  fungal_hill_z ~ plant_richness_z + Season,
+  fungal_hill ~ plant_richness_z + Season,
   data    = diet,
-  family  = gaussian(),
+  family  = Gamma(link = "log"),
   prior   = h2_prior,
   chains  = 4, iter = 6000, warmup = 3000, cores = 4,
   control = list(adapt_delta = 0.999, max_treedepth = 15),
   seed    = 1, refresh = 0,
-  file    = file.path(out_dir, "H2_brms_diet_richness_noyear")
+  file    = file.path(out_dir, "H2_brms_diet_richness_gamma_noyear")
 )
 
 # ---- Slope-summary / diagnostic helpers -------------------------------------
@@ -731,19 +739,64 @@ write.csv(h2_model_comparison,
           file.path(out_dir, "H2_mechanism_model_comparison.csv"), row.names=FALSE)
 cat("\nH2-mechanism model comparison:\n"); print(h2_model_comparison, digits=3)
 
+# ---- Family choice: Gaussian on z (pre-2026-10) vs lognormal vs Gamma -------
+# Same two structures, same seed and sampler. The Gaussian rows refit the
+# pre-2026-10 model verbatim (its priors were on the z scale), so they
+# reproduce the old Table S12 exactly. Fit compared by PSIS-LOO on the RAW q1
+# scale (the z-scale log-likelihood is shifted by -log(sd(q1)), the Jacobian
+# of the affine transform) and by a posterior-predictive skewness check.
+.skew <- function(x) { m <- mean(x); mean((x - m)^3) / sd(x)^3 }
+.fam_fit <- function(fam, drop_year) {
+  rhs <- if (drop_year) "plant_richness_z + Season" else "plant_richness_z + Season + Year"
+  if (fam == "Gamma (log link)") return(if (drop_year) b_h2_noyear else b_h2)
+  z <- fam == "Gaussian on z-score"
+  brms::brm(as.formula(paste(if (z) "fungal_hill_z" else "fungal_hill", "~", rhs)),
+            data = diet, family = if (z) gaussian() else lognormal(),
+            prior = if (z) c(brms::set_prior("normal(0,1)",   class="b"),
+                             brms::set_prior("normal(0,0.5)", class="Intercept"))
+                    else h2_prior,
+            chains = 4, iter = 6000, warmup = 3000, cores = 4,
+            control = list(adapt_delta = 0.999, max_treedepth = 15),
+            seed = 1, refresh = 0)
+}
+fam_grid <- expand.grid(family = c("Gamma (log link)", "Lognormal", "Gaussian on z-score"),
+                        model = c("Season-adjusted", "Drop-Year"), stringsAsFactors = FALSE)
+fam_fits <- Map(function(f, m) .fam_fit(f, m == "Drop-Year"), fam_grid$family, fam_grid$model)
+fam_ll   <- lapply(seq_along(fam_fits), function(i) {
+  ll <- brms::log_lik(fam_fits[[i]])
+  if (fam_grid$family[i] == "Gaussian on z-score") ll <- ll - log(sd(diet$fungal_hill))
+  ll })
+fam_loo  <- lapply(fam_ll, function(ll) suppressWarnings(loo::loo(ll,
+              r_eff = loo::relative_eff(exp(ll), chain_id = rep(1:4, each = nrow(ll) / 4)))))
+ref_pw   <- fam_loo[[1]]$pointwise[, "elpd_loo"]           # primary: Gamma, Season-adjusted
+h2_family_choice <- do.call(rbind, lapply(seq_along(fam_fits), function(i) {
+  fit <- fam_fits[[i]]; d <- .slope_draws(fit)
+  y    <- if (fam_grid$family[i] == "Gaussian on z-score") diet$fungal_hill_z else diet$fungal_hill
+  yrep <- brms::posterior_predict(fit, ndraws = 4000)
+  pw   <- fam_loo[[i]]$pointwise[, "elpd_loo"] - ref_pw
+  data.frame(family = fam_grid$family[i], model = fam_grid$model[i],
+             slope_scale = if (fam_grid$family[i] == "Gaussian on z-score") "SD of q1" else "log q1",
+             median = median(d), lwr95 = unname(quantile(d, .025)), upr95 = unname(quantile(d, .975)),
+             P_gt0 = mean(d > 0), divergences = .n_div(fit),
+             ppc_p_skewness = mean(apply(yrep, 1, .skew) >= .skew(y)),
+             elpd_diff_vs_primary = sum(pw), se_diff = sqrt(length(pw) * var(pw)),
+             pareto_k_gt_0.7 = sum(fam_loo[[i]]$diagnostics$pareto_k > 0.7),
+             stringsAsFactors = FALSE)
+}))
+write.csv(h2_family_choice, file.path(out_dir, "H2_mechanism_family_choice.csv"), row.names = FALSE)
+cat("\nH2-mechanism family choice:\n"); print(h2_family_choice, digits = 3)
+
 # ---- Sensitivity: Hill order q0/q1/q2 x both model structures ----------------
-# Reuse the per-sample q0/q1/q2 already in hill_sample; z-score within the
-# matched subset so slopes are comparable to the primary (q1) model.
-diet$q0   <- hill_sample$q0[match(diet$sample, hill_sample$sample)]
-diet$q2   <- hill_sample$q2[match(diet$sample, hill_sample$sample)]
-diet$q0_z <- as.numeric(scale(diet$q0))
-diet$q1_z <- diet$fungal_hill_z
-diet$q2_z <- as.numeric(scale(diet$q2))
+# Same Gamma(log) family on each raw Hill number; slopes comparable across
+# orders as log-scale change per SD of plant richness.
+diet$q0 <- hill_sample$q0[match(diet$sample, hill_sample$sample)]
+diet$q1 <- diet$fungal_hill
+diet$q2 <- hill_sample$q2[match(diet$sample, hill_sample$sample)]
 
 fit_sens <- function(ycol, drop_year) {
   form <- as.formula(paste0(ycol, if (drop_year) " ~ plant_richness_z + Season"
                                   else            " ~ plant_richness_z + Season + Year"))
-  brms::brm(form, data=diet, family=gaussian(), prior=h2_prior,
+  brms::brm(form, data=diet, family=Gamma(link = "log"), prior=h2_prior_for(diet[[ycol]]),
             chains=4, iter=6000, warmup=3000, cores=4,
             control=list(adapt_delta=0.999, max_treedepth=15),
             seed=1, refresh=0)
@@ -751,7 +804,7 @@ fit_sens <- function(ycol, drop_year) {
 sens_grid <- expand.grid(q=c("q0","q1","q2"), model=c("Season-adjusted","Drop-Year"),
                          stringsAsFactors=FALSE)
 h2_sensitivity <- do.call(rbind, Map(function(q, m) {
-  fit <- fit_sens(paste0(q, "_z"), drop_year = (m == "Drop-Year"))
+  fit <- fit_sens(q, drop_year = (m == "Drop-Year"))
   d   <- .slope_draws(fit)
   data.frame(metric=q, model=m, median=median(d),
              lwr95=unname(quantile(d, .025)), upr95=unname(quantile(d, .975)),
@@ -762,16 +815,18 @@ cat("\nH2-mechanism sensitivity (Hill order x model structure):\n")
 print(h2_sensitivity, digits=3)
 
 # ---- Robustness: leave-one-out influence + rank correlation -----------------
-# The Bayesian slope is modest and, at n=30, carried by samples at the high end
-# of a short diet-richness gradient. Quantified frequentist-style (fast refits)
-# on the primary q1 outcome, for both model structures.
-.lm_form   <- function(dy) {
-  if (dy) fungal_hill_z ~ plant_richness_z + Season
-  else    fungal_hill_z ~ plant_richness_z + Season + Year
+# The Bayesian slope is modest and, at n=27, carried by samples at the high end
+# of a short diet-richness gradient. Quantified frequentist-style (fast refits,
+# same Gamma(log) family) on the primary q1 outcome, for both model structures.
+# The Spearman rows are UNADJUSTED marginal correlations (no Season/Year).
+.glm_form <- function(dy) {
+  if (dy) fungal_hill ~ plant_richness_z + Season
+  else    fungal_hill ~ plant_richness_z + Season + Year
 }
-.lm_slope  <- function(df, dy=FALSE) unname(coef(lm(.lm_form(dy), data=df))["plant_richness_z"])
-.lm_p      <- function(df, dy=FALSE)
-  summary(lm(.lm_form(dy), data=df))$coefficients["plant_richness_z", "Pr(>|t|)"]
+.glm_co    <- function(df, dy=FALSE)
+  summary(glm(.glm_form(dy), family=Gamma(link="log"), data=df))$coefficients["plant_richness_z", ]
+.lm_slope  <- function(df, dy=FALSE) unname(.glm_co(df, dy)["Estimate"])
+.lm_p      <- function(df, dy=FALSE) unname(.glm_co(df, dy)["Pr(>|t|)"])
 
 inf <- do.call(rbind, lapply(c(FALSE, TRUE), function(dy) {
   fs <- .lm_slope(diet, dy); fp <- .lm_p(diet, dy)
@@ -803,7 +858,7 @@ h2_robustness <- rbind(
              quantity="# of n-1 refits with p>0.05", value=as.character(inf$loo_nonsig_refits)),
   data.frame(check="leave-one-out influence", group=inf$model,
              quantity="most influential sample", value=inf$most_influential),
-  data.frame(check="rank correlation (Spearman)", group=sp$scope,
+  data.frame(check="rank correlation (Spearman, unadjusted)", group=sp$scope,
              quantity=sprintf("rho (n=%d)", sp$n),
              value=sprintf("%.3f (p=%.3f)", sp$rho, sp$p)),
   stringsAsFactors=FALSE
@@ -813,17 +868,16 @@ cat("\nH2-mechanism robustness summary:\n"); print(h2_robustness, right=FALSE)
 
 # ---- Figure: fitted relationship on the raw scale, BOTH models --------------
 rich_grid <- seq(min(diet$plant_richness_z), max(diet$plant_richness_z), length=60)
-hill_mean <- mean(diet$fungal_hill); hill_sd <- sd(diet$fungal_hill)
 rich_mean <- mean(diet$plant_richness); rich_sd <- sd(diet$plant_richness)
 ribbon_of <- function(fit, has_year) {
   nd <- data.frame(plant_richness_z=rich_grid,
                    Season=factor("winter", levels=levels(diet$Season)))
   if (has_year) nd$Year <- factor(levels(diet$Year)[1], levels=levels(diet$Year))
-  fe <- brms::posterior_epred(fit, newdata=nd, re_formula=NA)
+  fe <- brms::posterior_epred(fit, newdata=nd, re_formula=NA)   # raw q1 scale
   data.frame(plant_richness = rich_grid * rich_sd + rich_mean,
-             fit = apply(fe, 2, median)        * hill_sd + hill_mean,
-             lwr = apply(fe, 2, quantile, .025) * hill_sd + hill_mean,
-             upr = apply(fe, 2, quantile, .975) * hill_sd + hill_mean)
+             fit = apply(fe, 2, median),
+             lwr = apply(fe, 2, quantile, .025),
+             upr = apply(fe, 2, quantile, .975))
 }
 rib_primary <- ribbon_of(b_h2, TRUE)
 rib_noyear  <- ribbon_of(b_h2_noyear, FALSE)
@@ -840,14 +894,14 @@ p_diet <- ggplot(diet, aes(plant_richness, fungal_hill)) +
   scale_linetype_manual(name="Model fit",
                         values=c("Season-adjusted"="solid", "Drop-Year"="22")) +
   labs(title=sprintf("Fungal Hill %s vs dietary plant richness (matched n=%d)", PRIMARY_Q, nrow(diet)),
-       subtitle=sprintf("plant-richness slope P(>0): %.2f (Season-adjusted), %.2f (drop-Year)",
+       subtitle=sprintf("Gamma (log link); plant-richness slope P(>0): %.2f (Season-adjusted), %.2f (drop-Year)",
                         h2_model_comparison$P_gt0[1], h2_model_comparison$P_gt0[2]),
        x="Plant OTU richness (rarefied)", y=sprintf("Fungal Hill %s", PRIMARY_Q),
        caption="Fitted lines at reference Season (winter)/Year; ribbon = 95% CrI (primary model).") +
   theme_bw(base_size=12)
 save_png(p_diet, "H2_diet_richness_fit.png", width=7.5, height=5.5, dpi=800)
 
-# ---- Figure: posterior of the standardised diet-richness slope, both models -
+# ---- Figure: posterior of the diet-richness slope, both models --------------
 slope_df <- rbind(
   data.frame(model="Season-adjusted", slope=.slope_draws(b_h2)),
   data.frame(model="Drop-Year",       slope=.slope_draws(b_h2_noyear))
@@ -858,10 +912,10 @@ p_slope <- ggplot(slope_df, aes(slope, fill=model, colour=model)) +
   geom_vline(xintercept=0, linetype="dashed") +
   scale_fill_manual(values=c("Season-adjusted"="#009E73", "Drop-Year"="#CC79A7")) +
   scale_colour_manual(values=c("Season-adjusted"="#009E73", "Drop-Year"="#CC79A7")) +
-  labs(title=sprintf("Posterior of the diet-richness slope (standardised, Fungal Hill %s)", PRIMARY_Q),
+  labs(title=sprintf("Posterior of the diet-richness slope (Gamma, log link; fungal Hill %s)", PRIMARY_Q),
        subtitle=sprintf("P(slope>0) = %.3f (Season-adjusted), %.3f (drop-Year)",
                         h2_model_comparison$P_gt0[1], h2_model_comparison$P_gt0[2]),
-       x="Standardised slope of plant richness", y="Posterior density",
+       x="Slope of plant richness (log scale, per SD)", y="Posterior density",
        fill="Model", colour="Model") +
   theme_bw(base_size=12)
 save_png(p_slope, "H2_mechanism_slope_posterior.png", width=7.5, height=5, dpi=800)
@@ -869,20 +923,25 @@ save_png(p_slope, "H2_mechanism_slope_posterior.png", width=7.5, height=5, dpi=8
 # ---- Stage H2-mechanism outputs for the Quarto appendix (Section 7.1) --------
 # Same convention as 9_dark_taxa_SH_matching.R Section 7: the appendix reads
 # committed copies from Supplementary/figures|tables via relative paths.
-supp_fig <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/figures"
-supp_tab <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
+supp_fig <- file.path(SUPP_DIR, "figures")
+supp_tab <- file.path(SUPP_DIR, "tables")
 invisible(file.copy(file.path(plot_dir, c("H2_diet_richness_fit.png",
                                           "H2_mechanism_slope_posterior.png")),
                     supp_fig, overwrite=TRUE))
 invisible(file.copy(file.path(out_dir, c("H2_mechanism_model_comparison.csv",
+                                         "H2_mechanism_family_choice.csv",
                                          "H2_mechanism_sensitivity.csv",
                                          "H2_mechanism_robustness.csv")),
                     supp_tab, overwrite=TRUE))
 cat("Staged H2-mechanism figures/tables into Supplementary/figures|tables\n")
 
+# Run control: S6_STOP_AFTER=H2MECH stops here, =H3 after Section 3c (e.g. a
+# worktree run with S6_OUT_ROOT / S6_SUPP_DIR overridden). Unset = full script.
+if (Sys.getenv("S6_STOP_AFTER") == "H2MECH") quit(save = "no", status = 0)
+
 
 # =============================================================================
-# SECTION 3c -- H3: OTU-PLANT COVARIATION (Bayesian joint NB, matched subset)
+# SECTION 3c -- H3: OTU-PLANT COVARIATION (Bayesian hurdle NB, matched subset)
 # Preregistered H3 (specificity of plant covariation): on the diet-matched
 # subset, do individual fungal OTUs differ in HOW SPECIFICALLY they covary with
 # the diet-plant community? Tight single-plant covariation -> likely ingested
@@ -891,40 +950,54 @@ cat("Staged H2-mechanism figures/tables into Supplementary/figures|tables\n")
 # DIFFUSELY. Inference is forward-directional only -- a diffuse/absent
 # association is never read as evidence of residency.
 #
-# DATA OBJECT (2026-07-14): to maximise the matched subset and mirror the GLLVM
-# object choice (script 7), H3 uses the PCR-REPLICATE-level, minimally-filtered
-# `alldat_full$nopool` (min_depth_full=1000) rather than the depth-filtered
-# collapsed `alldat$nopool`. This retains 3 extra low-depth winter dung samples
-# with paired plant ITS2 data (RL_1045/1047/1666), lifting the matched subset
-# from 27 to 30 biological samples (~54 PCR-rep rows). Shallow reps are handled
-# by the per-rep log-library-size offset, not excluded.
+# REBUILT 2026-10-01 (branch exp/brms-refit; evidence in brms_refit/
+# MEMO_brms_refit.md). The previous version had three structural problems that
+# no amount of sampling fixes:
+#   (1) its six plant predictors (decostand "rclr") were EXACTLY rank 3 --
+#       vegan imputes zeros by rank-3 matrix completion -- so half of each OTU's
+#       plant slopes were set by the prior alone;
+#   (2) Season was one community-wide coefficient, so per-OTU seasonality
+#       leaked into the plant slopes (Vaccinium is the summer diet here);
+#   (3) a single negative-binomial shape (0.024) predicted mean counts ~5x too
+#       high and missed the per-OTU zero fractions.
+# Now: full-rank diet-species predictors, per-OTU Season and Year, and a HURDLE
+# negative binomial -- the only likelihood of the pilot arms that converged and
+# reproduced the data (plain NB cannot separate the sample x OTU effect from
+# overdispersion with two replicates per cell; zero-inflated NB did not mix).
 #
-# Model: one hierarchical joint negative-binomial brms fit in long format
-# (PCR-rep row x fungal OTU), per-rep log-library-size offset, per-OTU varying
-# intercept + varying plant-genus slopes (partial pooling = the preregistered
-# "joint model"), plus a per-OTU biological-sample random effect so the two PCR
-# replicates of a sample are treated as replication, not independent samples.
-# Plant predictors = dominant diet genera, rCLR + standardised; Season + Year
-# are global (population-level) covariates.
+# DATA OBJECT (2026-07-14): PCR-REPLICATE-level, minimally-filtered
+# `alldat_full$nopool` (min_depth_full=1000), mirroring the GLLVM object choice
+# (script 7). Matched subset: 30 biological samples / 60 PCR-rep rows; shallow
+# reps are handled by the per-rep log-library-size offset, not excluded.
 #
-# HONEST-POWER CAVEAT (report in the same register as Section 3/§7.1): even at
-# n=30 the diet is dominated by a handful of genera (Betula near-ubiquitous,
-# then Vaccinium/Empetrum), so specificity can only be assessed over ~4-6 plant
-# genera and the coprophilous OTU group is small. Treat the contrast as a
-# directional/exploratory signal, not a decisive test.
+# MODEL (long format, PCR-rep row x fungal OTU):
+#   count ~ 1 + Season + Year + plants + (1 + Season + Year + plants || OTU)
+#           + (1 | Sample_ID_field:OTU) + offset(log_libsize)
+#   hu    ~ 1 + Season + Year + plants + (1 + Season + Year + plants || OTU)
+# family hurdle_negbinomial. The count part is abundance GIVEN presence; hu is
+# P(zero), reported here on the DETECTION scale (sign flipped: positive = the
+# OTU is detected MORE often as that plant rises in the diet). Specificity is
+# judged from each OTU's DEVIATION from the community-wide plant slope (the
+# ranef), because a slope shared by every OTU is not specificity.
+#
+# HONEST-POWER CAVEAT: the diet is dominated by Betula (winter, near-pure in
+# 2023-2024), then Vaccinium (summer) and Empetrum; winter diet variation sits
+# almost entirely in 2022. Specificity can only be assessed over four plant
+# species and the coprophilous OTU group is small. Directional/exploratory.
 # =============================================================================
 
 # ---- TUNABLE PARAMETERS -----------------------------------------------------
-MIN_OTU_PREV_H3   <- 5      # keep fungal OTUs present in >= this many matched BIOLOGICAL samples
-MIN_PLANT_PREV_H3 <- 4      # keep plant genera present in >= this many matched samples
-H3_ITER           <- 4000   # brms iterations (this joint model is far heavier than §7.1)
-H3_WARMUP         <- 2000
-H3_CORR_RE        <- FALSE  # FALSE = uncorrelated per-OTU plant slopes (|| , robust/fast);
-                            # TRUE  = correlated RE with an lkj(2) prior (heavier).
-H3_SAMPLE_OTU_RE  <- TRUE   # TRUE  = per-OTU biological-sample RE (1 | Sample_ID_field:OTU),
-                            #         the correct PCR-replicate pseudoreplication control;
-                            # FALSE = lighter shared (1 | Sample_ID_field) fallback if the
-                            #         per-OTU version is too slow / does not converge.
+MIN_OTU_PREV_H3 <- 5        # keep fungal OTUs present in >= this many matched BIOLOGICAL samples
+H3_ZERO_SHARE   <- 1e-3     # zero plant reads -> this share of the diet before the CLR
+H3_ITER         <- 4000     # brms iterations
+H3_WARMUP       <- 2000
+# Diet predictors: every plant taxon present as >= 1% of diet reads in >= 7 of
+# the 30 matched samples, at the finest rank the plant ITS2 reference resolves
+# (Betula only to genus). The 3-genus set is the sensitivity fit.
+H3_PLANT_SETS <- list(
+  species = c("Betula_sp", "Vaccinium_myrtillus", "Vaccinium_uliginosum", "Empetrum_nigrum"),
+  genus   = c("Betula", "Vaccinium", "Empetrum")
+)
 
 # COPRO_GENERA: standard coprophilous-genus list (verbatim from
 # working/Fable/confirmatory_analysis.R), used only for the genus-list
@@ -960,141 +1033,160 @@ fom_k    <- fom[, keep_otu, drop=FALSE]
 cat(sprintf("\nH3 matched subset: %d biological samples (%d PCR-rep rows); %d OTUs modelled (present in >=%d samples)\n",
             n_bio, nrow(fom_k), ncol(fom_k), MIN_OTU_PREV_H3))
 
-# ---- Dominant diet-plant genera: collapse -> rCLR -> standardise ------------
+# ---- Diet predictors: fixed-share zero replacement -> CLR over full diet ----
 # Plant data are one row per biological sample (keyed by Sample_ID_field).
+# Each sample's plant reads are aggregated to species (or genus), turned into
+# proportions, zeros replaced by H3_ZERO_SHARE (multiplicative replacement, so
+# the result does not depend on plant read depth), CLR-transformed over the
+# WHOLE diet composition, and the chosen columns z-scored. Unlike
+# decostand("rclr") this is full rank (asserted). Predictors correlate >= 0.98
+# across zero shares 0.01%-0.5% (brms_refit/MEMO_brms_refit.md).
 field_ids <- unique(md_f$Sample_ID_field)
 plant_m <- prune_samples(field_ids, plant)
 plant_m <- prune_taxa(taxa_sums(plant_m) > 0, plant_m)
-pom     <- otu_mat_of(plant_m)              # bio samples x plant taxa; rownames = Sample_ID_field
-ptt     <- data.frame(as(tax_table(plant_m), "matrix"), stringsAsFactors=FALSE)
+pom     <- otu_mat_of(plant_m)[field_ids, , drop = FALSE]
+ptt     <- data.frame(as(tax_table(plant_m), "matrix"), stringsAsFactors=FALSE)[colnames(pom), ]
+.na_lab <- function(x, bad) ifelse(is.na(x) | x %in% bad, NA, x)
+g_lab <- .na_lab(ptt$Genus,   c("", "NA", "g__"))
+f_lab <- .na_lab(ptt$Family,  c("", "NA", "f__"))
+s_lab <- .na_lab(ptt$Species, c("", "NA", "s__"))
+lab_genus   <- ifelse(!is.na(g_lab), g_lab,
+                      ifelse(!is.na(f_lab), paste0(f_lab, "_fam"), colnames(pom)))
+lab_species <- ifelse(!is.na(s_lab), s_lab, lab_genus)
 
-g_lab <- ptt$Genus[match(colnames(pom), rownames(ptt))]
-g_lab <- ifelse(is.na(g_lab) | g_lab %in% c("", "NA", "g__"), NA, g_lab)
-f_lab <- ptt$Family[match(colnames(pom), rownames(ptt))]
-f_lab <- ifelse(is.na(f_lab) | f_lab %in% c("", "NA", "f__"), NA, f_lab)
-lab   <- ifelse(!is.na(g_lab), g_lab,
-                ifelse(!is.na(f_lab), paste0(f_lab, "_fam"), colnames(pom)))
-
-pg     <- t(rowsum(t(pom), group=lab))      # bio samples x plant genus
-gprev  <- colSums(pg > 0)
-keep_g <- names(gprev)[gprev >= MIN_PLANT_PREV_H3]
-keep_g <- keep_g[order(gprev[keep_g], decreasing=TRUE)]
-pg_k   <- pg[, keep_g, drop=FALSE]
-cat(sprintf("H3 plant predictors: %d dominant genera (present in >=%d samples): %s\n",
-            ncol(pg_k), MIN_PLANT_PREV_H3, paste(keep_g, collapse=", ")))
-
-# rCLR then z-score each genus column. NOTE (CLAUDE.md gotcha): decostand's
-# rclr imputation path drops dimnames -- restore them before use.
-pg_rclr <- vegan::decostand(pg_k, method="rclr")
-dimnames(pg_rclr) <- dimnames(pg_k)
-pg_z <- scale(pg_rclr)                      # centre/scale columns; keeps dimnames
-pg_z <- pg_z[, , drop=FALSE]
-# Syntactically-safe predictor names for the brms formula; keep a label map.
-plant_var    <- make.names(colnames(pg_z))
-plant_label  <- setNames(colnames(pg_z), plant_var)   # var -> pretty genus name
-colnames(pg_z) <- plant_var
-
-# Map plant predictors onto each PCR-rep row via its biological Sample_ID_field
-# (both reps of a sample get the same plant vector).
-field_of <- setNames(md_f$Sample_ID_field, rownames(md_f))
-pg_byrow <- pg_z[field_of[rownames(fom_k)], , drop=FALSE]
-rownames(pg_byrow) <- rownames(fom_k)
-stopifnot(!anyNA(pg_byrow))
+h3_plant_predictors <- function(level) {
+  agg <- t(rowsum(t(pom), group = if (level == "species") lab_species else lab_genus))
+  Z   <- agg / rowSums(agg)
+  for (i in seq_len(nrow(Z))) {
+    z <- Z[i, ] == 0
+    Z[i, z]  <- H3_ZERO_SHARE
+    Z[i, !z] <- Z[i, !z] * (1 - sum(z) * H3_ZERO_SHARE)
+  }
+  clr  <- log(Z); clr <- clr - rowMeans(clr)
+  keep <- H3_PLANT_SETS[[level]]
+  stopifnot(all(keep %in% colnames(clr)))
+  X  <- scale(clr[, keep, drop = FALSE])
+  sv <- svd(X)$d
+  stopifnot(!anyNA(X), qr(X)$rank == ncol(X), max(sv) / min(sv) < 10)
+  X
+}
 
 # ---- Assemble the long-format model frame (PCR-rep row x OTU) ---------------
-otus <- colnames(fom_k); ns <- nrow(fom_k)
-long <- data.frame(
-  row_id          = rep(rownames(fom_k), times=length(otus)),
-  OTU             = rep(otus,            each=ns),
-  count           = as.vector(fom_k),       # column-major: matches rep() above
-  stringsAsFactors = FALSE
-)
-long$OTU             <- factor(long$OTU)
-long$log_libsize     <- log(libsize[long$row_id])
-long$Sample_ID_field <- field_of[long$row_id]
-long$Season          <- md_f$Season[match(long$row_id, rownames(md_f))]
-long$Year            <- md_f$Year[match(long$row_id, rownames(md_f))]
-for (v in plant_var) long[[v]] <- pg_byrow[long$row_id, v]
-write.csv(long, file.path(out_dir, "H3_matched_long.csv"), row.names=FALSE)
+h3_long <- function(pg_z) {
+  plant_var <- make.names(colnames(pg_z)); colnames(pg_z) <- plant_var
+  field_of <- setNames(md_f$Sample_ID_field, rownames(md_f))
+  pg_byrow <- pg_z[field_of[rownames(fom_k)], , drop=FALSE]
+  rownames(pg_byrow) <- rownames(fom_k)
+  stopifnot(!anyNA(pg_byrow))
+  otus <- colnames(fom_k); ns <- nrow(fom_k)
+  long <- data.frame(
+    row_id          = rep(rownames(fom_k), times=length(otus)),
+    OTU             = rep(otus,            each=ns),
+    count           = as.vector(fom_k),       # column-major: matches rep() above
+    stringsAsFactors = FALSE
+  )
+  long$OTU             <- factor(long$OTU)
+  long$log_libsize     <- log(libsize[long$row_id])
+  long$Sample_ID_field <- field_of[long$row_id]
+  long$Season          <- md_f$Season[match(long$row_id, rownames(md_f))]
+  long$Year            <- md_f$Year[match(long$row_id, rownames(md_f))]
+  for (v in plant_var) long[[v]] <- pg_byrow[long$row_id, v]
+  list(long = long, plant_var = plant_var)
+}
 
-# ---- Fit the hierarchical joint NB model (brms) -----------------------------
+# ---- Fit the hierarchical hurdle NB model (brms) ----------------------------
+# Priors: fixed slopes N(0,1); per-OTU plant-slope SDs student_t(3,0,0.5) in both
+# parts (regularising); per-OTU intercept / Season / Year SDs in the count part
+# widened to student_t(3,0,2.5) so season-exclusive OTUs are reachable; other
+# hu SDs keep brms defaults. Sampler as validated in the production run.
+# GOTCHA (CLAUDE.md): brms file= caches the fit -- delete/rename the cached .rds
+# after any change to formula, priors or data, or it silently reloads.
 library(brms)
-plant_terms <- paste(plant_var, collapse = " + ")
-re_bar      <- if (H3_CORR_RE) "|" else "||"
-samp_re     <- if (H3_SAMPLE_OTU_RE) "(1 | Sample_ID_field:OTU)" else "(1 | Sample_ID_field)"
-h3_form <- as.formula(sprintf(
-  "count ~ 1 + Season + Year + %s + (1 + %s %s OTU) + %s + offset(log_libsize)",
-  plant_terms, plant_terms, re_bar, samp_re))
+fit_h3 <- function(level) {
+  bl <- h3_long(h3_plant_predictors(level))
+  plant_terms <- paste(bl$plant_var, collapse = " + ")
+  mu_form <- as.formula(sprintf(
+    "count ~ 1 + Season + Year + %s + (%s || OTU) + (1 | Sample_ID_field:OTU) + offset(log_libsize)",
+    plant_terms, paste(c("1", "Season", "Year", plant_terms), collapse = " + ")))
+  hu_form <- as.formula(sprintf(
+    "hu ~ 1 + Season + Year + %s + (1 + Season + Year + %s || OTU)", plant_terms, plant_terms))
+  pri <- c(brms::set_prior("normal(0,1)",        class = "b"),
+           brms::set_prior("normal(0,2)",        class = "Intercept"),
+           brms::set_prior("student_t(3,0,0.5)", class = "sd"),
+           do.call(c, lapply(c("Intercept", "Seasonsummer", "Year2023", "Year2024"), function(cf)
+             brms::set_prior("student_t(3,0,2.5)", class = "sd", group = "OTU", coef = cf))),
+           brms::set_prior("normal(0,1)", class = "b", dpar = "hu"),
+           do.call(c, lapply(bl$plant_var, function(cf)
+             brms::set_prior("student_t(3,0,0.5)", class = "sd", group = "OTU", coef = cf, dpar = "hu"))))
+  fit <- brms::brm(brms::bf(mu_form, hu_form), data = bl$long, family = hurdle_negbinomial(),
+                   prior = pri, chains = 4, iter = H3_ITER, warmup = H3_WARMUP, cores = 4,
+                   control = list(adapt_delta = 0.95, max_treedepth = 12),
+                   init_r = 0.5, seed = 1, refresh = 0,
+                   file = file.path(out_dir, sprintf("H3_brms_hurdle_%s", level)))
+  list(fit = fit, plant_var = bl$plant_var, long = bl$long)
+}
+h3_sp <- fit_h3("species")
+h3_ge <- fit_h3("genus")
+b_h3  <- h3_sp$fit
+plant_var   <- h3_sp$plant_var
+plant_label <- setNames(gsub("_", " ", sub("_sp$", "", H3_PLANT_SETS$species)), plant_var)
+write.csv(h3_sp$long, file.path(out_dir, "H3_matched_long.csv"), row.names=FALSE)
 
-h3_prior <- c(
-  brms::set_prior("normal(0,1)",        class="b"),
-  brms::set_prior("normal(0,2)",        class="Intercept"),
-  brms::set_prior("student_t(3,0,0.5)", class="sd")           # regularises per-OTU slopes
-)
-if (H3_CORR_RE) h3_prior <- c(h3_prior, brms::set_prior("lkj(2)", class="cor"))
+# ---- Convergence + posterior-predictive checks (both fits) -------------------
+h3_checks <- function(fit, label) {
+  np <- brms::nuts_params(fit)
+  sm <- posterior::summarise_draws(brms::as_draws_df(fit), "rhat", "ess_bulk", "ess_tail")
+  sm <- sm[!sm$variable %in% c("lp__", "lprior"), ]
+  d  <- fit$data
+  yr <- brms::posterior_predict(fit, ndraws = 500)
+  pm <- rowMeans(yr)
+  oz <- tapply(d$count == 0, d$OTU, mean)
+  pz <- sapply(names(oz), function(o) mean(yr[, d$OTU == o] == 0))
+  data.frame(fit = label, divergences = sum(np$Value[np$Parameter == "divergent__"]),
+             max_rhat = max(sm$rhat, na.rm = TRUE), min_ess_bulk = min(sm$ess_bulk, na.rm = TRUE),
+             min_ess_tail = min(sm$ess_tail, na.rm = TRUE),
+             obs_mean_count = mean(d$count), pred_mean_lwr95 = unname(quantile(pm, .025)),
+             pred_mean_upr95 = unname(quantile(pm, .975)),
+             zero_frac_cor_by_OTU = cor(oz, pz), zero_frac_max_gap = max(abs(oz - pz)),
+             P_pred_max_le_max_library = mean(apply(yr, 1, max) <= max(exp(d$log_libsize))),
+             stringsAsFactors = FALSE)
+}
+h3_check_tbl <- rbind(h3_checks(h3_sp$fit, "four diet species (primary)"),
+                      h3_checks(h3_ge$fit, "three diet genera (sensitivity)"))
+write.csv(h3_check_tbl, file.path(out_dir, "H3_model_checks.csv"), row.names = FALSE)
+cat("\nH3 model checks:\n"); print(h3_check_tbl, digits = 3)
+if (any(h3_check_tbl$max_rhat > 1.01 | h3_check_tbl$divergences > 0))
+  warning("H3 hurdle model may not have converged -- see H3_model_checks.csv")
 
-# GOTCHA (CLAUDE.md): brms file= caches the fit -- delete/rename the cached
-# H3_brms_joint_repRE.rds after any change to the formula/priors or it silently
-# reloads the stale model. (The old collapsed-n=27 fit is H3_brms_joint.rds.)
-b_h3 <- brms::brm(
-  h3_form, data=long, family=negbinomial(),
-  prior   = h3_prior,
-  chains  = 4, iter = H3_ITER, warmup = H3_WARMUP, cores = 4,
-  control = list(adapt_delta = 0.999, max_treedepth = 15),
-  seed    = 1, refresh = 0,
-  file    = file.path(out_dir, "H3_brms_joint_repRE")
-)
+# ---- Per-OTU plant slopes: total and OTU-specific deviation, both parts ------
+# coef() = community slope + OTU deviation; ranef() = the deviation alone.
+# Occurrence is put on the DETECTION scale (sign of hu flipped).
+h3_slopes <- function(fit, pv) {
+  co <- coef(fit, summary = FALSE)$OTU; re <- ranef(fit, summary = FALSE)$OTU
+  pick <- function(arr, prefix, sgn) {
+    a <- sgn * arr[, , paste0(prefix, pv), drop = FALSE]; dimnames(a)[[3]] <- pv; a }
+  list(otu_ids = dimnames(co)[[2]],
+       abundance  = list(tot = pick(co, "", 1),     dev = pick(re, "", 1)),
+       occurrence = list(tot = pick(co, "hu_", -1), dev = pick(re, "hu_", -1)))
+}
+qa <- function(a, p) apply(a, c(2, 3), quantile, p)
+hhi_of <- function(v) { a <- abs(v); s <- sum(a); if (s == 0) NA_real_ else sum((a/s)^2) }
 
-# ---- Convergence check ------------------------------------------------------
-.h3_ndiv <- function(fit) { np <- brms::nuts_params(fit)
-                            sum(np$Value[np$Parameter == "divergent__"]) }
-h3_maxrhat <- max(brms::rhat(b_h3), na.rm=TRUE)
-h3_ndiv    <- .h3_ndiv(b_h3)
-cat(sprintf("H3 model convergence: max Rhat = %.4f, divergent transitions = %d\n",
-            h3_maxrhat, h3_ndiv))
-if (h3_maxrhat > 1.01 || h3_ndiv > 0)
-  warning(sprintf("H3 model may not have converged (max Rhat=%.3f, %d divergences). ",
-                  h3_maxrhat, h3_ndiv),
-          "Consider raising adapt_delta, tightening the sd prior, or setting H3_CORR_RE=FALSE.")
-
-# ---- Per-OTU plant-slope posteriors -----------------------------------------
-# coef(summary=FALSE) returns draws x OTU x parameter (fixed + OTU deviation).
-co_draws <- coef(b_h3, summary = FALSE)$OTU
-otu_ids  <- dimnames(co_draws)[[2]]
-par_nms  <- dimnames(co_draws)[[3]]
-p_idx    <- match(plant_var, par_nms)
-stopifnot(!anyNA(p_idx))
-slopes   <- co_draws[, , p_idx, drop=FALSE]      # draws x OTU x plant
-absS     <- abs(slopes)
-ndraw <- dim(slopes)[1]; notu <- dim(slopes)[2]; kp <- dim(slopes)[3]
-
-# ---- Specificity index (Herfindahl-Hirschman of |plant slopes|) -------------
-# HHI = sum_j w_j^2, w_j = |slope_j| / sum_j |slope_j|. Range 1/k (perfectly
-# diffuse across all k plant genera) to 1 (all mass on a single plant).
-# PRIMARY per-OTU index (interpretable, varies across OTUs): HHI of the OTU's
-# posterior-MEDIAN plant slopes. We ALSO carry a per-DRAW HHI (full posterior
-# uncertainty propagated) solely for the uncertainty-honest group contrast --
-# the per-draw HHI is dominated by posterior noise and is near-constant across
-# OTUs, which is itself the honest read that no OTU's specificity is resolved
-# from the diffuse baseline at this sample size.
-hhi_of        <- function(v) { a <- abs(v); s <- sum(a); if (s == 0) NA_real_ else sum((a/s)^2) }
-slope_med_mat <- apply(slopes, c(2, 3), median)  # OTU x plant (posterior medians)
-spec_point    <- apply(slope_med_mat, 1, hhi_of) # per-OTU point specificity
-diffuse_base  <- 1 / kp
-hhi_draws <- matrix(NA_real_, ndraw, notu, dimnames=list(NULL, otu_ids))
-for (o in seq_len(notu)) { a <- absS[, o, ]; hhi_draws[, o] <- rowSums((a / rowSums(a))^2) }
-
-# Dominant plant genus per OTU (largest posterior-median |slope|) + resolved flag
-dom_i   <- apply(abs(slope_med_mat), 1, which.max)
-dom_var <- plant_var[dom_i]
-dom_gen <- unname(plant_label[dom_var])
-top_med <- numeric(notu); top_lwr <- numeric(notu); top_upr <- numeric(notu)
-resolved <- logical(notu)
-for (o in seq_len(notu)) {
-  sd_o <- slopes[, o, dom_i[o]]
-  q90  <- quantile(sd_o, c(0.05, 0.95))
-  resolved[o] <- (q90[1] > 0) || (q90[2] < 0)    # 90% CrI of dominant-plant slope excludes 0
-  top_med[o]  <- median(sd_o); top_lwr[o] <- q90[1]; top_upr[o] <- q90[2]
+sl      <- h3_slopes(b_h3, plant_var)
+otu_ids <- sl$otu_ids; notu <- length(otu_ids); kp <- length(plant_var)
+parts   <- c("abundance", "occurrence")
+summ <- lapply(setNames(parts, parts), function(pt) {
+  tot <- sl[[pt]]$tot; dev <- sl[[pt]]$dev
+  a   <- abs(tot)
+  list(tot_med = apply(tot, c(2, 3), median), tot_l95 = qa(tot, .025), tot_u95 = qa(tot, .975),
+       dev_med = apply(dev, c(2, 3), median), dev_l95 = qa(dev, .025), dev_u95 = qa(dev, .975),
+       hhi_draws = sapply(seq_len(notu), function(o) { x <- a[, o, ]; rowSums((x / rowSums(x))^2) }),
+       p_top = t(sapply(seq_len(notu), function(o)
+                 tabulate(max.col(a[, o, ], ties.method = "first"), nbins = kp) / dim(a)[1])))
+})
+for (pt in parts) {
+  summ[[pt]]$hhi <- apply(summ[[pt]]$tot_med, 1, hhi_of)
+  summ[[pt]]$dev_resolved <- (summ[[pt]]$dev_l95 > 0) | (summ[[pt]]$dev_u95 < 0)   # OTU x plant
 }
 
 # ---- FUNGuild guild grouping for the preregistered contrast -----------------
@@ -1117,62 +1209,74 @@ strip_rank <- function(x) sub("^[a-z]__", "", x)   # UNITE "g__Sporormiella" -> 
 otu_gen    <- strip_rank(tax_all$Genus[match(otu_ids, rownames(tax_all))])
 
 # ---- Write per-OTU tables ---------------------------------------------------
-spec_tbl <- data.frame(
-  OTU_ID           = otu_ids,
-  Genus            = otu_gen,
-  prevalence       = as.integer(prev_f[otu_ids]),
-  specificity_HHI  = round(spec_point, 3),
-  diffuse_baseline = round(diffuse_base, 3),
-  dominant_plant   = dom_gen,
-  dom_slope_med    = round(top_med, 3),
-  dom_slope_lwr90  = round(top_lwr, 3),
-  dom_slope_upr90  = round(top_upr, 3),
-  resolved_single_plant = resolved,
-  guild_group      = guild_group,
-  primary_guild    = prim_guild,
-  FUNGuild         = guild_str,
-  stringsAsFactors = FALSE
-)
-spec_tbl <- spec_tbl[order(-spec_tbl$specificity_HHI), ]
-write.csv(spec_tbl, file.path(out_dir, "H3_specificity_index.csv"), row.names=FALSE)
-
-# Per-OTU x plant slope table (medians + 95% CrI), long form
-slope_med <- slope_med_mat
-slope_lwr <- apply(slopes, c(2, 3), quantile, 0.025)
-slope_upr <- apply(slopes, c(2, 3), quantile, 0.975)
-coef_tbl <- data.frame(
-  OTU_ID = rep(otu_ids, times = kp),
-  plant  = rep(unname(plant_label[plant_var]), each = notu),
-  slope_med = round(as.vector(slope_med), 3),
-  slope_lwr95 = round(as.vector(slope_lwr), 3),
-  slope_upr95 = round(as.vector(slope_upr), 3),
-  stringsAsFactors = FALSE
-)
+coef_tbl <- do.call(rbind, lapply(parts, function(pt) { S <- summ[[pt]]
+  data.frame(OTU_ID = rep(otu_ids, times = kp), part = pt,
+             plant = rep(unname(plant_label[plant_var]), each = notu),
+             slope_med = round(as.vector(S$tot_med), 3),
+             slope_lwr95 = round(as.vector(S$tot_l95), 3), slope_upr95 = round(as.vector(S$tot_u95), 3),
+             dev_med = round(as.vector(S$dev_med), 3),
+             dev_lwr95 = round(as.vector(S$dev_l95), 3), dev_upr95 = round(as.vector(S$dev_u95), 3),
+             dev_resolved95 = as.vector(S$dev_resolved),
+             stringsAsFactors = FALSE) }))
 coef_tbl$Genus       <- otu_gen[match(coef_tbl$OTU_ID, otu_ids)]
 coef_tbl$guild_group <- guild_group[match(coef_tbl$OTU_ID, otu_ids)]
 write.csv(coef_tbl, file.path(out_dir, "H3_perOTU_plant_coef.csv"), row.names=FALSE)
 
+top_of <- function(m) unname(plant_label[plant_var[max.col(m, ties.method = "first")]])
+spec_tbl <- data.frame(
+  OTU_ID = otu_ids, Genus = otu_gen, prevalence = as.integer(prev_f[otu_ids]),
+  occ_specificity_HHI = round(summ$occurrence$hhi, 3),
+  occ_top_plant = top_of(summ$occurrence$p_top),
+  occ_P_top_plant = round(apply(summ$occurrence$p_top, 1, max), 3),
+  occ_resolved_plants = apply(summ$occurrence$dev_resolved, 1, function(r)
+                          paste(unname(plant_label[plant_var[r]]), collapse = "; ")),
+  abund_specificity_HHI = round(summ$abundance$hhi, 3),
+  abund_top_plant = top_of(summ$abundance$p_top),
+  abund_P_top_plant = round(apply(summ$abundance$p_top, 1, max), 3),
+  abund_resolved_plants = apply(summ$abundance$dev_resolved, 1, function(r)
+                            paste(unname(plant_label[plant_var[r]]), collapse = "; ")),
+  diffuse_baseline = round(1 / kp, 3),
+  guild_group = guild_group, primary_guild = prim_guild, FUNGuild = guild_str,
+  stringsAsFactors = FALSE)
+spec_tbl$n_resolved <- rowSums(summ$occurrence$dev_resolved) + rowSums(summ$abundance$dev_resolved)
+spec_tbl <- spec_tbl[order(-spec_tbl$n_resolved, -spec_tbl$occ_specificity_HHI), ]
+write.csv(spec_tbl, file.path(out_dir, "H3_specificity_index.csv"), row.names=FALSE)
+
+# Community-level (population) plant slopes and per-OTU slope SDs, both parts.
+.pv_rx <- paste(plant_var, collapse = "|")
+hy <- posterior::summarise_draws(brms::as_draws_df(b_h3), "median", ~quantile(.x, c(.025, .975)))
+hy <- as.data.frame(hy[grepl(sprintf("^(b|sd_OTU_)_(hu_)?(%s)$", .pv_rx), hy$variable), ])
+names(hy) <- c("variable", "median", "lwr95", "upr95")
+hy$part  <- ifelse(grepl("_hu_", hy$variable), "occurrence", "abundance")
+hy$kind  <- ifelse(grepl("^b_", hy$variable), "community slope", "SD of OTU deviations")
+hy$plant <- unname(plant_label[regmatches(hy$variable, regexpr(.pv_rx, hy$variable))])
+flip <- hy$part == "occurrence" & hy$kind == "community slope"     # detection scale
+hy[flip, c("median", "lwr95", "upr95")] <- -hy[flip, c("median", "upr95", "lwr95")]
+h3_hyper <- hy[order(hy$part, hy$kind, hy$plant), c("part", "kind", "plant", "median", "lwr95", "upr95")]
+write.csv(h3_hyper, file.path(out_dir, "H3_model_summary.csv"), row.names = FALSE)
+
 # ---- Preregistered contrast: coprophilous vs plant-associated specificity ---
 # Forward-directional: coprophilous taxa are expected to be MORE DIFFUSE, i.e.
-# LOWER specificity, than plant-associated taxa. Reported two ways: (i) a
-# point-estimate one-sided Wilcoxon on the per-OTU specificity index, and
+# LOWER specificity, than plant-associated taxa. Reported for each model part
+# two ways: (i) a point-estimate one-sided Wilcoxon on the per-OTU HHI, and
 # (ii) an uncertainty-propagated per-draw group-mean difference.
-contrast_of <- function(grp_vec, source_label) {
+contrast_of <- function(grp_vec, source_label, pt) {
+  S  <- summ[[pt]]
   ci <- which(grp_vec == "coprophilous")
   pi <- which(grp_vec == "plant_associated")
-  base <- data.frame(grouping=source_label, n_coprophilous=length(ci),
+  base <- data.frame(part=pt, grouping=source_label, n_coprophilous=length(ci),
                      n_plant_assoc=length(pi),
                      copro_spec_med=NA_real_, plant_spec_med=NA_real_,
                      wilcox_p_copro_lower=NA_real_, prop_diff_med=NA_real_,
                      prop_diff_lwr95=NA_real_, prop_diff_upr95=NA_real_,
                      P_copro_lower=NA_real_, stringsAsFactors=FALSE)
   if (length(ci) < 1 || length(pi) < 1) return(base)
-  base$copro_spec_med <- round(median(spec_point[ci]), 3)
-  base$plant_spec_med <- round(median(spec_point[pi]), 3)
+  base$copro_spec_med <- round(median(S$hhi[ci]), 3)
+  base$plant_spec_med <- round(median(S$hhi[pi]), 3)
   base$wilcox_p_copro_lower <- tryCatch(round(suppressWarnings(
-    wilcox.test(spec_point[ci], spec_point[pi], alternative="less")$p.value), 3),
+    wilcox.test(S$hhi[ci], S$hhi[pi], alternative="less")$p.value), 3),
     error=function(e) NA_real_)
-  d <- rowMeans(hhi_draws[, ci, drop=FALSE]) - rowMeans(hhi_draws[, pi, drop=FALSE])
+  d <- rowMeans(S$hhi_draws[, ci, drop=FALSE]) - rowMeans(S$hhi_draws[, pi, drop=FALSE])
   base$prop_diff_med   <- round(median(d), 3)
   base$prop_diff_lwr95 <- round(quantile(d, 0.025), 3)
   base$prop_diff_upr95 <- round(quantile(d, 0.975), 3)
@@ -1183,70 +1287,91 @@ contrast_of <- function(grp_vec, source_label) {
 copro_by_genus <- !is.na(otu_gen) & otu_gen %in% COPRO_GENERA
 group_genus <- ifelse(copro_by_genus, "coprophilous",
                 ifelse(guild_group == "plant_associated", "plant_associated", "other/unassigned"))
-h3_contrast <- rbind(
-  contrast_of(guild_group, "FUNGuild (primary)"),
-  contrast_of(group_genus, "COPRO_GENERA genus list (sensitivity)")
-)
+h3_contrast <- do.call(rbind, lapply(parts, function(pt) rbind(
+  contrast_of(guild_group, "FUNGuild (primary)", pt),
+  contrast_of(group_genus, "COPRO_GENERA genus list (sensitivity)", pt))))
 write.csv(h3_contrast, file.path(out_dir, "H3_specificity_contrast.csv"), row.names=FALSE)
 
-n_resolved <- sum(spec_tbl$resolved_single_plant)
-cat(sprintf("H3 contrast (FUNGuild primary): copro n=%d spec=%.3f vs plant-assoc n=%d spec=%.3f; Wilcoxon(copro<plant) p=%.3f; propagated P(copro more diffuse)=%.3f\n",
-            h3_contrast$n_coprophilous[1], h3_contrast$copro_spec_med[1],
-            h3_contrast$n_plant_assoc[1], h3_contrast$plant_spec_med[1],
-            h3_contrast$wilcox_p_copro_lower[1], h3_contrast$P_copro_lower[1]))
-cat(sprintf("H3 verdict: %d/%d modelled OTUs show a resolved single-plant association (90%% CrI of the dominant-plant slope excludes 0). ",
-            n_resolved, nrow(spec_tbl)))
-cat(if (n_resolved == 0)
-      "No OTU-level plant specificity is resolvable at n=27; the coprophilous-vs-plant-associated contrast is INCONCLUSIVE. Forward-directional inference: absence of a tight single-plant signal is NOT evidence of residency.\n"
-    else "See H3_specificity_index.csv for the resolved OTUs.\n")
+# ---- Sensitivity: three diet genera instead of four diet species ------------
+# Betula and Empetrum are the same taxon at both ranks; genus Vaccinium pools
+# V. myrtillus and V. uliginosum.
+sl_g <- h3_slopes(h3_ge$fit, h3_ge$plant_var)
+stopifnot(identical(sl_g$otu_ids, otu_ids))
+h3_sens <- do.call(rbind, lapply(parts, function(pt) {
+  ms <- apply(sl[[pt]]$tot, c(2, 3), median); mg <- apply(sl_g[[pt]]$tot, c(2, 3), median)
+  rg <- (qa(sl_g[[pt]]$dev, .025) > 0) | (qa(sl_g[[pt]]$dev, .975) < 0)
+  data.frame(part = pt, comparison = c("Betula", "Empetrum nigrum vs Empetrum",
+                                       "Vaccinium myrtillus vs Vaccinium", "Vaccinium uliginosum vs Vaccinium"),
+             cor_OTU_slopes = c(cor(ms[, "Betula_sp"], mg[, "Betula"]),
+                                cor(ms[, "Empetrum_nigrum"], mg[, "Empetrum"]),
+                                cor(ms[, "Vaccinium_myrtillus"], mg[, "Vaccinium"]),
+                                cor(ms[, "Vaccinium_uliginosum"], mg[, "Vaccinium"])),
+             n_resolved_species = c(sum(summ[[pt]]$dev_resolved[, "Betula_sp"]),
+                                    sum(summ[[pt]]$dev_resolved[, "Empetrum_nigrum"]),
+                                    sum(summ[[pt]]$dev_resolved[, "Vaccinium_myrtillus"]),
+                                    sum(summ[[pt]]$dev_resolved[, "Vaccinium_uliginosum"])),
+             n_resolved_genus = c(sum(rg[, "Betula"]), sum(rg[, "Empetrum"]),
+                                  sum(rg[, "Vaccinium"]), sum(rg[, "Vaccinium"])),
+             stringsAsFactors = FALSE)
+}))
+write.csv(h3_sens, file.path(out_dir, "H3_species_vs_genus.csv"), row.names = FALSE)
+
+n_res <- sapply(parts, function(pt) sum(summ[[pt]]$dev_resolved))
+cat(sprintf("H3: OTU-specific plant deviations with a 95%% CrI excluding 0 -- abundance %d, occurrence %d (of %d OTU x plant pairs each)\n",
+            n_res["abundance"], n_res["occurrence"], notu * kp))
+print(h3_contrast[, c("part", "grouping", "copro_spec_med", "plant_spec_med",
+                      "wilcox_p_copro_lower", "P_copro_lower")])
 
 # ---- Figures ----------------------------------------------------------------
-# Fig A: per-OTU plant-slope heatmap, OTUs ordered by specificity, faceted by
-# guild group. Fig B: specificity index by guild group.
-otu_order <- spec_tbl$OTU_ID
+# Fig A: per-OTU total plant slopes, both parts side by side, rows grouped by
+# guild class and ordered by occurrence specificity; a dot marks an OTU-specific
+# deviation whose 95% CrI excludes 0. Fig B: specificity index by guild, by part.
+otu_lab <- ifelse(is.na(otu_gen), otu_ids, paste0(otu_ids, " (", otu_gen, ")"))
 hm <- coef_tbl
-hm$OTU_lab <- ifelse(is.na(hm$Genus), hm$OTU_ID, paste0(hm$OTU_ID, " (", hm$Genus, ")"))
-lab_levels <- {
-  ordv <- data.frame(OTU_ID=otu_order,
-                     lab=ifelse(is.na(otu_gen[match(otu_order, otu_ids)]), otu_order,
-                                paste0(otu_order, " (", otu_gen[match(otu_order, otu_ids)], ")")))
-  ordv$lab
-}
-hm$OTU_lab   <- factor(hm$OTU_lab, levels = rev(lab_levels))
-hm$plant     <- factor(hm$plant, levels = unname(plant_label[plant_var]))
-hm$grp_fac   <- factor(hm$guild_group, levels=c("coprophilous","plant_associated","other/unassigned"))
+hm$OTU_lab  <- factor(otu_lab[match(hm$OTU_ID, otu_ids)],
+                      levels = rev(otu_lab[match(spec_tbl$OTU_ID, otu_ids)]))
+hm$plant    <- factor(hm$plant, levels = unname(plant_label[plant_var]))
+hm$part     <- factor(hm$part, levels = parts,
+                      labels = c("Abundance given presence", "Occurrence (detection)"))
+hm$grp_fac  <- factor(hm$guild_group, levels=c("coprophilous","plant_associated","other/unassigned"))
 slim <- max(abs(hm$slope_med), na.rm=TRUE)
 p_hm <- ggplot(hm, aes(plant, OTU_lab, fill=slope_med)) +
   geom_tile(colour="grey85") +
-  facet_grid(grp_fac ~ ., scales="free_y", space="free_y") +
+  geom_point(data = hm[hm$dev_resolved95, ], shape = 21, size = 2.2, fill = "black", colour = "white") +
+  facet_grid(grp_fac ~ part, scales="free_y", space="free_y") +
   scale_fill_gradient2(low="#2166AC", mid="white", high="#B2182B", midpoint=0,
-                       limits=c(-slim, slim), name="Median\nplant slope\n(log-scale)") +
-  labs(title="H3: per-OTU covariation with dominant diet-plant genera",
-       subtitle=sprintf("Joint NB, PCR-rep offset; n=%d samples, %d OTUs, %d plant genera (rows by specificity)",
+                       limits=c(-slim, slim), name="Median\nplant slope\n(log / log-odds)") +
+  labs(title="H3: per-OTU covariation with the main diet plants",
+       subtitle=sprintf("Hurdle NB, per-OTU Season + Year, PCR-rep offset; n=%d samples, %d OTUs, %d diet species",
                         n_bio, notu, kp),
-       x="Diet-plant genus (rCLR)", y=NULL,
-       caption="Per-OTU posterior-median plant slopes; rows grouped by FUNGuild guild class.") +
+       x="Diet plant (CLR, standardised)", y=NULL,
+       caption="Fill = OTU's total slope (community + OTU deviation). Dot = OTU-specific deviation, 95% CrI excludes 0.\nOccurrence on the detection scale: positive = detected more often as the plant rises in the diet.") +
   theme_bw(base_size=11) +
   theme(axis.text.x = element_text(angle=45, hjust=1))
-save_png(p_hm, "H3_perOTU_plant_coef.png", width=8, height=10, dpi=800)
+save_png(p_hm, "H3_perOTU_plant_coef.png", width=9, height=11, dpi=800)
 
-spec_plot <- spec_tbl[spec_tbl$guild_group %in% c("coprophilous","plant_associated"), ]
-spec_plot$guild_group <- factor(spec_plot$guild_group,
-                                levels=c("coprophilous","plant_associated"))
-p_spec <- ggplot(spec_plot, aes(guild_group, specificity_HHI, colour=guild_group)) +
+spec_long <- rbind(
+  data.frame(part = "Abundance given presence", OTU_ID = otu_ids, hhi = summ$abundance$hhi, guild_group = guild_group),
+  data.frame(part = "Occurrence (detection)",   OTU_ID = otu_ids, hhi = summ$occurrence$hhi, guild_group = guild_group))
+spec_plot <- spec_long[spec_long$guild_group %in% c("coprophilous","plant_associated"), ]
+spec_plot$guild_group <- factor(spec_plot$guild_group, levels=c("coprophilous","plant_associated"))
+spec_plot$part <- factor(spec_plot$part, levels = c("Abundance given presence", "Occurrence (detection)"))
+p_spec <- ggplot(spec_plot, aes(guild_group, hhi, colour=guild_group)) +
   geom_boxplot(outlier.shape=NA, width=0.5, colour="grey50") +
   geom_jitter(width=0.12, height=0, size=3, alpha=0.85) +
   geom_hline(yintercept = 1/kp, linetype="dashed", colour="grey60") +
+  facet_wrap(~ part) +
   scale_colour_manual(values=c(coprophilous="#0072B2", plant_associated="#E69F00"),
                       guide="none") +
   labs(title="H3: plant-association specificity by guild class",
        subtitle="Preregistered direction: coprophilous expected MORE diffuse (lower HHI)",
        x=NULL, y="Specificity index (HHI of |plant slopes|)",
        caption=sprintf(paste0("Dashed line = maximally-diffuse baseline (1/k = %.2f). Points = per-OTU posterior medians.\n",
-                              "Wilcoxon(copro<plant) p=%.3f; uncertainty-propagated P(copro more diffuse)=%.3f."),
-                       1/kp, h3_contrast$wilcox_p_copro_lower[1], h3_contrast$P_copro_lower[1])) +
+                              "Uncertainty-propagated P(copro more diffuse): abundance %.2f, occurrence %.2f (FUNGuild grouping)."),
+                       1/kp, h3_contrast$P_copro_lower[h3_contrast$part == "abundance" & grepl("FUNGuild", h3_contrast$grouping)],
+                       h3_contrast$P_copro_lower[h3_contrast$part == "occurrence" & grepl("FUNGuild", h3_contrast$grouping)])) +
   theme_bw(base_size=12)
-save_png(p_spec, "H3_specificity_contrast.png", width=7.5, height=5.5, dpi=800)
+save_png(p_spec, "H3_specificity_contrast.png", width=9, height=5.5, dpi=800)
 
 # ---- Stage H3 outputs for the Quarto appendix (Section 7.2) -----------------
 invisible(file.copy(file.path(plot_dir, c("H3_perOTU_plant_coef.png",
@@ -1254,10 +1379,14 @@ invisible(file.copy(file.path(plot_dir, c("H3_perOTU_plant_coef.png",
                     supp_fig, overwrite=TRUE))
 invisible(file.copy(file.path(out_dir, c("H3_specificity_index.csv",
                                          "H3_perOTU_plant_coef.csv",
-                                         "H3_specificity_contrast.csv")),
+                                         "H3_specificity_contrast.csv",
+                                         "H3_model_summary.csv",
+                                         "H3_model_checks.csv",
+                                         "H3_species_vs_genus.csv")),
                     supp_tab, overwrite=TRUE))
 cat("Staged H3 figures/tables into Supplementary/figures|tables\n")
 
+if (Sys.getenv("S6_STOP_AFTER") == "H3") quit(save = "no", status = 0)
 
 # #############################################################################
 # PART B -- PHYLOGENETIC DIVERSITY & COMMUNITY STRUCTURE (supplementary)

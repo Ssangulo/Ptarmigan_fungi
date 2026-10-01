@@ -1,0 +1,17 @@
+"part","kind","plant","median","lwr95","upr95"
+"abundance","community slope","Betula",0.481402935308046,-0.041760005529123,0.998160886161317
+"abundance","community slope","Empetrum nigrum",0.100989877119238,-0.192827722480539,0.382916296347417
+"abundance","community slope","Vaccinium myrtillus",0.269945243736004,-0.274349611342956,0.805460098723532
+"abundance","community slope","Vaccinium uliginosum",-0.135349897064265,-0.452665883192163,0.194366061070797
+"abundance","SD of OTU deviations","Betula",0.164827625966624,0.00750979920231874,0.514705335528273
+"abundance","SD of OTU deviations","Empetrum nigrum",0.157009813722094,0.00731132737914491,0.485741252282422
+"abundance","SD of OTU deviations","Vaccinium myrtillus",0.17260811523046,0.00654549885784238,0.555193114724187
+"abundance","SD of OTU deviations","Vaccinium uliginosum",0.243678088888718,0.0125941759888066,0.712165758780997
+"occurrence","community slope","Betula",0.0346833933453667,-0.346414444335062,0.461710121609819
+"occurrence","community slope","Empetrum nigrum",0.321056916844757,0.113147978363469,0.528375351954928
+"occurrence","community slope","Vaccinium myrtillus",-0.5829721532444,-0.893577609856655,-0.293940315568813
+"occurrence","community slope","Vaccinium uliginosum",-0.200180027589048,-0.355368019469958,-0.0555258725413708
+"occurrence","SD of OTU deviations","Betula",0.914251595873693,0.622106936591264,1.26503041703731
+"occurrence","SD of OTU deviations","Empetrum nigrum",0.45880286863896,0.27464730351192,0.681500537840048
+"occurrence","SD of OTU deviations","Vaccinium myrtillus",0.253677102180405,0.0143611700700938,0.633278265682258
+"occurrence","SD of OTU deviations","Vaccinium uliginosum",0.133106043875798,0.00640976357600277,0.355363085812163
