@@ -2197,6 +2197,23 @@ kable(data.frame(
 
 Close relatives respond alike, and the resemblance reaches well beyond near-identical sequences. The 27 pairs within 0.005 substitutions per site correlate at 0.82, pairs up to 0.1 at 0.63–0.65, and the 1,283 pairs at 0.1–0.5 — roughly genus-to-family distance — still at 0.40, each far above the range expected by chance. The resemblance fades by 0.5–1 (0.08) and reverses at the deepest splits (−0.10): the most distant lineages tend to respond to season in opposite directions. Near-identical sequences therefore do not drive the signal — they are 27 of about 25,000 pairs — and they are retained: they survived LULU curation, which merges a sequence into a close relative only when the two co-occur, so they are distinct units rather than sequencing duplicates.
 
+<!-- CLAUDE DRAFT 2026-10-01: rewrite freely -->
+The deep end of the correlogram needs a separate check. A tree built from ITS2 alone resolves recent splits well but places classes and phyla poorly, so the negative correlation at the largest distances rests on weak branches. Grouping the same Season responses by taxonomy instead, with no tree involved, shows the contrast directly (Table S-HMSCf3). Basidiomycota lean summer (72% of OTUs summer-positive), driven by the yeast classes Tremellomycetes and Microbotryomycetes. Ascomycota lean winter (43% summer-positive), driven by Dothideomycetes, Eurotiomycetes and Lecanoromycetes, the last two with only about one OTU in six summer-positive. Sordariomycetes, which include *Coniochaeta*, are the summer-leaning exception among Ascomycota.
+
+```{r tab-hmsc-lineage}
+#| echo: false
+library(knitr)
+ln <- read.csv("tables/hmsc_season_by_lineage.csv", stringsAsFactors = FALSE)
+kable(data.frame(
+  Rank = ln$rank, Lineage = ln$lineage, `OTUs` = ln$n_otu,
+  `Mean Season response (std.)` = sprintf("%+.2f", ln$mean_std_season_beta),
+  `% summer-positive` = sprintf("%.0f%%", ln$pct_summer_positive),
+  p = ifelse(ln$p_perm < 0.001, "< 0.001", sprintf("%.3f", ln$p_perm)),
+  check.names = FALSE),
+  row.names = FALSE,
+  caption = "Table S-HMSCf3. Seasonal response by phylum and class, from taxonomy rather than the tree. For each lineage with at least four modelled OTUs: the mean standardised Season coefficient of the headline model (positive = summer), the percentage of its OTUs with a positive coefficient, and a permutation p (2000 random groups of the same size: is the lineage's mean further from the community mean than chance?). 'unassigned' = OTUs with a phylum but no class.")
+```
+
 Seasonal niches are **phylogenetically conserved**, most clearly at the genus-to-family scale, with the deepest lineages contrasting. This dovetails with the guild result — because guild is itself partly phylogenetically structured, the coprophilous summer signature is echoed as a broader phylogenetic pattern. It is reported as a secondary, exploratory result: the phylogeny-augmented model is a supplementary variant, and ρ at the upper edge of its range is better read as "strongly structured" than as a precise value.
 
 ### 9.7 What the model predicts — and its honest limit

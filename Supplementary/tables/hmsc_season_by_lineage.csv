@@ -1,0 +1,12 @@
+"rank","lineage","n_otu","mean_std_season_beta","pct_summer_positive","p_perm"
+"Phylum","Basidiomycota",78,0.18,71.8,0
+"Phylum","Ascomycota",144,-0.119,43.1,0
+"Class","Microbotryomycetes",19,0.307,73.7,0
+"Class","Sordariomycetes",6,0.25,83.3,0.093
+"Class","Tremellomycetes",44,0.225,81.8,0
+"Class","Leotiomycetes",44,0.071,63.6,0.0935
+"Class","Agaricomycetes",8,-0.009,62.5,0.941
+"Class","Dothideomycetes",53,-0.158,39.6,0.003
+"Class","Eurotiomycetes",12,-0.286,16.7,0.0175
+"Class","unassigned",14,-0.377,14.3,0.001
+"Class","Lecanoromycetes",12,-0.382,16.7,5e-04
