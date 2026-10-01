@@ -2893,7 +2893,7 @@ pA <- ggplot(otu_df, aes(est, lab, colour = Guild)) +
                      name = NULL, drop = FALSE) +
   scale_x_continuous(breaks = seq(-6, 6, 2), expand = expansion(mult = c(0.03, 0.09))) +
   coord_cartesian(xlim = c(-XCLIP, XCLIP)) +
-  labs(x = "HMSC Beta: Season (CLR abundance, positive = more abundant in summer)", y = NULL,
+  labs(x = "HMSC Beta: Season (CLR abundance)\npositive = more abundant in summer", y = NULL,
        subtitle = sprintf(paste0("The %d OTUs holding >= %.0f%% of modelled read share each (%.0f%% of modelled reads).\n",
                                  "Abundance (CLR) model; %d of %d resolved at 0.95 posterior support."),
                           nrow(sel), 100 * SHARE_MIN, 100 * sel_cov, n_res, nrow(sel))) +
@@ -2901,8 +2901,12 @@ pA <- ggplot(otu_df, aes(est, lab, colour = Guild)) +
   theme(axis.text.y = element_markdown(size = 8.5),
         strip.placement = "outside",
         strip.text.y.left = element_text(angle = 90, face = "bold", size = 8)) +
-  guides(colour = guide_legend(order = 1, override.aes = list(shape = 16, size = 2.6)),
-         shape  = guide_legend(order = 2))
+  # Each panel carries its own key directly beneath it (not collected across the
+  # figure), so a reader never has to work out which panel a key belongs to.
+  guides(colour = guide_legend(order = 1, nrow = 2, byrow = TRUE, title.position = "top",
+                               override.aes = list(shape = 16, size = 2.6)),
+         shape  = guide_legend(order = 2, nrow = 1, title = "Resolution",
+                               title.position = "top"))
 
 # ============================================================================
 # Panel B -- variance partition (CLR), community-wide and by guild
@@ -2981,13 +2985,16 @@ slab <- data.frame(x = 100 * vpm$Season / 2, y = vpm$ctr,
 tot  <- data.frame(x = 103, y = vpm$ctr,
                    txt = sprintf("%.0f%%", 100 * (vpm$Season + vpm$Year)),
                    sz  = ifelse(EMPH, 3.2, 2.8))
-X_PCR <- 121                                          # model-free column, right of a divider
+X_PCR <- 128                                          # model-free column, right of a divider
+X_DIV <- 120                                          # dashed divider between the two columns
 pcrt <- data.frame(x = X_PCR, y = vpm$ctr,
                    txt = sprintf("%.0f%%", 100 * vpm$pcr_share),
                    sz  = ifelse(EMPH, 3.2, 2.8))
 y_top <- vpm$ctr[1] + vpm$h[1] / 2
-hdr  <- data.frame(x = c(106, X_PCR + 3.5), y = y_top + 0.25,   # centred over each column
-                   txt = c("Season\n+ Year", "PCR rep.\n(model-free)"))
+# Headers centred over each column. The two columns used to sit 15 units apart and
+# their headers ran into each other; X_DIV/X_PCR now leave a clear gutter.
+hdr  <- data.frame(x = c(108, X_PCR + 5), y = y_top + 0.25,
+                   txt = c("Season\n+ Year", "PCR\nreplicate\n(model-free)"))
 ylab <- ifelse(vpm$emph,
                sprintf("<span style='font-size:10.5pt'>**%s**</span><br>(n = %d)", vpm$grp, vpm$n),
                sprintf("<span style='font-size:8.5pt'>%s</span><br>(n = %d)", vpm$grp, vpm$n))
@@ -3001,7 +3008,7 @@ pB <- ggplot(rect) +
   geom_text(data = tot, aes(x, y, label = txt, size = sz), inherit.aes = FALSE,
             hjust = 0, colour = "grey25") +
   # model-free column: divider + italic values, visibly not part of the bar
-  annotate("segment", x = 116, xend = 116, y = min(vpm$ctr - vpm$h / 2), yend = y_top,
+  annotate("segment", x = X_DIV, xend = X_DIV, y = min(vpm$ctr - vpm$h / 2), yend = y_top,
            colour = "grey75", linewidth = 0.3, linetype = "22") +
   geom_text(data = pcrt, aes(x, y, label = txt, size = sz), inherit.aes = FALSE,
             hjust = 0, colour = "grey35", fontface = "italic") +
@@ -3009,7 +3016,7 @@ pB <- ggplot(rect) +
             hjust = 0.5, vjust = 0, size = 2.6, colour = "grey35", lineheight = 0.9) +
   scale_size_identity() +
   scale_fill_manual(values = vp_cols, name = "Variance component") +
-  scale_x_continuous(breaks = seq(0, 100, 25), limits = c(0, 136),
+  scale_x_continuous(breaks = seq(0, 100, 25), limits = c(0, 140),
                      expand = expansion(mult = c(0.01, 0)),
                      labels = function(x) paste0(x, "%")) +
   scale_y_continuous(breaks = vpm$ctr, labels = ylab, expand = expansion(add = c(0.18, 0.75))) +
@@ -3017,23 +3024,45 @@ pB <- ggplot(rect) +
        subtitle = "Abundance (CLR) model, PCR replicates averaged;\nall 226 OTUs, then by guild.") +
   base_theme +
   theme(axis.text.y = element_markdown(size = 8.5, lineheight = 1.1, colour = "grey15"),
-        axis.line.y = element_blank(), axis.ticks.y = element_blank()) +
+        axis.line.y = element_blank(), axis.ticks.y = element_blank(),
+        strip.placement = "outside", strip.text.y.left = element_blank(),
+        plot.margin = margin(5.5, 14, 5.5, 5.5)) +
   # cap the x axis line at the bar's 0-100% range so the text columns to its
   # right do not read as part of the scale
-  guides(fill = guide_legend(nrow = 1), x = guide_axis(cap = "both"))
+  # A one-panel facet with an empty strip, purely for layout. Panel A's
+  # facet strips sit OUTSIDE its axis labels (strip.placement = "outside"), and
+  # patchwork then files A's x axis one table row higher than an ordinary plot's;
+  # without this B's axis hung detached below its bars. Giving B the same
+  # switched, outside strip structure puts both axes in the same row.
+  facet_grid(rows = vars("B"), switch = "y") +
+  coord_cartesian(clip = "off") +          # the right-hand column header may overhang
+  # cap the x axis line at the bar's 0-100% range so the text columns to its
+  # right do not read as part of the scale
+  guides(fill = guide_legend(nrow = 1, title.position = "top"),
+         x = guide_axis(cap = "both"))
 
 # ---- assemble and write ----------------------------------------------------
-fig3 <- (pA | pB) +
-  plot_layout(widths = c(1.25, 1), guides = "collect") +
-  plot_annotation(tag_levels = "A") &
-  # VERIFIED the hard way: the three collected key blocks (guild, support,
-  # variance component) do NOT fit side by side at 11 in -- legend.box =
-  # "horizontal" overflows the device and is silently clipped, with no warning.
-  # They are stacked instead, and each is forced onto a single row so the block
-  # costs three text lines rather than four.
-  theme(legend.position = "bottom", legend.box = "vertical",
-        legend.box.just = "left", legend.margin = margin(t = 0, b = 0),
-        legend.box.spacing = unit(0.25, "cm"))
+# Each panel keeps its own key directly beneath it rather than one collected key
+# block for the whole figure (a single collected row of all three blocks
+# overflows the device and is silently clipped). The keys are lifted out as
+# grobs and placed in their own fixed-height row: left inside each plot, the
+# taller panel-A key would push panel A's axis up and the two panels would no
+# longer share a baseline -- patchwork does not equalise uncollected legends.
+leg_theme <- theme(legend.position = "bottom", legend.box = "horizontal",
+                   legend.box.just = "top", legend.margin = margin(0, 0, 0, 0),
+                   legend.spacing.x = unit(0.6, "cm"))
+legend_of <- function(p) {
+  g <- ggplotGrob(p + leg_theme)
+  leg <- g$grobs[[which(g$layout$name == "guide-box-bottom")]]
+  # top-align, so the one-row B key starts level with the two-row A key
+  grid::grobTree(leg, vp = grid::viewport(y = 1, just = "top",
+                                          height = grid::grobHeight(leg)))
+}
+leg_A <- legend_of(pA); leg_B <- legend_of(pB)
+fig3 <- (pA + theme(legend.position = "none") | pB + theme(legend.position = "none")) /
+        (wrap_elements(full = leg_A) | wrap_elements(full = leg_B)) +
+  plot_layout(widths = c(1, 1.1), heights = c(1, 0.115)) +
+  plot_annotation(tag_levels = list(c("A", "B", "", "")))
 
 # Every main figure is written three ways: PNG and JPG (600 dpi raster, for
 # submission systems that demand one or the other) and PDF (vector, for print).
@@ -3046,7 +3075,7 @@ save_fig <- function(stem, obj, width, height, res = 600) {
   pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
   one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
 }
-save_fig(file.path(out_dir, "Fig3_hmsc_synthesis"), fig3, 11.5, 6.4)
+save_fig(file.path(out_dir, "Fig3_hmsc_synthesis"), fig3, 12, 6.6)
 
 # ---- console summary -------------------------------------------------------
 cat(sprintf("Panel A: %d OTUs at >= %.0f%% modelled read share each = %.1f%% of modelled reads.\n",
