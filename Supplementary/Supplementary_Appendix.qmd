@@ -1688,13 +1688,13 @@ kable(sn_disp,
       caption = "Table S13. Sensitivity of the diet-richness slope to Hill order (q0 richness, q1 Shannon, q2 Simpson) under both model structures, each a Gamma (log link) model of the raw Hill number; slopes on the log scale per SD of plant richness. All six estimates are positive.")
 ```
 
+::: {.content-visible when-profile="docs"}
 <!-- DANIEL (exp/brms-refit, 2026-10-01): numbers above are updated to the Gamma models; the interpretive
 prose below is untouched and yours to rewrite. Two points from the refit bear on it: (1) "primarily at the
 seasonal scale" is backwards — Season is in both models, so the slope IS within-season, and the
 between-season contrast runs the other way (2026-09-10 Hill-order memo); (2) under every family tried,
 removing S_1_7_P1_8E takes P(slope > 0) to ~0.5 (Table S14 most-influential sample). -->
 
-::: {.content-visible when-profile="docs"}
 **Ecological interpretation.** Dietary plant richness is markedly higher in summer than winter, so most of the diet–diversity relationship is expressed through the *seasonal* contrast — which is exactly the diet-driven mechanism H2 proposes: the seasonal diet shift is the dominant axis of variation in propagule supply, and summer's richer plant intake is accompanied by a richer fungal community. Within a single season the diet-richness gradient is short (only a few plant OTUs separate one sample from another), so the per-sample effect is correspondingly modest.
 
 Consistent with a modest, gradient-limited signal at this sample size, the estimate is carried by the samples at the extremes of the diet-richness range: a single leave-one-out omission moves the slope within the ranges in Table S14, and rank (Spearman) correlations within each Season are close to zero — the parametric slope reflects the between-season spread of the gradient more than fine within-season covariation. The honest reading is therefore a **weak, directionally-consistent signal**: fungal diversity does tend to rise with dietary plant richness, primarily at the seasonal scale, but the per-sample effect is not resolved decisively at n = 27 and is a clear target for a larger diet-matched sample.
