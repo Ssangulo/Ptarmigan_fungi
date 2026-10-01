@@ -1,2 +1,2 @@
 "param","median","CrI_2.5","CrI_97.5","P_gt0","ess","psrf","beta_season_cor_vs_main","gamma_cor_vs_main","rho_chain_medians","rho_chain_range"
-"rho",0.985,0.945,0.995,1,500,1.003,0.934,0.875,"0.985 / 0.985 / 0.985 / 0.985",0
+"rho",0.985,0.95,0.995,1,1958,1.002,0.934,0.873,"0.985 / 0.985 / 0.985 / 0.985",0
