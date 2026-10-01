@@ -1,3 +1,3 @@
 "model","formula","median","lwr95","upr95","P_gt0","max_rhat","divergences","supported"
-"Season-adjusted (primary)","~ plant_richness_z + Season + Year",0.28908779115534,-0.132097978310689,0.705030374139618,0.914416666666667,1.0009,0,FALSE
-"Drop-Year","~ plant_richness_z + Season",0.383683162075219,-0.0416224856715041,0.794265323886723,0.963416666666667,1.0005,0,TRUE
+"Season-adjusted (primary)","~ plant_richness_z + Season + Year",0.215674496800136,-0.100352657843296,0.51227148553316,0.914583333333333,1.0009,0,FALSE
+"Drop-Year","~ plant_richness_z + Season",0.336039148235534,0.0469511394884047,0.625997872060872,0.98875,1.0007,0,TRUE

@@ -1621,13 +1621,13 @@ gt %>% transmute(Order, Genus, n_OTUs,
 
 ### 7.1 Diet richness and fungal diversity — Bayesian mechanism (H2)
 
-Section 5 established the coarse prediction of H2: summer communities are richer than winter ones, in step with the richer summer diet. Here we test the finer mechanism directly, on the subset of samples for which we have paired plant ITS2 diet data (**n = 27** dung samples): does an individual sample's fungal diversity track the richness of its own dietary plant community? Fungal Hill diversity is modelled as a function of standardised plant (diet) richness, adjusting for Season, in a Bayesian linear model (brms). H2's mechanism is supported if the plant-richness slope is positive with posterior probability P(slope \> 0) \> 0.95.
+Section 5 established the coarse prediction of H2: summer communities are richer than winter ones, in step with the richer summer diet. Here we test the finer mechanism directly, on the subset of samples for which we have paired plant ITS2 diet data (**n = 27** dung samples): does an individual sample's fungal diversity track the richness of its own dietary plant community? Fungal Hill diversity is modelled as a function of standardised plant (diet) richness, adjusting for Season, in a Bayesian Gamma regression with a log link (brms). H2's mechanism is supported if the plant-richness slope is positive with posterior probability P(slope \> 0) \> 0.95.
 
-The preregistration specified Year and individual bird as random intercepts. At this matched sample size that structure is unidentifiable — 27 of the 27 samples are distinct individuals and Year spans only three levels — and the random-effects model does not converge. We therefore report two complementary, cleanly-converged fixed-effect models that bracket the estimate: a **Season-adjusted** model (`plant_richness + Season + Year`, Year as a fixed effect) and a more parsimonious **drop-Year** model (`plant_richness + Season`). Both use weakly-informative standardised priors (slope \~ Normal(0, 1)).
+The preregistration specified Year and individual bird as random intercepts. At this matched sample size that structure is unidentifiable — the 27 samples come from 24 distinct birds, so an individual random effect cannot be separated from residual variation, and Year spans only three levels — and the random-effects model does not converge. We therefore report two complementary, cleanly-converged fixed-effect models that bracket the estimate: a **Season-adjusted** model (`plant_richness + Season + Year`, Year as a fixed effect) and a more parsimonious **drop-Year** model (`plant_richness + Season`). Both model the raw Hill number with a Gamma likelihood and log link, the same family as the per-sample Season test of Table S9, with a weakly-informative prior on the slope (Normal(0, 1) per standard deviation of plant richness, on the log scale).
 
 ![](figures/H2_diet_richness_fit.png)
 
-**Figure S9**: Per-sample fungal Hill q1 diversity against rarefied dietary plant richness (n = 27 matched samples), coloured by Season. Both model fits are shown — Season-adjusted (solid) and drop-Year (dashed) — with the 95% credible ribbon for the primary Season-adjusted model. Fitted lines are drawn at the reference Season/Year; the quantity of interest is the common positive slope.
+**Figure S9**: Per-sample fungal Hill q1 diversity against rarefied dietary plant richness (n = 27 matched samples), coloured by Season. Both Gamma (log link) model fits are shown — Season-adjusted (solid) and drop-Year (dashed) — with the 95% credible ribbon for the primary Season-adjusted model. Fitted lines are drawn at the reference Season/Year; the quantity of interest is the common positive slope.
 
 ```{r tab-h2mech-compare}
 #| echo: false
@@ -1636,23 +1636,42 @@ mc <- read.csv("tables/H2_mechanism_model_comparison.csv", check.names = FALSE)
 mc_disp <- data.frame(
   Model       = mc$model,
   Structure   = mc$formula,
-  `Slope (median)` = round(mc$median, 3),
+  `Slope (median, log scale)` = round(mc$median, 3),
   `95% CrI`   = sprintf("[%.2f, %.2f]", mc$lwr95, mc$upr95),
+  `Ratio per SD` = sprintf("%.2f", exp(mc$median)),
   `P(slope>0)`= round(mc$P_gt0, 3),
   Divergences = mc$divergences,
   `Clears 0.95?` = ifelse(mc$supported, "yes", "no"),
   check.names = FALSE)
 kable(mc_disp,
-      caption = "Table S12. H2-mechanism: the two complementary Bayesian models of fungal Hill q1 diversity vs. dietary plant richness (standardised slope). Both converge cleanly (0 divergences, Rhat < 1.01) and place the diet-richness slope positive.")
+      caption = "Table S12. H2-mechanism: the two complementary Bayesian Gamma (log link) models of fungal Hill q1 diversity vs. dietary plant richness. Slopes are on the log scale per standard deviation of plant richness; 'Ratio per SD' = exp(median slope), the multiplicative change in fungal Hill q1. Both converge cleanly (0 divergences, Rhat < 1.01) and place the diet-richness slope positive.")
 ```
 
-Both models place the diet-richness slope firmly positive (medians +0.29 and +0.38 standard deviations of fungal diversity per standard deviation of plant richness), with posterior support of **P(slope \> 0) = 0.91** (Season-adjusted) and **0.96** (drop-Year). The drop-Year model clears the preregistered 0.95 threshold; the Season-adjusted model sits just below it. The direction of the effect is therefore consistent, and the weight of posterior evidence favours the predicted positive diet-richness → fungal-diversity relationship.
+:::: {.content-visible when-profile="docs"}
+```{r tab-h2mech-family}
+#| echo: false
+library(knitr)
+fc <- read.csv("tables/H2_mechanism_family_choice.csv", check.names = FALSE)
+kable(data.frame(
+  Family      = fc$family,
+  Model       = fc$model,
+  `Slope (median)` = sprintf("%.3f (%s)", fc$median, fc$slope_scale),
+  `95% CrI`   = sprintf("[%.2f, %.2f]", fc$lwr95, fc$upr95),
+  `P(slope>0)`= round(fc$P_gt0, 3),
+  `PPC skewness p` = round(fc$ppc_p_skewness, 3),
+  `ΔELPD vs primary (SE)` = sprintf("%.1f (%.1f)", fc$elpd_diff_vs_primary, fc$se_diff),
+  check.names = FALSE),
+  caption = "Table S12b (documentation build). Family choice for the H2-mechanism model. Until 2026-09 the model was Gaussian on the z-scored Hill number; it fails the posterior-predictive skewness check (Bayesian p ≈ 0) and is outperformed by ≈ 13 ELPD (PSIS-LOO on the raw q1 scale). Gamma and lognormal fit equally well; Gamma was adopted because Table S9 already uses it. Source: 6_diversity_analyses.R Section 3b; pilot comparison of further families in brms_refit/MEMO_brms_refit.md.")
+```
+::::
+
+Both models place the diet-richness slope firmly positive (medians +0.22 and +0.34 on the log scale, i.e. fungal Hill q1 multiplied by 1.24 and 1.40 per standard deviation of plant richness), with posterior support of **P(slope \> 0) = 0.91** (Season-adjusted) and **0.99** (drop-Year). The drop-Year model clears the preregistered 0.95 threshold; the Season-adjusted model sits just below it. The direction of the effect is therefore consistent, and the weight of posterior evidence favours the predicted positive diet-richness → fungal-diversity relationship.
 
 ![](figures/H2_mechanism_slope_posterior.png)
 
-**Figure S10**: Posterior distribution of the standardised diet-richness slope for both models. The mass of both posteriors lies to the right of zero (dashed line).
+**Figure S10**: Posterior distribution of the diet-richness slope (log scale, per standard deviation of plant richness) for both Gamma models. The mass of both posteriors lies to the right of zero (dashed line).
 
-The signal is consistent across the choice of Hill order: refitting with richness (q0) and Simpson-equivalent (q2) diversity as the outcome gives positive slopes throughout, with P(slope \> 0) between 0.89 and 0.96 (Table S13). No specification reverses the direction.
+The signal is consistent across the choice of Hill order: refitting with richness (q0) and Simpson-equivalent (q2) diversity as the outcome gives positive slopes throughout, with P(slope \> 0) between 0.78 and 0.99 (Table S13). No specification reverses the direction.
 
 ```{r tab-h2mech-sens}
 #| echo: false
@@ -1666,8 +1685,14 @@ sn_disp <- data.frame(
   `P(slope>0)` = round(sn$P_gt0, 3),
   check.names = FALSE)
 kable(sn_disp,
-      caption = "Table S13. Sensitivity of the diet-richness slope to Hill order (q0 richness, q1 Shannon, q2 Simpson) under both model structures. All six estimates are positive.")
+      caption = "Table S13. Sensitivity of the diet-richness slope to Hill order (q0 richness, q1 Shannon, q2 Simpson) under both model structures, each a Gamma (log link) model of the raw Hill number; slopes on the log scale per SD of plant richness. All six estimates are positive.")
 ```
+
+<!-- DANIEL (exp/brms-refit, 2026-10-01): numbers above are updated to the Gamma models; the interpretive
+prose below is untouched and yours to rewrite. Two points from the refit bear on it: (1) "primarily at the
+seasonal scale" is backwards — Season is in both models, so the slope IS within-season, and the
+between-season contrast runs the other way (2026-09-10 Hill-order memo); (2) under every family tried,
+removing S_1_7_P1_8E takes P(slope > 0) to ~0.5 (Table S14 most-influential sample). -->
 
 ::: {.content-visible when-profile="docs"}
 **Ecological interpretation.** Dietary plant richness is markedly higher in summer than winter, so most of the diet–diversity relationship is expressed through the *seasonal* contrast — which is exactly the diet-driven mechanism H2 proposes: the seasonal diet shift is the dominant axis of variation in propagule supply, and summer's richer plant intake is accompanied by a richer fungal community. Within a single season the diet-richness gradient is short (only a few plant OTUs separate one sample from another), so the per-sample effect is correspondingly modest.
@@ -1683,7 +1708,7 @@ library(knitr)
 rb <- read.csv("tables/H2_mechanism_robustness.csv", check.names = FALSE)
 names(rb) <- c("Check", "Group", "Quantity", "Value")
 kable(rb,
-      caption = "Table S14. Robustness of the diet-richness slope: leave-one-out influence (frequentist slope, its range across single-sample omissions, and the most influential sample) and within/between-Season Spearman rank correlations.")
+      caption = "Table S14. Robustness of the diet-richness slope: leave-one-out influence (slope of the equivalent frequentist Gamma GLM on the log scale, its range across single-sample omissions, and the most influential sample) and Spearman rank correlations overall and within each Season. The Spearman rows are unadjusted marginal correlations; the leave-one-out rows are Season/Year-adjusted, so the two need not agree in sign.")
 ```
 
 ### 7.2 OTU–plant covariation (H3) - H3 not supported - still working 
