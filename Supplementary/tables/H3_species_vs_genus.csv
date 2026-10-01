@@ -1,0 +1,9 @@
+"part","comparison","cor_OTU_slopes","n_resolved_species","n_resolved_genus"
+"abundance","Betula",0.983721190141336,0,0
+"abundance","Empetrum nigrum vs Empetrum",0.98355399411979,0,0
+"abundance","Vaccinium myrtillus vs Vaccinium",0.762063155352259,0,0
+"abundance","Vaccinium uliginosum vs Vaccinium",0.432547546562454,0,0
+"occurrence","Betula",0.987977926654339,8,5
+"occurrence","Empetrum nigrum vs Empetrum",0.996392759856033,2,2
+"occurrence","Vaccinium myrtillus vs Vaccinium",0.663306801950991,0,0
+"occurrence","Vaccinium uliginosum vs Vaccinium",0.511280620350597,0,0

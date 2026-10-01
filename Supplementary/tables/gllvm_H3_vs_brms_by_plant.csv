@@ -1,0 +1,9 @@
+"part","plant","n_OTU","spearman","sign_agreement"
+"abundance","Betula",31,-0.0516233122010511,0.451612903225806
+"abundance","Vaccinium myrtillus",31,0.174316597480469,0.387096774193548
+"abundance","Vaccinium uliginosum",31,-0.0625189097881388,0.612903225806452
+"abundance","Empetrum nigrum",31,0.361307308452166,0.67741935483871
+"occurrence","Betula",31,0.490725806451613,0.709677419354839
+"occurrence","Vaccinium myrtillus",31,-0.0661290322580645,0.612903225806452
+"occurrence","Vaccinium uliginosum",31,0.713450306903589,0.580645161290323
+"occurrence","Empetrum nigrum",31,0.498790322580645,0.645161290322581
