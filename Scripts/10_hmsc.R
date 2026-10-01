@@ -69,7 +69,7 @@
 #            hmsc_omega_sample.csv, hmsc_predictive_R2.csv,
 #            hmsc_predictive_R2_summary.csv, hmsc_pcr_replicate_variance.csv,
 #            hmsc_pcr_replicate_variance_perOTU.csv, hmsc_rho_phylo.csv,
-#            hmsc_phylo_season_correlogram.csv
+#            hmsc_phylo_season_correlogram.csv, hmsc_season_by_lineage.csv
 #   plots/   hmsc_variance_partition.png, hmsc_gamma.png, hmsc_probit_gamma.png,
 #            hmsc_beta_season.png, hmsc_vs_gllvm_season.png,
 #            hmsc_omega_sample.png, hmsc_R2_explanatory_vs_cv.png,
@@ -802,6 +802,36 @@ if (file.exists(tree_path)) {
   cat(sprintf("Season-response correlogram (%d OTUs with a neighbour within 0.005):\n", n_near)); print(cgram)
 }
 
+# Same question asked WITHOUT the tree: Season response by phylum and class from
+# the taxonomy. An ITS2-only tree resolves recent splits well but deep ones
+# (between classes and phyla) poorly, so the deep end of the correlogram rests
+# on weak branches; the taxonomic grouping is the independent check on it.
+# Groups with >= 4 modelled OTUs; standardised Season Beta (comparable across
+# OTUs); p from 2000 permutations of OTU labels (is the group mean further from
+# zero than a random group of the same size?).
+lin <- data.frame(OTU_ID = beta_tbl$OTU_ID, b = beta_tbl$beta_season_std_mean,
+                  Phylum = strip_rank(tax_all$Phylum[match(beta_tbl$OTU_ID, rownames(tax_all))]),
+                  Class  = strip_rank(tax_all$Class[match(beta_tbl$OTU_ID,  rownames(tax_all))]),
+                  stringsAsFactors = FALSE)
+lin$Phylum[is.na(lin$Phylum) | lin$Phylum %in% c("", "NA")] <- "unassigned"
+lin$Class[is.na(lin$Class)   | lin$Class  %in% c("", "NA")] <- "unassigned"
+set.seed(20261001)
+lineage_tab <- do.call(rbind, lapply(c("Phylum", "Class"), function(rk) {
+  g <- table(lin[[rk]]); g <- names(g)[g >= 4]
+  do.call(rbind, lapply(g, function(k) {
+    v <- lin$b[lin[[rk]] == k]
+    nul <- replicate(2000, mean(sample(lin$b, length(v))))
+    data.frame(rank = rk, lineage = k, n_otu = length(v),
+               mean_std_season_beta = round(mean(v), 3),
+               pct_summer_positive = round(100 * mean(v > 0), 1),
+               p_perm = round(mean(abs(nul - mean(lin$b)) >= abs(mean(v) - mean(lin$b))), 4),
+               stringsAsFactors = FALSE)
+  }))
+}))
+lineage_tab <- lineage_tab[order(lineage_tab$rank != "Phylum", -lineage_tab$mean_std_season_beta), ]
+write_tab(lineage_tab, "hmsc_season_by_lineage.csv")
+cat("Season response by lineage (standardised Beta):\n"); print(lineage_tab, row.names = FALSE)
+
 # =============================================================================
 # SECTION 6.7 -- PCR-REPLICATE VARIANCE, model-free
 # =============================================================================
@@ -896,7 +926,8 @@ if (dir.exists(SUPP_DIR)) {
             "hmsc_beta_season.csv","hmsc_probit_beta_season.csv","hmsc_vs_gllvm_season.csv",
             "hmsc_predictive_R2.csv","hmsc_predictive_R2_summary.csv",
             "hmsc_pcr_replicate_variance.csv","hmsc_pcr_replicate_variance_perOTU.csv",
-            "hmsc_rho_phylo.csv","hmsc_phylo_season_correlogram.csv")
+            "hmsc_rho_phylo.csv","hmsc_phylo_season_correlogram.csv",
+            "hmsc_season_by_lineage.csv")
   figs <- figs[file.exists(file.path(plot_dir, figs))]
   tabs <- tabs[file.exists(file.path(out_dir,  tabs))]
   invisible(file.copy(file.path(plot_dir, figs), supp_fig, overwrite = TRUE))
