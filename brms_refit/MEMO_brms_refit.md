@@ -208,9 +208,34 @@ Results match the pilot:
 - **Preregistered contrast:** P(coprophilous more diffuse) 0.48 (abundance) / 0.37
   (occurrence); Wilcoxon p 0.45 / 0.72. **H3 as preregistered: not supported.**
 
+## H3 ported + §7.3 rebuilt (2026-10-01, commits 78da398 and the appendix commit after it)
+
+**Script 6 §3c** now fits the hurdle model (four diet species, plus the three-genus sensitivity)
+and writes `H3_perOTU_plant_coef` (total slope AND OTU deviation, both parts), `H3_specificity_index`,
+`H3_specificity_contrast` (per part), `H3_model_summary` (community slopes + deviation SDs),
+`H3_model_checks`, `H3_species_vs_genus`. Re-running it from the worktree reproduced the
+production fit exactly (same min ESS 1,034, same hyperparameters). Run control renamed:
+`S6_STOP_AFTER=H2MECH|H3`.
+
+**Script 7 §8** uses the same predictors; caches renamed `gllvm_H3sp_*` (the old `gllvm_H3_*`
+caches can no longer reload by mistake); `S7_OUT_ROOT` / `S7_SUPP_DIR` added; new agreement
+tables against script 6 (`gllvm_H3_vs_brms_by_plant`, `gllvm_H3_vs_brms_resolved`). The H1
+sections reproduced all three canonical H1 tables byte for byte.
+
+**Correction to the pilot memo:** I expected the full-rank predictors to tame the GLLVM's
+exploding unpooled slopes. They did the opposite — median |slope| 3.7 / 90th pct 14.0 / max
+28.8 (was 1.9 / 7.0 / 15.9). The cause is per-OTU fixed Season + Year + four plants on 30
+samples with 80 % zeros; the rank-3 matrix had been constraining them. AIC now prefers the plant
+model over the null by ≈ 220 (it preferred the null before). Contrast still null (P 0.39).
+Agreement with the Bayesian model: occurrence Spearman 0.49 / 0.50 / 0.71 (Betula / E. nigrum /
+V. uliginosum), ~0 for V. myrtillus and for abundance; of the 10 Bayesian-resolved associations
+8 have the same GLLVM sign and 6 a GLLVM 95 % CI excluding 0 (incl. Coleophoma–Empetrum).
+
+**Appendix:** §7.2 and §7.3 rewritten — methods, captions, tables and factual Result paragraphs.
+Both Interpretation paragraphs are now labelled slots for Daniel; the pre-refit interpretations
+are kept in the documentation build only. §7.2 Limitation kept, counts updated.
+
 ## Still needs a go-ahead
 
-1. Port H3 (L6, four species) into script 6 Section 3c and rewrite §7.2's tables, figures and
-   model description (the interpretation prose is Daniel's).
-2. §7.3 GLLVM: rebuild on the new predictors, or caveat.
-3. Merge `exp/brms-refit` → main, and the CLAUDE.md update (`CLAUDE_md_proposal.md`).
+1. Interpretation prose for §7.1 (the flagged "seasonal scale" sentences), §7.2 and §7.3 — Daniel.
+2. Merge `exp/brms-refit` → main, and the CLAUDE.md update (`CLAUDE_md_proposal.md`).
