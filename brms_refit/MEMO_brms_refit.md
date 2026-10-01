@@ -149,3 +149,68 @@ deviations, since a slope shared by all OTUs is not specificity.
 `h3_pilot_contrast.csv` · `h3_pilot_per_otu.csv` · `h3_pilot_dev_resolved.csv` ·
 `h3_pilot_S_vs_SY_slopes.csv` · `h3_pilot_species_vs_genus_slopes.csv` · `h3_pilot_loo_compare.csv` ·
 per-arm `*_score.rds` (slope matrices) and fits `h2_*.rds`, `h3_pilot_*.rds`.
+
+---
+
+# Production results (2026-10-01, after Daniel's picks)
+
+**Picks:** H2 primary = Gamma (log link), Season + Year, with Gamma Season-only as the second
+model, replacing the Gaussian models in the appendix; a small family-choice table kept
+(docs-only Table S12b). H3 = L6 (hurdle NB, Year in both parts), four species, plus the
+three-genus sensitivity.
+
+## H2 — ported (script 6 Section 3/3b + appendix §7.1, commits f41b608, 71d32ec)
+
+Run from the worktree via the new `S6_OUT_ROOT` / `S6_SUPP_DIR` / `S6_STOP_AFTER_H2MECH`
+overrides. Every upstream Part A output (Hill tables, Tables S8/S9 and their draws, the matched
+frame) came out **byte-identical** to the committed appendix copies.
+
+| Model (Gamma, log link) | Slope (log, per SD) | 95 % CrI | ×q1 per SD | P(slope>0) |
+|---|---|---|---|---|
+| Season + Year (primary) | +0.216 | [−0.10, 0.51] | 1.24 | **0.915** |
+| Season only | +0.336 | [0.05, 0.63] | 1.40 | **0.989** |
+
+**Note on 0.915 vs the pilot's 0.920:** script 6 centres the intercept prior on
+log(median outcome) for every Hill order (needed for the q0/q2 sensitivity fits), where the
+pilot used a fixed Normal(2.3, 1). That shift moves the Season + Year P by 0.005, about the size
+of its Monte Carlo error. The Season + Year support is therefore the **same** as the old
+Gaussian (0.914); what Gamma buys is a model that fits (skewness PPC p = 0.23 vs 0.000;
++12.9 ± 3.5 elpd) and a Season-only model whose 95 % CrI now excludes zero.
+
+Hill-order sensitivity (Table S13, Gamma): q0 0.78 / 0.92, q1 0.91 / 0.99, q2 0.95 / 0.99
+(Season + Year / Season only). Leave-one-out (Table S14, Gamma GLM): `S_1_7_P1_8E` is still the
+most influential sample; all 27 n−1 refits non-significant under Season + Year.
+
+## H3 — production fits done, NOT ported
+
+`h3_prod_scorecard.csv`, `h3_prod_contrast.csv`, `h3_prod_dev_resolved.csv`, `h3_prod_per_otu.csv`.
+
+| | Four species | Three genera |
+|---|---|---|
+| Divergences / max Rhat / min bulk ESS | 0 / 1.00 / 1,034 | 0 / 1.01 / 879 |
+| Convergence criterion | **pass** | **pass** |
+| Predicted mean 95 % (obs 2,114) | 1,784 – 8,555 | 1,687 – 9,931 |
+| Per-OTU zero fraction r / max gap | 0.988 / 0.037 | 0.990 / 0.034 |
+| Predicted max ≤ largest library | 13 % of draws (**fails**, criterion 95 %) | 15 % (**fails**) |
+| Hours per chain | 0.51 | 0.46 |
+
+Results match the pilot:
+
+- **Abundance given presence:** no OTU deviates from the community plant slope (0 resolved).
+- **Occurrence, Betula** (OTU SD 0.91): 8 OTUs deviate. Coprophiles *Sporormiella* OTU636,
+  *Coniochaeta* OTU1225 and OTU1305, plus OTU483, OTU554 *Exobasidium*, OTU758, OTU97, are
+  detected less often in birch-heavy diets; dark OTU1369 more often.
+- **Occurrence, *E. nigrum*** (OTU SD 0.46): OTU45 *Coleophoma* −0.76 [−1.50, −0.17] and OTU2
+  Myriangiales −0.63 [−1.36, −0.02], detected more often with *Empetrum* in the diet. Same two
+  at genus level.
+- ***V. myrtillus*:** community-wide occurrence slope +0.58 (fewer OTUs detected), OTU SD 0.25,
+  no OTU-specific signal. *V. uliginosum*: nothing.
+- **Preregistered contrast:** P(coprophilous more diffuse) 0.48 (abundance) / 0.37
+  (occurrence); Wilcoxon p 0.45 / 0.72. **H3 as preregistered: not supported.**
+
+## Still needs a go-ahead
+
+1. Port H3 (L6, four species) into script 6 Section 3c and rewrite §7.2's tables, figures and
+   model description (the interpretation prose is Daniel's).
+2. §7.3 GLLVM: rebuild on the new predictors, or caveat.
+3. Merge `exp/brms-refit` → main, and the CLAUDE.md update (`CLAUDE_md_proposal.md`).
