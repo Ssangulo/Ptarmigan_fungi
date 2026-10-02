@@ -83,6 +83,8 @@
 #     so an experimental run cannot overwrite main's models/plots/tables).
 #   HMSC_RUN_PHYLO=1 -> also fit the phylogeny variant (slow; default off).
 #   HMSC_RUN_CV=0    -> reuse the stored 2-fold CV (~2.5 h) if it matches the fit.
+#   HMSC_NO_REUSE=1  -> never fall back to the read-only CANON_MODELS fits: with
+#     an empty HMSC_OUT_ROOT/models this forces a cold refit (repro/run_repro.sh).
 #   HMSC_PHYLO_THIN  -> phylo thinning (default = headline, 50: ~10 h; 10: ~2 h).
 #   Launch long runs from a COPY of this file: Rscript reads the script
 #   incrementally, so editing it mid-run corrupts the tail of the run.
@@ -345,6 +347,7 @@ if (RUN_PHYLO) {
 # the cached data and specification match (spec_ok below).
 fit_or_load <- function(m, path, mcp = mc, reuse = NULL) {
   if (file.exists(path)) { cat("Loading cached fit:", path, "\n"); return(readRDS(path)) }
+  if (Sys.getenv("HMSC_NO_REUSE") == "1") reuse <- NULL
   if (!is.null(reuse) && file.exists(reuse)) { cat("Reusing cached fit:", reuse, "\n"); return(readRDS(reuse)) }
   cat("Fitting:", basename(path), "...\n"); t0 <- Sys.time()
   m <- sampleMcmc(m, samples = mcp$samples, thin = mcp$thin, transient = mcp$transient,

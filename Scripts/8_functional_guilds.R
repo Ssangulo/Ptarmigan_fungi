@@ -34,11 +34,17 @@ setwd("/home/daniel/Ptarmigan/trimmed/mergedPlates/")
 loaded_objs <- load("eco_analysis.RData")
 
 # ---- Canonical output dirs (absolute; see CLAUDE.md plotting convention) -----
-out_dir  <- "/home/daniel/Ptarmigan/models"     # tables (staging source)
-plot_dir <- "/home/daniel/Ptarmigan/plots"
-tab_dir  <- "/home/daniel/Ptarmigan/tables"     # CSVs mirrored here
-supp_fig <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/figures"
-supp_tab <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
+# S8_OUT_ROOT / S8_SUPP_DIR redirect everything this script WRITES (same pattern
+# as 6_diversity_analyses.R's S6_OUT_ROOT / S6_SUPP_DIR); defaults unchanged.
+# With S8_OUT_ROOT set, a Section 2d workspace restore is also written there
+# rather than over the canonical eco_analysis.RData.
+OUT_ROOT <- Sys.getenv("S8_OUT_ROOT", "/home/daniel/Ptarmigan")
+SUPP_DIR <- Sys.getenv("S8_SUPP_DIR", "/home/daniel/Ptarmigan/Scripts_server/Supplementary")
+out_dir  <- file.path(OUT_ROOT, "models")       # tables (staging source)
+plot_dir <- file.path(OUT_ROOT, "plots")
+tab_dir  <- file.path(OUT_ROOT, "tables")       # CSVs mirrored here
+supp_fig <- file.path(SUPP_DIR, "figures")
+supp_tab <- file.path(SUPP_DIR, "tables")
 for (d in c(out_dir, plot_dir, tab_dir)) dir.create(d, showWarnings = FALSE, recursive = TRUE)
 
 # Headless plotting: a standing null device removes R's X11 fallback for ANY
@@ -299,7 +305,8 @@ fungaltraits_otu <- chk_ft$value
 
 if (any(c(chk_fg$action, chk_ft$action) == "save")) {
   save(list = unique(c(loaded_objs, "funguild_otu", "fungaltraits_otu")),
-       file = "/home/daniel/Ptarmigan/trimmed/mergedPlates/eco_analysis.RData")
+       file = if (nzchar(Sys.getenv("S8_OUT_ROOT"))) file.path(OUT_ROOT, "eco_analysis.RData")
+              else "/home/daniel/Ptarmigan/trimmed/mergedPlates/eco_analysis.RData")
   cat("  -> restored missing guild object(s) into eco_analysis.RData\n")
 } else {
   cat("  -> eco_analysis.RData left untouched\n")

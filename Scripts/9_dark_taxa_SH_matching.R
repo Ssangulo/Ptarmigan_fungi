@@ -49,8 +49,18 @@ primary_thr <- "02"          # primary SH distance threshold: 2.0% (also report 
 report_thrs <- c("015", primary_thr, "03")
 
 data_dir  <- "/home/daniel/Ptarmigan/trimmed/mergedPlates/"
-out_dir   <- "/home/daniel/Ptarmigan/models/"
-plot_dir  <- "/home/daniel/Ptarmigan/plots/"
+# S9_OUT_ROOT / S9_SUPP_DIR redirect everything this script WRITES (same pattern
+# as 6_diversity_analyses.R's S6_OUT_ROOT / S6_SUPP_DIR); defaults unchanged.
+# When redirected, the query fasta and the unzip scratch go under
+# S9_OUT_ROOT/sh_matching and dark_taxa_SH.rds under S9_OUT_ROOT; the container
+# output (outdata/source_1.zip) is still READ from sh_base.
+S9_REDIRECTED <- nzchar(Sys.getenv("S9_OUT_ROOT"))
+OUT_ROOT  <- Sys.getenv("S9_OUT_ROOT", "/home/daniel/Ptarmigan")
+SUPP_DIR  <- Sys.getenv("S9_SUPP_DIR", "/home/daniel/Ptarmigan/Scripts_server/Supplementary")
+work_base <- if (S9_REDIRECTED) file.path(OUT_ROOT, "sh_matching") else sh_base
+rds_dir   <- if (S9_REDIRECTED) OUT_ROOT else data_dir
+out_dir   <- file.path(OUT_ROOT, "models")
+plot_dir  <- file.path(OUT_ROOT, "plots")
 dir.create(out_dir,  showWarnings = FALSE, recursive = TRUE)
 dir.create(plot_dir, showWarnings = FALSE, recursive = TRUE)
 
@@ -77,7 +87,8 @@ cat(sprintf("Dark taxa (is.na Genus): %d / %d (%.1f%%)\n",
             sum(tax$is_dark), nrow(tax), 100 * mean(tax$is_dark)))
 
 # Write query fasta: indata/source_<run_id>, headers = OTU IDs
-indata_fa <- file.path(sh_base, "indata", paste0("source_", run_id))
+indata_fa <- file.path(work_base, "indata", paste0("source_", run_id))
+dir.create(dirname(indata_fa), showWarnings = FALSE, recursive = TRUE)
 writeXStringSet(refseq(ps), filepath = indata_fa, format = "fasta")
 cat("Wrote query fasta:", indata_fa, "(", length(refseq(ps)), "seqs )\n")
 
@@ -86,6 +97,9 @@ cat("Wrote query fasta:", indata_fa, "(", length(refseq(ps)), "seqs )\n")
 # =============================================================================
 out_zip <- file.path(sh_base, "outdata", paste0("source_", run_id, ".zip"))
 if (force_rerun || !file.exists(out_zip)) {
+  if (S9_REDIRECTED)
+    stop("container re-run requested under S9_OUT_ROOT: the pipeline reads its ",
+         "query from sh_base/indata, so run it unredirected")
   stopifnot("container not built -- run Scripts/9_setup_sh_matching.sh first" =
               file.exists(sif))
   # run_pipeline.sh positional args: run_id region itsx remove_userdir vsearch usearch05
@@ -107,7 +121,7 @@ if (force_rerun || !file.exists(out_zip)) {
 # =============================================================================
 # SECTION 3 — PARSE SH MATCHING OUTPUT
 # =============================================================================
-parse_dir <- file.path(sh_base, "outdata", paste0("parsed_", run_id))
+parse_dir <- file.path(work_base, "outdata", paste0("parsed_", run_id))
 unlink(parse_dir, recursive = TRUE); dir.create(parse_dir, recursive = TRUE)
 utils::unzip(out_zip, exdir = parse_dir)
 
@@ -198,7 +212,7 @@ sh$plutof_chimera_flag <- NA
 plutof_zip <- "/home/daniel/Ptarmigan/models/source_67536.zip"
 if (file.exists(plutof_zip)) {
   pl_run <- sub("^.*source_([0-9]+)\\.zip$", "\\1", plutof_zip)
-  pdir   <- file.path(sh_base, "outdata", "plutof_parsed")
+  pdir   <- file.path(work_base, "outdata", "plutof_parsed")
   unlink(pdir, recursive = TRUE); dir.create(pdir, recursive = TRUE)
   utils::unzip(plutof_zip, exdir = pdir)
   pcols <- c("seq_id_tmp","OTU_ID","status","SH_code","SH_taxonomy",
@@ -371,7 +385,7 @@ sh_out <- sh %>%
          dplyr::starts_with("SH_code_"), dplyr::starts_with("status_"),
          winter_occ, winter_mean_share, summer_occ, summer_mean_share)
 write.csv(sh_out, file.path(out_dir, "dark_taxa_SH_matching.csv"), row.names = FALSE)
-saveRDS(sh_out, file.path(data_dir, "dark_taxa_SH.rds"))
+saveRDS(sh_out, file.path(rds_dir, "dark_taxa_SH.rds"))
 
 # 5d) The winter-caveat answer: per winter sample, what fraction of dark-taxon
 #     reads is SH-placeable vs novel vs unresolved.
@@ -456,8 +470,8 @@ save_png(p_cls, "E1_dark_taxa_novel_vs_placeable.png", width = 7, height = 4)
 # =============================================================================
 # Supplementary_Appendix.qmd reads committed copies from Supplementary/figures|
 # tables via relative paths -- keep them in sync on every run.
-supp_fig <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/figures"
-supp_tab <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
+supp_fig <- file.path(SUPP_DIR, "figures")
+supp_tab <- file.path(SUPP_DIR, "tables")
 invisible(file.copy(file.path(plot_dir, c("E1_SH_similarity_hist.png",
                                           "E1_dark_taxa_novel_vs_placeable.png")),
                     supp_fig, overwrite = TRUE))

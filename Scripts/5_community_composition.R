@@ -39,8 +39,12 @@ load("eco_analysis.RData")
 
 # Absolute output dirs (independent of the data working dir above) so plots/
 # models land in one place regardless of where this script is launched from.
-out_dir  <- "/home/daniel/Ptarmigan/models/"
-plot_dir <- "/home/daniel/Ptarmigan/plots/"
+# S5_OUT_ROOT / S5_SUPP_DIR redirect everything this script WRITES (same pattern
+# as 6_diversity_analyses.R's S6_OUT_ROOT / S6_SUPP_DIR); defaults unchanged.
+OUT_ROOT <- Sys.getenv("S5_OUT_ROOT", "/home/daniel/Ptarmigan")
+SUPP_DIR <- Sys.getenv("S5_SUPP_DIR", "/home/daniel/Ptarmigan/Scripts_server/Supplementary")
+out_dir  <- file.path(OUT_ROOT, "models")
+plot_dir <- file.path(OUT_ROOT, "plots")
 dir.create(out_dir,  showWarnings = FALSE, recursive = TRUE)
 dir.create(plot_dir, showWarnings = FALSE, recursive = TRUE)
 
@@ -479,3 +483,15 @@ tax_res_summary <- bind_rows(
 print(tax_res_summary, n=Inf, width=Inf)
 
 writexl::write_xlsx(tax_res_summary, file.path(out_dir, "tax_assignment_summary_season.xlsx"))
+
+# =============================================================================
+# STAGE APPENDIX FIGURES -- Section 3.1 (Figures S2-S5) reads these copies.
+# =============================================================================
+supp_fig <- file.path(SUPP_DIR, "figures")
+dir.create(supp_fig, showWarnings = FALSE, recursive = TRUE)
+invisible(file.copy(file.path(plot_dir, c("phylum_barplot_ordered_season.png",
+                                          "class_barplot_ordered_season.png",
+                                          "Order_barplot_ordered_season.png",
+                                          "genus_barplot_ordered_season.png")),
+                    supp_fig, overwrite = TRUE))
+cat("Staged Section 3.1 barplots into", supp_fig, "\n")
