@@ -566,6 +566,19 @@ panel_AB <- p_heat_clean + p_bar_clean +
 save_png(file.path(plot_dir, "panel_AB_heatmap_barplot_season.png"),
          panel_AB, width=11, height=6.5, res=900)
 
+# ---- Stage H1 GLLVM outputs for the Quarto appendix (Section 6) -------------
+# Previously copied by hand; staged here like Section 8's H3 outputs below.
+invisible(file.copy(file.path(plot_dir, c("gllvm_perOTU_season_coef.png",
+                                          "gllvm_residual_ordination.png",
+                                          "panel_AB_heatmap_barplot_season.png",
+                                          "gllvm_fit_nb_2_2_residuals.png")),
+                    file.path(SUPP_DIR, "figures"), overwrite = TRUE))
+invisible(file.copy(file.path(out_dir, c("gllvm_model_comparison.csv",
+                                         "gllvm_perOTU_season_coef.csv",
+                                         "genus_table_season.csv")),
+                    file.path(SUPP_DIR, "tables"), overwrite = TRUE))
+message("Staged H1 GLLVM figures/tables into Supplementary/figures|tables")
+
 
 # #############################################################################
 # SECTION 8 — H3: OTU-PLANT COVARIATION (GLLVM parallel to the Bayesian model)
