@@ -104,6 +104,20 @@ compare_jpg <- function(old, new) {
   list(status = "VISUAL", detail = "JPEG bytes differ (check the matching PNG)")
 }
 
+# xlsx files embed timestamps: compare every sheet's values instead.
+compare_xlsx <- function(old, new) {
+  if (identical(unname(tools::md5sum(old)), unname(tools::md5sum(new))))
+    return(list(status = "identical", detail = ""))
+  if (!requireNamespace("readxl", quietly = TRUE))
+    return(list(status = "VISUAL", detail = "xlsx differs (readxl unavailable)"))
+  so <- readxl::excel_sheets(old); sn <- readxl::excel_sheets(new)
+  if (!identical(so, sn)) return(list(status = "STRUCTURE", detail = "different sheets"))
+  same <- all(vapply(so, function(s) isTRUE(all.equal(
+    as.data.frame(readxl::read_excel(old, s)), as.data.frame(readxl::read_excel(new, s)))), logical(1)))
+  if (same) list(status = "same_values", detail = "xlsx bytes differ (timestamps); every sheet equal")
+  else list(status = "DRIFT", detail = "xlsx cell values differ")
+}
+
 compare_file <- function(old, new, tol) {
   ext <- tolower(tools::file_ext(new))
   switch(ext,
@@ -111,6 +125,7 @@ compare_file <- function(old, new, tol) {
     png = compare_png(old, new),
     pdf = compare_pdf(old, new),
     jpg = , jpeg = compare_jpg(old, new),
+    xlsx = compare_xlsx(old, new),
     if (identical(unname(tools::md5sum(old)), unname(tools::md5sum(new))))
       list(status = "identical", detail = "") else list(status = "VISUAL", detail = "binary differs"))
 }

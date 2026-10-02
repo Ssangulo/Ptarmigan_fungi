@@ -1,0 +1,548 @@
+# 06_script6
+# cmd: env S6_OUT_ROOT=/home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1147_cached S6_SUPP_DIR=/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary conda run --no-capture-output -n r_env Rscript /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1147_cached/frozen/6_diversity_analyses.R
+# started 2026-10-02T11:49:35+02:00
+Loading required package: Biostrings
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+Loading required package: stats4
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+
+Attaching package: ‘IRanges’
+
+The following object is masked from ‘package:phyloseq’:
+
+    distance
+
+Loading required package: XVector
+Loading required package: GenomeInfoDb
+
+Attaching package: ‘Biostrings’
+
+The following object is masked from ‘package:base’:
+
+    strsplit
+
+Loading required package: RSQLite
+Loading required package: parallel
+Loading required package: ape
+
+Attaching package: ‘ape’
+
+The following object is masked from ‘package:Biostrings’:
+
+    complement
+
+Loading required package: Matrix
+
+Attaching package: ‘Matrix’
+
+The following object is masked from ‘package:S4Vectors’:
+
+    expand
+
+
+Attaching package: ‘lmerTest’
+
+The following object is masked from ‘package:lme4’:
+
+    lmer
+
+The following object is masked from ‘package:stats’:
+
+    step
+
+Loading required package: vegan
+Loading required package: permute
+
+Attaching package: ‘vegan’
+
+The following objects are masked from ‘package:phangorn’:
+
+    diversity, treedist
+
+Loading required package: nlme
+
+Attaching package: ‘nlme’
+
+The following object is masked from ‘package:lme4’:
+
+    lmList
+
+The following object is masked from ‘package:Biostrings’:
+
+    collapse
+
+The following object is masked from ‘package:IRanges’:
+
+    collapse
+
+
+Attaching package: ‘dplyr’
+
+The following object is masked from ‘package:nlme’:
+
+    collapse
+
+The following object is masked from ‘package:ape’:
+
+    where
+
+The following objects are masked from ‘package:Biostrings’:
+
+    collapse, intersect, setdiff, setequal, union
+
+The following object is masked from ‘package:GenomeInfoDb’:
+
+    intersect
+
+The following object is masked from ‘package:XVector’:
+
+    slice
+
+The following objects are masked from ‘package:IRanges’:
+
+    collapse, desc, intersect, setdiff, slice, union
+
+The following objects are masked from ‘package:S4Vectors’:
+
+    first, intersect, rename, setdiff, setequal, union
+
+The following objects are masked from ‘package:BiocGenerics’:
+
+    combine, intersect, setdiff, union
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+
+Attaching package: ‘tidyr’
+
+The following objects are masked from ‘package:Matrix’:
+
+    expand, pack, unpack
+
+The following object is masked from ‘package:S4Vectors’:
+
+    expand
+
+Warning message:
+`aes_string()` was deprecated in ggplot2 3.0.0.
+ℹ Please use tidy evaluation idioms with `aes()`.
+ℹ See also `vignette("ggplot2-in-packages")` for more information.
+ℹ The deprecated feature was likely used in the iNEXT.3D package.
+  Please report the issue at <https://github.com/AnneChao/iNEXT.3D/issues>. 
+pdf 
+  2 
+pdf 
+  2 
+
+Coverage-standardised TD at shared coverage Cmin=0.6967:
+  Assemblage Order.q        SC       mT      Method      qTD      s.e.  qTD.LCL
+1     summer       0 0.6966735 20.67531 Rarefaction 754.2567 28.407185 698.5796
+2     summer       1 0.6966735 20.67531 Rarefaction 561.6978 18.259471 525.9099
+3     summer       2 0.6966735 20.67531 Rarefaction 400.7025 11.797985 377.5789
+4     winter       0 0.6966735 26.00000    Observed 436.0000 27.851336 381.4124
+5     winter       1 0.6966735 26.00000    Observed 286.0644 15.338435 256.0016
+6     winter       2 0.6966735 26.00000    Observed 175.9094  8.052072 160.1276
+   qTD.UCL
+1 809.9337
+2 597.4857
+3 423.8262
+4 490.5876
+5 316.1271
+6 191.6911
+pdf 
+  2 
+  Season Order.q   SC depth n_draws      qTD  qTD.LCL  qTD.UCL
+2 Winter       0 0.65 12615      50 383.0692 328.8285 439.4381
+1 Summer       0 0.65 12615      50 548.2900 493.6006 597.2140
+4 Winter       1 0.65 12615      50 260.6582 229.2070 292.5434
+3 Summer       1 0.65 12615      50 411.8676 373.7029 444.1676
+6 Winter       2 0.65 12615      50 161.8297 145.3826 178.3919
+5 Summer       2 0.65 12615      50 287.4380 264.2304 309.9825
+  ratio_summer_winter_median ratio_draw_2.5 ratio_draw_97.5
+2                   1.415435       1.305858        1.534435
+1                   1.415435       1.305858        1.534435
+4                   1.567642       1.457565        1.661183
+3                   1.567642       1.457565        1.661183
+6                   1.781377       1.683690        1.851703
+5                   1.781377       1.683690        1.851703
+  share_draws_CI_separated
+2                     0.98
+1                     0.98
+4                     1.00
+3                     1.00
+6                     1.00
+5                     1.00
+
+PCR replicates retained at >= 10000 reads: 98 of 109
+Per-PCR-replicate: Size-standardised Hill numbers at m = 10609 reads: 98 assemblages (95 via estimate3D, 3 via exact formula, S.obs < 5)
+
+Per-PCR-replicate Hill diversity size-standardised to 10609 reads (98 rows, 50 distinct samples)
+pdf 
+  2 
+boundary (singular) fit: see help('isSingular')
+boundary (singular) fit: see help('isSingular')
+Warning message:
+Model failed to converge with 1 negative eigenvalue: -1.1e+00 
+
+H2 full-sample frequentist mixed model (Season effect, summer vs winter ref):
+  metric                                               re_structure
+1     q0                              Season + (1|pcr_replicate_id)
+2     q1 Season + (1|Year) + (1|indivID_glm) + (1|pcr_replicate_id)
+3     q2 Season + (1|Year) + (1|indivID_glm) + (1|pcr_replicate_id)
+  summer_minus_winter    lwr    upr      p
+1              19.033  5.171 32.894 0.0098
+2              -4.461 -9.019  0.097 0.0613
+3              -3.931 -6.772 -1.091 0.0093
+
+q1 (Shannon) model detail:
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: f_full
+   Data: dat
+
+REML criterion at convergence: 538.5
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-2.60664 -0.19753 -0.02205  0.16765  2.52554 
+
+Random effects:
+ Groups           Name        Variance Std.Dev.
+ pcr_replicate_id (Intercept) 62.680   7.917   
+ indivID_glm      (Intercept)  3.549   1.884   
+ Year             (Intercept) 12.795   3.577   
+ Residual                      1.571   1.253   
+Number of obs: 98, groups:  pcr_replicate_id, 50; indivID_glm, 46; Year, 3
+
+Fixed effects:
+             Estimate Std. Error     df t value Pr(>|t|)  
+(Intercept)    11.188      2.668  3.013   4.194   0.0245 *
+Seasonsummer   -4.461      2.325 46.106  -1.918   0.0613 .
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr)
+Seasonsummr -0.456
+Per-sample: Size-standardised Hill numbers at m = 12615 reads: 52 assemblages (51 via estimate3D, 1 via exact formula, S.obs < 5)
+pdf 
+  2 
+
+Per-sample (PCR-collapsed) Hill diversity size-standardised to 12615 reads (52 samples)
+  metric  n mean_winter mean_summer ratio_summer_winter ratio_lwr ratio_upr
+1     q0 52    31.30701   48.275214           1.5833361 1.0818012 2.3173882
+2     q1 52    14.92052    7.371230           0.4643472 0.2941753 0.7329586
+3     q2 52    10.06405    4.557339           0.4013628 0.2621478 0.6145085
+   F_season     p_season      p_year p_season_x_year dAICc_interaction
+1  5.298005 0.0257328339 0.356241210       0.3089454          2.387667
+2 11.955425 0.0011514550 0.008774009       0.8991914          4.952761
+3 20.008554 0.0000472216 0.003454578       0.5488668          3.677451
+  metric  p_gaussian  p_lognormal      p_gamma   p_wilcoxon AIC_gaussian
+1     q0 0.063452932 2.896481e-01 0.0257328339 1.097612e-01     511.6364
+2     q1 0.004733991 1.820159e-05 0.0011514550 5.485899e-05     388.7609
+3     q2 0.000922855 1.554966e-06 0.0000472216 2.956510e-06     336.7435
+  AIC_lognormal AIC_gamma
+1      479.3745  477.3666
+2      335.7410  341.6472
+3      284.2634  290.4399
+Staged Section 5 (H2) figures/tables into Supplementary/figures|tables
+
+H2-mechanism matched subset: 27 fungal samples with paired plant ITS2 data
+Bayesian diet-richness model n = 27 (metric: fungal q1)
+Loading required package: Rcpp
+Loading 'brms' package (version 2.23.0). Useful instructions
+can be found by typing help('brms'). A more detailed introduction
+to the package is available through vignette('brms_overview').
+
+Attaching package: ‘brms’
+
+The following object is masked from ‘package:lme4’:
+
+    ngrps
+
+The following object is masked from ‘package:phyloseq’:
+
+    nsamples
+
+The following object is masked from ‘package:stats’:
+
+    ar
+
+
+H2-mechanism (diet-richness) posterior summary:
+  metric  n    median      lwr95     upr95     P_gt0 supported
+1     q1 27 0.2156745 -0.1003527 0.5122715 0.9145833     FALSE
+
+H2-mechanism NOT supported (P[slope>0] = 0.915, threshold = 0.95)
+Max Rhat = 1.0009 | Min Neff ratio = 0.354 (want Rhat<1.01, Neff ratio not too close to 0)
+pdf 
+  2 
+
+H2-mechanism model comparison:
+                      model                            formula median  lwr95
+1 Season-adjusted (primary) ~ plant_richness_z + Season + Year  0.216 -0.100
+2                 Drop-Year        ~ plant_richness_z + Season  0.336  0.047
+  upr95 P_gt0 max_rhat divergences supported
+1 0.512 0.915        1           0     FALSE
+2 0.626 0.989        1           0      TRUE
+Compiling Stan program...
+Start sampling
+Compiling Stan program...
+Start sampling
+Compiling Stan program...
+Start sampling
+Compiling Stan program...
+Start sampling
+
+H2-mechanism family choice:
+               family           model slope_scale median   lwr95 upr95 P_gt0
+1    Gamma (log link) Season-adjusted      log q1  0.216 -0.1004 0.512 0.915
+2           Lognormal Season-adjusted      log q1  0.167 -0.2188 0.558 0.809
+3 Gaussian on z-score Season-adjusted    SD of q1  0.289 -0.1321 0.705 0.914
+4    Gamma (log link)       Drop-Year      log q1  0.336  0.0470 0.626 0.989
+5           Lognormal       Drop-Year      log q1  0.235 -0.1439 0.612 0.894
+6 Gaussian on z-score       Drop-Year    SD of q1  0.384 -0.0416 0.794 0.963
+  divergences ppc_p_skewness elpd_diff_vs_primary se_diff pareto_k_gt_0.7
+1           0        0.22550                0.000   0.000               1
+2           0        0.41775               -1.495   0.875               1
+3           0        0.00000              -12.923   3.550               1
+4           0        0.16525               -0.856   1.925               1
+5           0        0.38675               -0.713   1.650               0
+6           0        0.00025              -13.867   4.627               1
+Compiling Stan program...
+Start sampling
+Compiling Stan program...
+Start sampling
+Compiling Stan program...
+Start sampling
+Compiling Stan program...
+Start sampling
+Compiling Stan program...
+Start sampling
+Compiling Stan program...
+Start sampling
+
+H2-mechanism sensitivity (Hill order x model structure):
+    metric           model median   lwr95 upr95 P_gt0
+q0      q0 Season-adjusted  0.098 -0.1492 0.363 0.783
+q1      q1 Season-adjusted  0.216 -0.1004 0.512 0.915
+q2      q2 Season-adjusted  0.238 -0.0467 0.519 0.952
+q01     q0       Drop-Year  0.166 -0.0660 0.408 0.921
+q11     q1       Drop-Year  0.336  0.0470 0.626 0.989
+q21     q2       Drop-Year  0.346  0.0649 0.618 0.990
+
+H2-mechanism robustness summary:
+   check                                   group          
+1  leave-one-out influence                 Season-adjusted
+2  leave-one-out influence                 Drop-Year      
+3  leave-one-out influence                 Season-adjusted
+4  leave-one-out influence                 Drop-Year      
+5  leave-one-out influence                 Season-adjusted
+6  leave-one-out influence                 Drop-Year      
+7  leave-one-out influence                 Season-adjusted
+8  leave-one-out influence                 Drop-Year      
+9  rank correlation (Spearman, unadjusted) overall        
+10 rank correlation (Spearman, unadjusted) within winter  
+11 rank correlation (Spearman, unadjusted) within summer  
+   quantity                    value           
+1  freq. slope (p)             0.224 (p=0.169) 
+2  freq. slope (p)             0.359 (p=0.051) 
+3  LOO slope range             0.023 to 0.280  
+4  LOO slope range             0.068 to 0.433  
+5  # of n-1 refits with p>0.05 27              
+6  # of n-1 refits with p>0.05 16              
+7  most influential sample     S_1_7_P1_8E     
+8  most influential sample     S_1_7_P1_8E     
+9  rho (n=27)                  -0.089 (p=0.659)
+10 rho (n=16)                  0.045 (p=0.869) 
+11 rho (n=11)                  0.214 (p=0.528) 
+pdf 
+  2 
+pdf 
+  2 
+Staged H2-mechanism figures/tables into Supplementary/figures|tables
+
+H3 matched subset: 30 biological samples (60 PCR-rep rows); 46 OTUs modelled (present in >=5 samples)
+
+H3 model checks:
+                              fit divergences max_rhat min_ess_bulk
+1     four diet species (primary)           0     1.00         1034
+2 three diet genera (sensitivity)           0     1.01          879
+  min_ess_tail obs_mean_count pred_mean_lwr95 pred_mean_upr95
+1         1401           2114            1828           13474
+2         1300           2114            1790           10998
+  zero_frac_cor_by_OTU zero_frac_max_gap P_pred_max_le_max_library
+1                0.989            0.0420                     0.154
+2                0.988            0.0456                     0.142
+H3: OTU-specific plant deviations with a 95% CrI excluding 0 -- abundance 0, occurrence 10 (of 184 OTU x plant pairs each)
+        part                              grouping copro_spec_med
+1  abundance                    FUNGuild (primary)          0.346
+2  abundance COPRO_GENERA genus list (sensitivity)          0.330
+3 occurrence                    FUNGuild (primary)          0.347
+4 occurrence COPRO_GENERA genus list (sensitivity)          0.374
+  plant_spec_med wilcox_p_copro_lower P_copro_lower
+1          0.362                0.446         0.484
+2          0.362                0.268         0.540
+3          0.328                0.723         0.371
+4          0.328                0.853         0.348
+pdf 
+  2 
+pdf 
+  2 
+Staged H3 figures/tables into Supplementary/figures|tables
+Loading precomputed ML tree from tree.rds 
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+
+winter summer 
+    60     54 
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+
+winter summer 
+    26     26 
+# A tibble: 2 × 10
+  Season     n NRI_aw_med NRI_aw_IQR NTI_aw_med NTI_aw_IQR NRI_pa_med NRI_pa_IQR
+  <fct>  <int>      <dbl>      <dbl>      <dbl>      <dbl>      <dbl>      <dbl>
+1 winter    26       1.87       2.11       2.06      0.995       1.25       1.62
+2 summer    26       1.08       1.21       1.39      0.862       2.52       1.28
+# ℹ 2 more variables: NTI_pa_med <dbl>, NTI_pa_IQR <dbl>
+Analysis of Variance Table
+
+Response: NRI_aw
+          Df Sum Sq Mean Sq F value Pr(>F)  
+Season     1  1.990  1.9895  1.9085 0.1735  
+Year       2  6.533  3.2665  3.1334 0.0526 .
+Residuals 48 50.039  1.0425                 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Analysis of Variance Table
+
+Response: NTI_aw
+          Df Sum Sq Mean Sq F value  Pr(>F)  
+Season     1  3.285  3.2851  3.2088 0.07955 .
+Year       2  3.142  1.5712  1.5347 0.22591  
+Residuals 48 49.142  1.0238                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+pdf 
+  2 
+# A tibble: 2 × 7
+  group   n_pairs median   IQR prop_gt2 prop_lt2 prop_abs_lt2
+  <chr>     <int>  <dbl> <dbl>    <dbl>    <dbl>        <dbl>
+1 between     676 -0.179  1.40  0.0311    0.0207        0.948
+2 within      650 -0.917  1.37  0.00923   0.126         0.865
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Permutation test for adonis under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = as.dist(UFw) ~ Season * Year, data = md_u, permutations = 9999, by = "terms")
+            Df SumOfSqs      R2       F Pr(>F)    
+Season       1 0.048699 0.18246 11.6431 0.0001 ***
+Year         2 0.013529 0.05069  1.6173 0.0623 .  
+Season:Year  2 0.012266 0.04596  1.4663 0.1072    
+Residual    46 0.192402 0.72089                   
+Total       51 0.266896 1.00000                   
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Permutation test for adonis under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = as.dist(UFuw) ~ Season * Year, data = md_u, permutations = 9999, by = "terms")
+            Df SumOfSqs      R2      F Pr(>F)    
+Season       1   1.1815 0.10982 6.4072 0.0001 ***
+Year         2   0.5166 0.04802 1.4008 0.0512 .  
+Season:Year  2   0.5784 0.05376 1.5682 0.0149 *  
+Residual    46   8.4824 0.78841                  
+Total       51  10.7589 1.00000                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Analysis of Variance Table
+
+Response: Distances
+          Df   Sum Sq    Mean Sq F value Pr(>F)
+Groups     1 0.000002 0.00000164  0.0024 0.9613
+Residuals 50 0.034404 0.00068808               
+Analysis of Variance Table
+
+Response: Distances
+          Df   Sum Sq  Mean Sq F value  Pr(>F)  
+Groups     1 0.035438 0.035438  6.5009 0.01389 *
+Residuals 50 0.272558 0.005451                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Analysis of Variance Table
+
+Response: Distances
+          Df    Sum Sq    Mean Sq F value Pr(>F)
+Groups     2 0.0003427 0.00017137  0.5621 0.5736
+Residuals 49 0.0149379 0.00030485               
+Analysis of Variance Table
+
+Response: Distances
+          Df   Sum Sq   Mean Sq F value Pr(>F)
+Groups     2 0.006625 0.0033126  0.7055 0.4988
+Residuals 49 0.230061 0.0046951               

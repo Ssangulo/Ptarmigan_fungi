@@ -11,7 +11,12 @@
 #   exception    non-empty = known, documented reproducibility exception
 
 qmd_refs <- function(qmd_lines) {
-  hits <- regmatches(qmd_lines, gregexpr("(tables|figures)/[A-Za-z0-9_./-]+\\.(csv|png|jpg|pdf)", qmd_lines))
+  # Mentions inside the generated *-source pointer chunks are not references:
+  # they list everything a script writes, shown or not.
+  open <- grep("^```\\{r [A-Za-z0-9_-]+-source\\}$", qmd_lines)
+  drop <- unlist(lapply(open, function(i) i:(i - 1 + match("```", qmd_lines[-(1:i)]) + 1)))
+  if (length(drop)) qmd_lines <- qmd_lines[-drop]
+  hits <- regmatches(qmd_lines, gregexpr("(tables|figures)/[A-Za-z0-9_./-]+\\.(csv|png|jpg|pdf|xlsx)", qmd_lines))
   sort(unique(unlist(hits)))
 }
 
@@ -45,7 +50,7 @@ parse_stubs <- function(qmd_lines) {
       while (j < length(tx) && grepl("^#\\s{3,}", tx[j + 1])) { j <- j + 1; out_lines <- c(out_lines, tx[j]) }
     }
     files <- unique(unlist(regmatches(out_lines,
-               gregexpr("(tables|figures)/[A-Za-z0-9_./-]+\\.(csv|png|jpg|pdf)", out_lines))))
+               gregexpr("(tables|figures)/[A-Za-z0-9_./-]+\\.(csv|png|jpg|pdf|xlsx)", out_lines))))
     if (!length(files)) files <- NA_character_
     data.frame(stub = l, source = if (length(src)) src[1] else NA, file = files)
   }))

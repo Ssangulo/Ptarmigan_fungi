@@ -6,7 +6,7 @@ figures/phylum_barplot_ordered_season.png,Scripts/5_community_composition.R,Sect
 figures/class_barplot_ordered_season.png,Scripts/5_community_composition.R,Section 8 (taxonomic bar plots; its own 57-sample PCR-collapsed object),3.1,shown,
 figures/Order_barplot_ordered_season.png,Scripts/5_community_composition.R,Section 8 (taxonomic bar plots; its own 57-sample PCR-collapsed object),3.1,shown,
 figures/genus_barplot_ordered_season.png,Scripts/5_community_composition.R,Section 8 (taxonomic bar plots; its own 57-sample PCR-collapsed object),3.1,shown,
-tables/tax_assignment_summary_season.xlsx,Scripts/5_community_composition.R,Section 9 (taxonomic assignment summary),3.3,unused,"written to models/ only, never staged (Section 3.3 is a placeholder); committed copy was placed by hand"
+tables/tax_assignment_summary_season.xlsx,Scripts/5_community_composition.R,Section 9 (taxonomic assignment summary; staged at the end),3.3,shown,
 tables/report_coprophilous_by_season_v2.csv,qmd:sec5-build,E2 coprophilous screen (Table S3),3.2,shown,
 figures/E1_SH_similarity_hist.png,Scripts/9_dark_taxa_SH_matching.R,Section 6 (plots),3.4,shown,
 figures/E1_dark_taxa_novel_vs_placeable.png,Scripts/9_dark_taxa_SH_matching.R,Section 6 (plots),3.4,shown,

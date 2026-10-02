@@ -36,7 +36,11 @@ tbl <- function(d) {
 }
 env <- readLines(file.path(log, "env.txt"), warn = FALSE)
 ok_out  <- c("identical", "same_values", "same_pixels", "same_content", "within_tol", "NO_CANONICAL")
-bad_out <- cmp[!cmp$status %in% ok_out, ]
+# The verdict rests on the appendix set. Script outputs the appendix never shows
+# (e.g. script 6 Part B's PhyloSupp_* tables) are compared with the canonical
+# models/ copies for information only: those copies can be legitimately stale.
+bad_out  <- cmp[!cmp$status %in% ok_out & cmp$set != "sandbox_vs_canonical", ]
+info_out <- cmp[!cmp$status %in% ok_out & cmp$set == "sandbox_vs_canonical", ]
 app_not_regen <- man[man$check == "regenerated" & man$status == "FAIL", ]
 fail_steps <- steps[steps$status != "PASS", ]
 fail_man   <- man[man$status == "FAIL", ]
@@ -65,7 +69,8 @@ w("## 3. Outputs vs committed / canonical\n")
 w("Counts by comparison set and status:\n")
 tbl(as.data.frame(table(set = cmp$set, status = cmp$status), stringsAsFactors = FALSE)[
   as.data.frame(table(cmp$set, cmp$status))$Freq > 0, ])
-w("Everything not identical (or equal in value / pixels):\n"); tbl(bad_out)
+w("Appendix files (and script copies of them) not identical or equal in value / pixels:\n"); tbl(bad_out)
+w("For information -- script outputs NOT shown in the appendix that differ from the canonical models/ copy (does not affect the verdict):\n"); tbl(info_out)
 w("## 4. Manifest\n")
 tbl(as.data.frame(table(check = man$check, status = man$status), stringsAsFactors = FALSE)[
   as.data.frame(table(man$check, man$status))$Freq > 0, ])

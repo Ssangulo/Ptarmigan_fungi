@@ -1,0 +1,14 @@
+# 33_stub_visibility
+# cmd: python3 /home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/repro/stub_visibility.py
+# started 2026-10-02T12:45:09+02:00
+sec1-source      line   157  both builds
+sec3-1-source    line   426  both builds
+sec3-4-source    line   536  both builds
+sec5-source      line  1138  both builds
+sec6-source      line  1386  both builds
+sec7-1-source    line  1507  both builds
+sec7-2-source    line  1627  both builds
+sec7-3-source    line  1745  both builds
+sec8-source      line  1862  both builds
+sec9-source      line  2220  both builds
+sec9-v1-source   line  2262  both builds

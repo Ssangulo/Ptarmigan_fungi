@@ -1,0 +1,190 @@
+# 30_render_submission
+# cmd: bash -c cd '/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary' && conda run --no-capture-output -n r_env quarto render Supplementary_Appendix.qmd --to html
+# started 2026-10-02T12:44:38+02:00
+[31m
+
+processing file: Supplementary_Appendix.qmd
+[39m1/147                          
+2/147 [unnamed-chunk-1]        
+3/147                          
+4/147 [setup]                  
+5/147                          
+6/147 [sec1-source]            
+7/147                          
+8/147 [load-objects]           
+9/147                          
+10/147 [tab-design]             
+11/147                          
+12/147 [tab-tracking]           
+13/147                          
+14/147 [sec2-build]             
+15/147                          
+16/147 [sec3-1-source]          
+17/147                          
+18/147 [tab-copro]              
+19/147                          
+20/147 [tab-e1-summary]         
+21/147                          
+22/147 [tab-e1-winter]          
+23/147                          
+24/147 [sec3-4-source]          
+25/147                          
+26/147 [tab-permanova]          
+27/147                          
+28/147 [tab-permanova-by-year]  
+29/147                          
+30/147 [tab-betadisper]         
+31/147                          
+32/147 [tab-centroid]           
+33/147                          
+34/147 [tab-permanova-sens]     
+35/147                          
+36/147 [tab-permanova-sens-year]
+37/147                          
+38/147 [tab-occupancy]          
+39/147                          
+40/147 [sec4-build]             
+41/147                          
+42/147 [tab-inext]              
+43/147                          
+44/147 [tab-inext-asy]          
+45/147                          
+46/147 [tab-lmm]                
+47/147                          
+48/147 [tab-lmm-family]         
+49/147                          
+50/147 [tab-lmm-pcr]            
+51/147                          
+52/147 [tab-dominance]          
+53/147                          
+54/147 [tab-top5]               
+55/147                          
+56/147 [sec5-source]            
+57/147                          
+58/147 [sec5-build]             
+59/147                          
+60/147 [tab-gllvm-aic]          
+61/147                          
+62/147 [tab-gllvm-otu]          
+63/147                          
+64/147 [tab-gllvm-genus]        
+65/147                          
+66/147 [sec6-source]            
+67/147                          
+68/147 [tab-h2mech-compare]     
+69/147                          
+70/147 [tab-h2mech-family]      
+71/147                          
+72/147 [tab-h2mech-sens]        
+73/147                          
+74/147 [tab-h2mech-robust]      
+75/147                          
+76/147 [sec7-1-source]          
+77/147                          
+78/147 [tab-h3-spec]            
+79/147                          
+80/147 [tab-h3-community]       
+81/147                          
+82/147 [tab-h3-contrast]        
+83/147                          
+84/147 [tab-h3-checks]          
+85/147                          
+86/147 [sec7-2-source]          
+87/147                          
+88/147 [tab-h3g-aic]            
+89/147                          
+90/147 [tab-h3g-spec]           
+91/147                          
+92/147 [tab-h3g-agree]          
+93/147                          
+94/147 [tab-h3g-contrast]       
+95/147                          
+96/147 [sec7-3-source]          
+97/147                          
+98/147 [tab-guild-crosswalk]    
+99/147                          
+100/147 [tab-guild-season]       
+101/147                          
+102/147 [tab-guild-year]         
+103/147                          
+104/147 [sec8-source]            
+105/147                          
+106/147 [tab-hmsc-guild]         
+107/147                          
+108/147 [tab-hmsc-conv]          
+109/147                          
+110/147 [tab-hmsc-v1]            
+111/147                          
+112/147 [tab-hmsc-vp]            
+113/147                          
+114/147 [tab-hmsc-pcr]           
+115/147                          
+116/147 [tab-hmsc-rep]           
+117/147                          
+118/147 [tab-hmsc-gamma]         
+119/147                          
+120/147 [tab-hmsc-gamma-clr]     
+121/147                          
+122/147 [tab-hmsc-beta]          
+123/147                          
+124/147 [tab-hmsc-beta-probit]   
+125/147                          
+126/147 [tab-hmsc-rho]           
+127/147                          
+128/147 [tab-hmsc-correlogram]   
+129/147                          
+130/147 [tab-hmsc-lineage]       
+131/147                          
+132/147 [tab-hmsc-r2]            
+133/147                          
+134/147 [sec9-source]            
+135/147                          
+136/147 [sec9-v1-source]         
+137/147                          
+138/147 [fig1-build]             
+139/147                          
+140/147 [fig2-build]             
+141/147                          
+142/147 [fig3-build]             
+143/147                          
+144/147 [fig4-build]             
+145/147                          
+146/147 [fig5-build]             
+147/147                          
+[31moutput file: Supplementary_Appendix.knit.md
+
+[39m[1mpandoc [22m
+  to: html
+  output-file: Appendix_HTML.html
+  standalone: true
+  embed-resources: true
+  section-divs: true
+  html-math-method: mathjax
+  wrap: none
+  default-image-extension: png
+  toc: true
+  toc-depth: 3
+  number-sections: false
+  variables: {}
+  
+[1mmetadata[22m
+  document-css: false
+  link-citations: true
+  date-format: long
+  lang: en
+  engines:
+    - path: /home/daniel/.local/opt/quarto-1.9.38/share/extension-subtrees/julia-engine/_extensions/julia-engine/julia-engine.js
+  title: Supplementary Analysis Appendix
+  subtitle: 'Seasonal restructuring of the willow ptarmigan (*Lagopus lagopus*) dung mycobiome: an ITS2 metabarcoding study'
+  header-includes:
+    - \usepackage{fvextra}
+    - \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+  editor: visual
+  theme: cosmo
+  smooth-scroll: true
+  anchor-sections: true
+  toc-title: Contents
+  toc-location: left
+  
+Output created: Appendix_HTML.html
+
