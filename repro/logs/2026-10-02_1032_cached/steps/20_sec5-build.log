@@ -1,0 +1,62 @@
+# 20_sec5-build
+# cmd: bash -c cd '/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary' && conda run --no-capture-output -n r_env Rscript build_main_figure.R sec5-build
+# started 2026-10-02T11:29:37+02:00
+Running chunk 'sec5-build' (440 lines) from Supplementary_Appendix.qmd
+
+Loading required package: Matrix
+
+Attaching package: ‘lmerTest’
+
+The following object is masked from ‘package:lme4’:
+
+    lmer
+
+The following object is masked from ‘package:stats’:
+
+    step
+
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+
+Attaching package: ‘tidyr’
+
+The following objects are masked from ‘package:Matrix’:
+
+    expand, pack, unpack
+
+Per-PCR-replicate: Size-standardised Hill numbers at m = 10609 reads: 98 assemblages (95 via estimate3D, 3 via exact formula, S.obs < 5)
+boundary (singular) fit: see help('isSingular')
+boundary (singular) fit: see help('isSingular')
+Per-sample: Size-standardised Hill numbers at m = 12615 reads: 52 assemblages (51 via estimate3D, 1 via exact formula, S.obs < 5)
+# A tibble: 2 × 3
+  Season mean_pct median_pct
+  <chr>     <dbl>      <dbl>
+1 summer    45.7       47.5 
+2 winter     8.72       0.02
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  copro_pct_share by Season
+W = 513, p-value = 0.001227
+alternative hypothesis: true location shift is not equal to 0
+
+Warning messages:
+1: `aes_string()` was deprecated in ggplot2 3.0.0.
+ℹ Please use tidy evaluation idioms with `aes()`.
+ℹ See also `vignette("ggplot2-in-packages")` for more information.
+ℹ The deprecated feature was likely used in the iNEXT.3D package.
+  Please report the issue at <https://github.com/AnneChao/iNEXT.3D/issues>. 
+2: Model failed to converge with 1 negative eigenvalue: -1.1e+00 
+3: In wilcox.test.default(x = DATA[[1L]], y = DATA[[2L]], ...) :
+  cannot compute exact p-value with ties
+
+Done.

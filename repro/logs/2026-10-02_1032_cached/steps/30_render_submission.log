@@ -1,0 +1,168 @@
+# 30_render_submission
+# cmd: bash -c cd '/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary' && conda run --no-capture-output -n r_env quarto render Supplementary_Appendix.qmd --to html
+# started 2026-10-02T11:35:37+02:00
+[31m
+
+processing file: Supplementary_Appendix.qmd
+[39m1/125                          
+2/125 [unnamed-chunk-1]        
+3/125                          
+4/125 [setup]                  
+5/125                          
+6/125 [load-objects]           
+7/125                          
+8/125 [tab-design]             
+9/125                          
+10/125 [tab-tracking]           
+11/125                          
+12/125 [sec2-build]             
+13/125                          
+14/125 [tab-copro]              
+15/125                          
+16/125 [tab-e1-summary]         
+17/125                          
+18/125 [tab-e1-winter]          
+19/125                          
+20/125 [tab-permanova]          
+21/125                          
+22/125 [tab-permanova-by-year]  
+23/125                          
+24/125 [tab-betadisper]         
+25/125                          
+26/125 [tab-centroid]           
+27/125                          
+28/125 [tab-permanova-sens]     
+29/125                          
+30/125 [tab-permanova-sens-year]
+31/125                          
+32/125 [tab-occupancy]          
+33/125                          
+34/125 [sec4-build]             
+35/125                          
+36/125 [tab-inext]              
+37/125                          
+38/125 [tab-inext-asy]          
+39/125                          
+40/125 [tab-lmm]                
+41/125                          
+42/125 [tab-lmm-family]         
+43/125                          
+44/125 [tab-lmm-pcr]            
+45/125                          
+46/125 [tab-dominance]          
+47/125                          
+48/125 [tab-top5]               
+49/125                          
+50/125 [sec5-build]             
+51/125                          
+52/125 [tab-gllvm-aic]          
+53/125                          
+54/125 [tab-gllvm-otu]          
+55/125                          
+56/125 [tab-gllvm-genus]        
+57/125                          
+58/125 [tab-h2mech-compare]     
+59/125                          
+60/125 [tab-h2mech-family]      
+61/125                          
+62/125 [tab-h2mech-sens]        
+63/125                          
+64/125 [tab-h2mech-robust]      
+65/125                          
+66/125 [tab-h3-spec]            
+67/125                          
+68/125 [tab-h3-community]       
+69/125                          
+70/125 [tab-h3-contrast]        
+71/125                          
+72/125 [tab-h3-checks]          
+73/125                          
+74/125 [tab-h3g-aic]            
+75/125                          
+76/125 [tab-h3g-spec]           
+77/125                          
+78/125 [tab-h3g-agree]          
+79/125                          
+80/125 [tab-h3g-contrast]       
+81/125                          
+82/125 [tab-guild-crosswalk]    
+83/125                          
+84/125 [tab-guild-season]       
+85/125                          
+86/125 [tab-guild-year]         
+87/125                          
+88/125 [tab-hmsc-guild]         
+89/125                          
+90/125 [tab-hmsc-conv]          
+91/125                          
+92/125 [tab-hmsc-v1]            
+93/125                          
+94/125 [tab-hmsc-vp]            
+95/125                          
+96/125 [tab-hmsc-pcr]           
+97/125                          
+98/125 [tab-hmsc-rep]           
+99/125                          
+100/125 [tab-hmsc-gamma]         
+101/125                          
+102/125 [tab-hmsc-gamma-clr]     
+103/125                          
+104/125 [tab-hmsc-beta]          
+105/125                          
+106/125 [tab-hmsc-beta-probit]   
+107/125                          
+108/125 [tab-hmsc-rho]           
+109/125                          
+110/125 [tab-hmsc-correlogram]   
+111/125                          
+112/125 [tab-hmsc-lineage]       
+113/125                          
+114/125 [tab-hmsc-r2]            
+115/125                          
+116/125 [fig1-build]             
+117/125                          
+118/125 [fig2-build]             
+119/125                          
+120/125 [fig3-build]             
+121/125                          
+122/125 [fig4-build]             
+123/125                          
+124/125 [fig5-build]             
+125/125                          
+[31moutput file: Supplementary_Appendix.knit.md
+
+[39m[1mpandoc [22m
+  to: html
+  output-file: Appendix_HTML.html
+  standalone: true
+  embed-resources: true
+  section-divs: true
+  html-math-method: mathjax
+  wrap: none
+  default-image-extension: png
+  toc: true
+  toc-depth: 3
+  number-sections: false
+  variables: {}
+  
+[1mmetadata[22m
+  document-css: false
+  link-citations: true
+  date-format: long
+  lang: en
+  engines:
+    - path: /home/daniel/.local/opt/quarto-1.9.38/share/extension-subtrees/julia-engine/_extensions/julia-engine/julia-engine.js
+  title: Supplementary Analysis Appendix
+  subtitle: 'Seasonal restructuring of the willow ptarmigan (*Lagopus lagopus*) dung mycobiome: an ITS2 metabarcoding study'
+  header-includes:
+    - \usepackage{fvextra}
+    - \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+  editor: visual
+  theme: cosmo
+  smooth-scroll: true
+  anchor-sections: true
+  toc-title: Contents
+  toc-location: left
+  
+Output created: Appendix_HTML.html
+

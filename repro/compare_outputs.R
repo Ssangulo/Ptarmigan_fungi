@@ -81,6 +81,20 @@ compare_pdf <- function(old, new) {
   }
   if (identical(strip(old), strip(new)))
     return(list(status = "same_content", detail = "differs only in creation date / ID"))
+  # Compressed streams (cairo) can carry a timestamp the text strip can't see:
+  # rasterise every page of both at 150 dpi and compare pixels instead.
+  if (nzchar(Sys.which("pdftoppm"))) {
+    d <- tempfile(); dir.create(d)
+    system2("pdftoppm", c("-r", "150", "-png", shQuote(old), file.path(d, "old")))
+    system2("pdftoppm", c("-r", "150", "-png", shQuote(new), file.path(d, "new")))
+    po <- sort(list.files(d, "^old", full.names = TRUE)); pn <- sort(list.files(d, "^new", full.names = TRUE))
+    if (length(po) && length(po) == length(pn)) {
+      rs <- mapply(compare_png, po, pn, SIMPLIFY = FALSE)
+      if (all(vapply(rs, function(r) r$status %in% c("identical", "same_pixels"), logical(1))))
+        return(list(status = "same_pixels", detail = "PDF bytes differ; rendered pages identical at 150 dpi"))
+      return(list(status = "VISUAL", detail = paste("rendered PDF differs:", rs[[1]]$detail)))
+    }
+  }
   list(status = "VISUAL", detail = "PDF content differs")
 }
 

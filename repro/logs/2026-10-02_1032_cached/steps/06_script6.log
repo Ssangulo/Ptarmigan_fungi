@@ -439,3 +439,107 @@ Also defined by ‘tidytree’
 
 winter summer 
     60     54 
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+
+winter summer 
+    26     26 
+# A tibble: 2 × 10
+  Season     n NRI_aw_med NRI_aw_IQR NTI_aw_med NTI_aw_IQR NRI_pa_med NRI_pa_IQR
+  <fct>  <int>      <dbl>      <dbl>      <dbl>      <dbl>      <dbl>      <dbl>
+1 winter    26       1.87       2.11       2.06      0.995       1.25       1.62
+2 summer    26       1.08       1.21       1.39      0.862       2.52       1.28
+# ℹ 2 more variables: NTI_pa_med <dbl>, NTI_pa_IQR <dbl>
+Analysis of Variance Table
+
+Response: NRI_aw
+          Df Sum Sq Mean Sq F value Pr(>F)  
+Season     1  1.990  1.9895  1.9085 0.1735  
+Year       2  6.533  3.2665  3.1334 0.0526 .
+Residuals 48 50.039  1.0425                 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Analysis of Variance Table
+
+Response: NTI_aw
+          Df Sum Sq Mean Sq F value  Pr(>F)  
+Season     1  3.285  3.2851  3.2088 0.07955 .
+Year       2  3.142  1.5712  1.5347 0.22591  
+Residuals 48 49.142  1.0238                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+pdf 
+  2 
+# A tibble: 2 × 7
+  group   n_pairs median   IQR prop_gt2 prop_lt2 prop_abs_lt2
+  <chr>     <int>  <dbl> <dbl>    <dbl>    <dbl>        <dbl>
+1 between     676 -0.179  1.40  0.0311    0.0207        0.948
+2 within      650 -0.917  1.37  0.00923   0.126         0.865
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Permutation test for adonis under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = as.dist(UFw) ~ Season * Year, data = md_u, permutations = 9999, by = "terms")
+            Df SumOfSqs      R2       F Pr(>F)    
+Season       1 0.048699 0.18246 11.6431 0.0001 ***
+Year         2 0.013529 0.05069  1.6173 0.0623 .  
+Season:Year  2 0.012266 0.04596  1.4663 0.1072    
+Residual    46 0.192402 0.72089                   
+Total       51 0.266896 1.00000                   
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Permutation test for adonis under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = as.dist(UFuw) ~ Season * Year, data = md_u, permutations = 9999, by = "terms")
+            Df SumOfSqs      R2      F Pr(>F)    
+Season       1   1.1815 0.10982 6.4072 0.0001 ***
+Year         2   0.5166 0.04802 1.4008 0.0512 .  
+Season:Year  2   0.5784 0.05376 1.5682 0.0149 *  
+Residual    46   8.4824 0.78841                  
+Total       51  10.7589 1.00000                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Analysis of Variance Table
+
+Response: Distances
+          Df   Sum Sq    Mean Sq F value Pr(>F)
+Groups     1 0.000002 0.00000164  0.0024 0.9613
+Residuals 50 0.034404 0.00068808               
+Analysis of Variance Table
+
+Response: Distances
+          Df   Sum Sq  Mean Sq F value  Pr(>F)  
+Groups     1 0.035438 0.035438  6.5009 0.01389 *
+Residuals 50 0.272558 0.005451                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Analysis of Variance Table
+
+Response: Distances
+          Df    Sum Sq    Mean Sq F value Pr(>F)
+Groups     2 0.0003427 0.00017137  0.5621 0.5736
+Residuals 49 0.0149379 0.00030485               
+Analysis of Variance Table
+
+Response: Distances
+          Df   Sum Sq   Mean Sq F value Pr(>F)
+Groups     2 0.006625 0.0033126  0.7055 0.4988
+Residuals 49 0.230061 0.0046951               

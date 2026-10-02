@@ -1,0 +1,35 @@
+# 20_fig5-build
+# cmd: bash -c cd '/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary' && conda run --no-capture-output -n r_env Rscript build_main_figure.R fig5-build
+# started 2026-10-02T11:35:30+02:00
+Running chunk 'fig5-build' (249 lines) from Supplementary_Appendix.qmd
+
+Dark OTUs (n = 493) by SH placement:
+                  placement   n  pct
+   Placeable to existing SH 162 32.9
+         Candidate novel SH 228 46.2
+ No reference within 80% id 103 20.9
+
+Mean per-sample read share (%), by season:
+                            Season
+cat                          Winter Summer
+  Named (genus assigned)      48.69  68.78
+  Placeable to existing SH    15.83  21.49
+  Candidate novel SH          29.24   7.23
+  No reference within 80% id   6.24   2.50
+
+Candidate-novel read share: winter 29.2% vs summer 7.2%, Wilcoxon p = 1.94e-05
+
+Top 10 winter-abundant dark OTUs:
+     OTU           class winter_pct prevalence    id                  placement
+ OTU1369 Dothideomycetes      11.24      20/26  85.4         Candidate novel SH
+  OTU252 Dothideomycetes       4.67      15/26 100.0   Placeable to existing SH
+  OTU320   Leotiomycetes       3.47      15/26    NA No reference within 80% id
+ OTU1320 Dothideomycetes       3.24      11/26 100.0   Placeable to existing SH
+  OTU637 Dothideomycetes       2.40      14/26  93.6         Candidate novel SH
+  OTU691 Dothideomycetes       2.38      15/26  85.4         Candidate novel SH
+  OTU715 Dothideomycetes       2.16      11/26  85.3         Candidate novel SH
+ OTU1283 Lecanoromycetes       1.84       8/26  90.2         Candidate novel SH
+  OTU827            <NA>       1.82      11/26  84.9         Candidate novel SH
+  OTU911            <NA>       1.73      10/26  86.1         Candidate novel SH
+
+Done.
