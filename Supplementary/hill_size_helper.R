@@ -1,10 +1,11 @@
 # Shared helper: size-standardised Hill numbers via iNEXT.3D.
 #
-# SINGLE SOURCE for the appendix. Sourced by the `sec5-build` and `fig4-build`
-# chunks of Supplementary_Appendix.qmd so Section 5 and main-text Figure 3
-# cannot drift apart. `Scripts/6_diversity_analyses.R` carries a verbatim copy
-# of the same two functions (it must stay standalone, like every numbered
-# pipeline script) -- if you change one, change the other.
+# Sourced by the `fig4-build` chunk of Supplementary_Appendix.qmd (main-text
+# Figure 4B). `Scripts/6_diversity_analyses.R` carries a verbatim copy of the
+# same two functions (numbered scripts stay standalone) and produces Section
+# 5.2 with it -- if you change one, change the other. fig4-build asserts that
+# its recomputed season means equal the table script 6 writes, so a drift
+# between the two copies fails the figure build instead of passing silently.
 #
 # Requires: phyloseq (for the otu_mat_of input convention) and iNEXT.3D.
 

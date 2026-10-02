@@ -140,6 +140,8 @@ step 30_render_submission bash -c "cd '$SUPP' && conda run --no-capture-output -
 step 31_render_docs bash -c "cd '$SUPP' && conda run --no-capture-output -n r_env quarto render Supplementary_Appendix.qmd --to html --profile docs --output Appendix_documentation.html"
 step 32_fence_check bash -c "cd '$SUPP' && ! grep -o '[A-Za-z0-9_.]*:::[^ <\"]\{0,20\}' Appendix_HTML.html Appendix_documentation.html | grep -v 'vegan:::\.calc_rclr'"
 
+step 33_stub_visibility python3 "$REPO/repro/stub_visibility.py"
+
 # -- 7. checks + summary ---------------------------------------------------------------
 "${RSCRIPT[@]}" "$REPO/repro/run_checks.R" "$REPO" "$LOG" "$SANDBOX"
 rc=$?

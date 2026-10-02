@@ -2,9 +2,11 @@
 # build_main_figure.R -- rebuild a main-text figure from the appendix itself.
 #
 # Main-text figures have no script of their own: the code chunk in
-# Supplementary_Appendix.qmd IS the source of truth (Section 11). Those chunks
+# Supplementary_Appendix.qmd IS the source of truth (Section 10). Those chunks
 # are `eval: false`, so rendering never re-runs them; this runner pulls one out
-# by its chunk label and executes it.
+# by its chunk label and executes it. The same runner also executes the
+# appendix-section build chunks (sec2-build, sec4-build, sec5-build); see
+# repro/run_repro.sh.
 #
 # Usage, FROM THIS DIRECTORY (so the chunk's relative paths resolve exactly as
 # they do at render time):
