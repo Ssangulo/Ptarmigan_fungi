@@ -419,3 +419,5 @@ S8_dark_s_cmp,8.3,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_s
 S8_unassigned_s_cmp,8.3,tables/guild_season_readshare.csv,"100 * d$mean_summer[d$Guild == ""Unassigned / dark""]",1,21.0,(21.0% unassigned versus 31.2% dark)
 S9_n_dung_hmsc,8.2,tables/hmsc_otu_guild.csv,"sum(d$guild_class == ""dung_saprotroph"")",0,14,the 14 dung saprotrophs of the Section 9 model
 S3_E1_dark_read_pct,3.4,tables/dark_taxa_SH_matching.csv,"{g <- tab(""tables/guild_otu_assignment.csv""); m <- merge(d, g[, c(""OTU_ID"", ""total_reads"")]); 100 * sum(m$total_reads[m$is_dark]) / sum(m$total_reads)}",1,35.4,accounting for 35.4% of reads that the naïve-Bayes classifier
+S3_3_dark_from_S4,3.3,tables/tax_assignment_by_rank.csv,"round(d$otus_assigned[d$rank == ""Genus""] / (d$pct_otus_assigned[d$rank == ""Genus""] / 100)) - d$otus_assigned[d$rank == ""Genus""]",0,493,(493 of 1129 OTUs without a confident genus)
+S3_3_n_otus,3.3,tables/tax_assignment_by_rank.csv,"round(d$otus_assigned[d$rank == ""Genus""] / (d$pct_otus_assigned[d$rank == ""Genus""] / 100))",0,1129,(493 of 1129 OTUs without a confident genus)

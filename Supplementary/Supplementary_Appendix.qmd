@@ -429,14 +429,13 @@ Per-sample relative read abundance at four taxonomic ranks, with samples grouped
 #| code-fold: true
 #| code-summary: "Source: Scripts/5_community_composition.R -- inputs, outputs, how to re-run"
 
-# Source : Scripts/5_community_composition.R, Section 8 (taxonomic bar plots, Figures S2-S5); Section 9 (assignment summary)
+# Source : Scripts/5_community_composition.R, Section 8 (taxonomic bar plots, Figures S2-S5)
 # Input  : eco_analysis.RData: alldat_full$nopool, PCR replicates summed in the
 #            script's Section 1 (its own object: no depth filter, see Section 3.1)
 # Output : figures/Order_barplot_ordered_season.png
 #          figures/class_barplot_ordered_season.png
 #          figures/genus_barplot_ordered_season.png
 #          figures/phylum_barplot_ordered_season.png
-#          tables/tax_assignment_summary_season.xlsx
 # Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/5_community_composition.R
 #          < 1 min
 ```

@@ -130,7 +130,7 @@ else
 fi
 
 # -- 5. appendix build chunks (source of truth for Sections 2/4/5 + main figs) --
-for lab in sec2-build sec4-build sec5-build fig1-build fig2-build fig3-build fig4-build fig5-build; do
+for lab in sec2-build sec3-build sec4-build sec5-build fig1-build fig2-build fig3-build fig4-build fig5-build; do
   step "20_${lab}" bash -c "cd '$SUPP' && ${RSCRIPT[*]} build_main_figure.R $lab"
 done
 step 21_hmsc_v1_table bash -c "cd '$REPO' && ${RSCRIPT[*]} hmsc_converge/04_v1_disagreement_table.R"

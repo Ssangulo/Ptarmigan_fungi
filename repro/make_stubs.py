@@ -38,7 +38,7 @@ STUBS = [
          anchor="```{r load-objects}", section_filter=None),
     dict(id="sec3-1", source="Scripts/5_community_composition.R",
          summary="Source: Scripts/5_community_composition.R -- inputs, outputs, how to re-run",
-         what="Section 8 (taxonomic bar plots, Figures S2-S5); Section 9 (assignment summary)",
+         what="Section 8 (taxonomic bar plots, Figures S2-S5)",
          inputs=["eco_analysis.RData: alldat_full$nopool, PCR replicates summed in the",
                  "  script's Section 1 (its own object: no depth filter, see Section 3.1)"],
          run="conda run -n r_env Rscript Scripts/5_community_composition.R", runtime="< 1 min",
