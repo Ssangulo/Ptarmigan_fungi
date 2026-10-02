@@ -459,15 +459,112 @@ kable(copro, digits = 3,
 
 Total per-sample coprophilous read share is **markedly higher in summer** than winter — 45.7% versus 8.7% of reads on average (medians 47.5% and 0.02%; Wilcoxon rank-sum p = 0.0012). The contrast is carried by *Thelebolus*, *Coniochaeta* and *Sporormiella*, the three summer-dominant OTUs of Section 5.4; *Psathyrella*, *Stropharia* and *Coprinopsis* occur only at trace level. Code for this table is shared with the dominance analysis and shown in Section 5.
 
-::: {.content-visible when-profile="docs"}
-<!-- placeholder subsection; not yet vetted for the manuscript -->
+### 3.3 Taxonomic assignment success by rank
 
-### 3.3 Taxonomic assignment success by rank *(placeholder)*
+<!-- CLAUDE DRAFT 2026-10-02 — numbers from tables/tax_assignment_by_rank.csv; prose for Daniel to rewrite -->
 
-::: callout-warning
-**To be finalized.** A per-rank summary of the percentage of reads and OTUs with confident taxonomic assignment, broken down by Season, is available as `tables/tax_assignment_summary_season.xlsx` but has not yet been vetted for the manuscript. A rendered Table S4 (Phylum → Species assignment rates) will be inserted here once confirmed.
-:::
-:::
+Share of OTUs and reads given a confident name (UNITE naïve Bayes, `minBoot = 80`) at each rank on the canonical object. At genus rank this is the complement of the dark-taxa definition used in Section 3.4 (493 of 1129 OTUs without a confident genus). Assignment is near-complete to class and falls off from order downwards; species-level names are available for about a fifth of OTUs and reads. The per-OTU assignment rate is similar in the two seasons, but the per-sample *read* share assigned is consistently higher in summer from class to genus, because summer reads are concentrated in a few well-characterised coprophilous OTUs (Section 3.2) whereas winter reads fall disproportionately on unresolved lineages (Section 3.4).
+
+```{r tab-taxassign}
+#| echo: false
+library(knitr)
+ta <- read.csv("tables/tax_assignment_by_rank.csv", check.names = FALSE)
+f1 <- function(x) sprintf("%.1f", x)
+fq <- function(x) ifelse(x < 0.001, "< 0.001", sprintf("%.3f", x))
+s4 <- data.frame(
+  Rank                       = ta$rank,
+  `OTUs assigned, n (%)`     = sprintf("%d (%.1f)", ta$otus_assigned, ta$pct_otus_assigned),
+  `of which incertae sedis`  = ta$otus_incertae_sedis,
+  `% OTUs, winter`           = f1(ta$pct_otus_assigned_winter),
+  `% OTUs, summer`           = f1(ta$pct_otus_assigned_summer),
+  `% reads, pooled`          = f1(ta$pct_reads_assigned_pooled),
+  `% reads per sample, winter` = f1(ta$mean_pct_reads_winter),
+  `% reads per sample, summer` = f1(ta$mean_pct_reads_summer),
+  `BH q`                     = fq(ta$bh_q_reads_season),
+  check.names = FALSE)
+kable(s4, align = c("l", rep("r", ncol(s4) - 1)),
+      caption = "Table S4. Taxonomic assignment success by rank (canonical object, 52 samples, 1129 OTUs; 26 winter / 26 summer). 'Assigned' = a name returned by the UNITE naïve-Bayes classifier at minBoot = 80; 'of which incertae sedis' counts confident placements into an unnamed UNITE bin (e.g. Myriangiales_gen_Incertae_sedis), which are included in the assigned count. Seasonal % OTUs use the OTUs detected in that season as denominator (436 winter, 864 summer). '% reads, pooled' is over all reads, and is weighted towards the deeper summer libraries; the two per-sample columns are means of per-sample shares, the statistic used in Section 3.4. BH q: Wilcoxon rank-sum test of per-sample assigned read share, winter vs summer, Benjamini–Hochberg-adjusted across the six ranks. Kingdom is omitted (all retained OTUs are Fungi by construction).")
+```
+
+```{r sec3-build}
+#| eval: false
+#| echo: !expr knitr::is_html_output()
+#| code-fold: true
+#| code-summary: "Full code for Table S4 — the source of truth for the per-rank assignment table"
+
+# ---------------------------------------------------------------------------
+# Table S4 (taxonomic assignment success by rank, by Season).
+#
+# This chunk is the source of truth for tables/tax_assignment_by_rank.csv:
+# there is no parallel script. Object = canonical alldat$nopool (52 samples,
+# 1129 OTUs; the same object as Table S3 and Section 3.4).
+#
+# "Assigned" at a rank = the UNITE naive-Bayes classifier returned a name at
+# minBoot = 80 (non-NA in the tax table). At Genus this is exactly the
+# complement of Section 3.4's dark-taxa rule (is.na(Genus)). A confident
+# assignment can still be a UNITE incertae-sedis placeholder
+# (e.g. "g__Myriangiales_gen_Incertae_sedis": confidently placed, but in a bin
+# with no formal name at that rank); those are counted separately so the
+# "formally named" share can be read off too.
+#
+# Read shares are given two ways: pooled over all reads (dominated by the
+# ~2.6x deeper summer libraries) and as the mean of per-sample shares by
+# Season (the statistic Section 3.4 and Fig. 5B quote). Kingdom is omitted:
+# every retained OTU is k__Fungi by construction (non-fungal OTUs removed).
+# ---------------------------------------------------------------------------
+library(phyloseq)
+library(dplyr)
+
+data_dir <- "/home/daniel/Ptarmigan/trimmed/mergedPlates"   # data live outside the repo
+tab_dir  <- "tables"                                        # relative to this .qmd
+
+e <- new.env(); load(file.path(data_dir, "eco_analysis.RData"), envir = e)
+ps <- e$alldat$nopool
+stopifnot(nsamples(ps) == 52, ntaxa(ps) == 1129)
+
+otu <- as(otu_table(ps), "matrix")
+if (!taxa_are_rows(ps)) otu <- t(otu)                       # OTUs x samples
+tax <- as(tax_table(ps), "matrix")[rownames(otu), ]
+season <- as.character(data.frame(sample_data(ps))[colnames(otu), "Season"])
+
+ranks <- c("Phylum", "Class", "Order", "Family", "Genus", "Species")
+
+tax_assign <- bind_rows(lapply(ranks, function(r) {
+  assigned  <- !is.na(tax[, r])
+  incertae  <- assigned & grepl("Incertae_sedis", tax[, r], ignore.case = TRUE)
+  share     <- colSums(otu[assigned, , drop = FALSE]) / colSums(otu)  # per sample
+  otu_pct_season <- sapply(c("winter", "summer"), function(s) {
+    present <- rowSums(otu[, season == s, drop = FALSE]) > 0
+    100 * sum(assigned & present) / sum(present)
+  })
+  data.frame(
+    rank                   = r,
+    otus_assigned          = sum(assigned),
+    pct_otus_assigned      = 100 * mean(assigned),
+    otus_incertae_sedis    = sum(incertae),
+    pct_otus_named         = 100 * mean(assigned & !incertae),
+    pct_otus_assigned_winter = otu_pct_season[["winter"]],
+    pct_otus_assigned_summer = otu_pct_season[["summer"]],
+    pct_reads_assigned_pooled = 100 * sum(otu[assigned, ]) / sum(otu),
+    mean_pct_reads_winter  = 100 * mean(share[season == "winter"]),
+    mean_pct_reads_summer  = 100 * mean(share[season == "summer"]),
+    median_pct_reads_winter = 100 * median(share[season == "winter"]),
+    median_pct_reads_summer = 100 * median(share[season == "summer"]),
+    wilcox_p_reads_season  = suppressWarnings(
+      wilcox.test(share[season == "winter"], share[season == "summer"])$p.value))
+}))
+tax_assign$bh_q_reads_season <- p.adjust(tax_assign$wilcox_p_reads_season, "BH")
+
+# Drift guards against numbers already quoted elsewhere in this appendix
+g <- tax_assign[tax_assign$rank == "Genus", ]
+stopifnot(sum(season == "winter") == 26, sum(season == "summer") == 26,
+          g$otus_assigned == 1129 - 493,                         # Section 3.4: 493 dark OTUs
+          abs((100 - g$pct_reads_assigned_pooled) - 35.4) < 0.05, # 3.4: 35.4% of reads dark
+          abs((100 - g$mean_pct_reads_winter) - 51.3) < 0.05)     # 3.4: 51.3% of winter reads
+
+write.csv(tax_assign, file.path(tab_dir, "tax_assignment_by_rank.csv"), row.names = FALSE)
+print(tax_assign, digits = 4)
+```
 
 ### 3.4 Dark taxa and UNITE Species Hypothesis characterisation (E1)
 
@@ -1414,7 +1511,7 @@ gt %>% transmute(Order, Genus, n_OTUs,
 
 ### 7.1 Diet richness and fungal diversity — Bayesian mechanism (H2)
 
-Section 5 established the coarse prediction of H2: summer communities are richer than winter ones, in step with the richer summer diet. Here we test the finer mechanism directly, on the subset of samples for which we have paired plant ITS2 diet data (**n = 27** dung samples): does an individual sample's fungal diversity track the richness of its own dietary plant community? Fungal Hill diversity is modelled as a function of standardised plant (diet) richness, adjusting for Season, in a Bayesian Gamma regression with a log link (brms). H2's mechanism is supported if the plant-richness slope is positive with posterior probability P(slope \> 0) \> 0.95.
+Section 5 established the coarse prediction of H2: summer communities are richer than winter ones, in step with the richer summer diet. Here we test the finer mechanism directly, on the samples that have paired plant ITS2 diet data and pass the 10,000-read depth filter of Sections 4–5 (**n = 27** dung samples): does an individual sample's fungal diversity track the richness of its own dietary plant community? Fungal Hill diversity is modelled as a function of standardised plant (diet) richness, adjusting for Season, in a Bayesian Gamma regression with a log link (brms). H2's mechanism is supported if the plant-richness slope is positive with posterior probability P(slope \> 0) \> 0.95. Three further diet-matched winter samples (2,975–7,167 reads) are excluded here because the outcome is a per-sample diversity estimate standardised to a common depth of 12,615 reads (Section 5), and including them would force that depth down for every sample; the count models of Sections 7.2–7.3 retain them (n = 30) because they account for depth with a per-library offset instead.
 
 The preregistration specified Year and individual bird as random intercepts. At this matched sample size that structure is unidentifiable — the 27 samples come from 24 distinct birds, so an individual random effect cannot be separated from residual variation, and Year spans only three levels — and the random-effects model does not converge. We therefore report two complementary, cleanly-converged fixed-effect models that bracket the estimate: a **Season-adjusted** model (`plant_richness + Season + Year`, Year as a fixed effect) and a more parsimonious **drop-Year** model (`plant_richness + Season`). Both model the raw Hill number with a Gamma likelihood and log link, the same family as the per-sample Season test of Table S9, with a weakly-informative prior on the slope (Normal(0, 1) per standard deviation of plant richness, on the log scale).
 
