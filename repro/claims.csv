@@ -397,3 +397,25 @@ S10_5_pct_lt95,10.5,tables/dark_taxa_SH_matching.csv,100 * mean(d$similarity_per
 S10_5_pct_novel,10.5,tables/E1_SH_assignment_summary.csv,100 * d$novel_new_SH / d$n_dark,0,46,228 of the 493 dark OTUs (46%) form candidate new Species Hypotheses
 S10_5_n_noref,10.5,tables/E1_SH_assignment_summary.csv,d$no_SH_match + d$excluded_nonITS,0,103,a further 103 (21%) have no UNITE reference within 80% identity
 S10_5_pct_noref,10.5,tables/E1_SH_assignment_summary.csv,100 * (d$no_SH_match + d$excluded_nonITS) / d$n_dark,0,21,a further 103 (21%) have no UNITE reference within 80% identity
+S3_E1_local_novel,3.4,tables/dark_taxa_SH_matching.csv,"sum(d$is_dark & (d$SH_class == ""novel_new_SH"" | d$SH_source == ""PlutoF_live""))",0,247,247 formed new (candidate) species hypotheses
+S3_E1_cand_any,3.4,tables/E1_SH_assignment_summary.csv,d$novel_new_SH + d$no_SH_match + d$excluded_nonITS,0,331,"Taken together, 331 of the 493 dark OTUs (67%) are candidate-novel"
+S3_E1_cand_any_pct,3.4,tables/E1_SH_assignment_summary.csv,100 * (d$novel_new_SH + d$no_SH_match + d$excluded_nonITS) / d$n_dark,0,67,"Taken together, 331 of the 493 dark OTUs (67%) are candidate-novel"
+S3_E1_dark_w_split,3.4,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_share[d$Season == ""winter"" & d$stratum == ""Named""]))",1,51.3,the dark 51.3% divides into 15.8% placeable
+S3_E1_excl_all,3.4,tables/dark_taxa_SH_matching.csv,"sum(d$SH_class == ""excluded_nonITS"")",0,21,"(`excluded_nonITS`, 21 OTUs across the dataset, 13 of them dark)"
+S3_E1_excl_dark,3.4,tables/dark_taxa_SH_matching.csv,"sum(d$SH_class == ""excluded_nonITS"" & d$is_dark)",0,13,"(`excluded_nonITS`, 21 OTUs across the dataset, 13 of them dark)"
+S4_sy_rank3_p2022,4.3,tables/report_permanova_sensitivity_by_year.csv,"d$p_value[d$Year == 2022 & d$distance == ""robust Aitchison (rank-3)""]",3,0.775,(0.775 / 0.009 / 0.116 here against 0.789 / 0.005 / 0.127 there)
+S4_sy_rank3_p2023,4.3,tables/report_permanova_sensitivity_by_year.csv,"d$p_value[d$Year == 2023 & d$distance == ""robust Aitchison (rank-3)""]",3,0.009,(0.775 / 0.009 / 0.116 here against 0.789 / 0.005 / 0.127 there)
+S4_sy_rank3_p2024,4.3,tables/report_permanova_sensitivity_by_year.csv,"d$p_value[d$Year == 2024 & d$distance == ""robust Aitchison (rank-3)""]",3,0.116,(0.775 / 0.009 / 0.116 here against 0.789 / 0.005 / 0.127 there)
+S6_dAIC_caption,6.1,tables/gllvm_model_comparison.csv,"d$dAIC[d$object == ""fit_nb_2""]",0,723,two latent variables are preferred over one (ΔAIC ≈ 723)
+S6_n_rows_caption,6.1,tables/gllvm_perOTU_season_coef.csv,nrow(d),0,327,on the same 327-OTU / 114-row response matrix
+S71_gauss_elpd,7.1,tables/H2_mechanism_family_choice.csv,"-d$elpd_diff_vs_primary[d$family == ""Gaussian on z-score"" & d$model == ""Season-adjusted""]",0,13,is outperformed by ≈ 13 ELPD
+S72_n_abund_caption,7.2,tables/H3_perOTU_plant_coef.csv,"sum(d$part == ""abundance"")",0,184,none of the 184 abundance-part deviations is resolved
+S73_aic_caption,7.3,tables/gllvm_H3_model_comparison.csv,d$dAIC[!d$plants],0,220,the plant model is AIC-preferred over the Season + Year null (dAIC ≈ 220)
+S8_dark_w_cmp,8.3,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_share[d$Season == ""winter"" & d$stratum == ""Named""]))",1,51.3,"(51.3% of winter reads), but the two are **not the same set**"
+S8_unassigned_cmp,8.3,tables/guild_scheme_crosswalk.csv,"sum(d$n_OTUs[d$guild_display == ""Unassigned / dark""])",0,436,"""unassigned"" here means no FUNGuild annotation (436 OTUs)"
+S8_dark_cmp,8.3,tables/dark_taxa_SH_matching.csv,sum(d$is_dark),0,493,no confident genus in the canonical taxonomy (493 OTUs)
+S8_dark_fg,8.3,tables/dark_taxa_SH_matching.csv,"{g <- tab(""tables/guild_otu_assignment.csv""); sum(d$is_dark & d$OTU_ID %in% g$OTU_ID[g$guild_display != ""Unassigned / dark""])}",0,103,and 103 OTUs lack a genus yet still receive a FUNGuild
+S8_dark_s_cmp,8.3,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_share[d$Season == ""summer"" & d$stratum == ""Named""]))",1,31.2,(21.0% unassigned versus 31.2% dark)
+S8_unassigned_s_cmp,8.3,tables/guild_season_readshare.csv,"100 * d$mean_summer[d$Guild == ""Unassigned / dark""]",1,21.0,(21.0% unassigned versus 31.2% dark)
+S9_n_dung_hmsc,8.2,tables/hmsc_otu_guild.csv,"sum(d$guild_class == ""dung_saprotroph"")",0,14,the 14 dung saprotrophs of the Section 9 model
+S3_E1_dark_read_pct,3.4,tables/dark_taxa_SH_matching.csv,"{g <- tab(""tables/guild_otu_assignment.csv""); m <- merge(d, g[, c(""OTU_ID"", ""total_reads"")]); 100 * sum(m$total_reads[m$is_dark]) / sum(m$total_reads)}",1,35.4,accounting for 35.4% of reads that the naïve-Bayes classifier

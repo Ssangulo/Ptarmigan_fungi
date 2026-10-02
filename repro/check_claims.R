@@ -96,32 +96,38 @@ extract_numbers <- function(txt) {
   m
 }
 
-table_values <- function(repo, files) {
+# Values of the SMALL tables only (summary tables, <= 60 rows). Large per-OTU
+# tables hold enough numbers that almost any quoted value matches one by
+# chance, so they are never used as evidence -- only as a weak hint.
+table_values <- function(repo, files, max_rows = 60) {
   v <- unlist(lapply(files, function(f) {
     p <- file.path(repo, "Supplementary", f)
     if (!file.exists(p) || !grepl("\\.csv$", f)) return(NULL)
     d <- tryCatch(utils::read.csv(p, check.names = FALSE, stringsAsFactors = FALSE), error = function(e) NULL)
-    if (is.null(d)) return(NULL)
+    if (is.null(d) || nrow(d) > max_rows) return(NULL)
     unlist(lapply(d, function(x) suppressWarnings(as.numeric(gsub("[,%]", "", as.character(x))))))
   }))
   v <- v[is.finite(v)]
   unique(c(v, 100 * v))
 }
 
+# Design constants and conventions: quoted everywhere, verified once by the
+# registry (sample sizes) or not numbers about the data at all.
+SWEEP_CONSTANTS  <- c("52", "26", "57", "55", "109", "114", "54", "226", "1129", "1,129", "12,615",
+                      "10,000", "27", "30", "60", "46", "31", "24", "19", "11", "600", "1000", "500", "999")
+SWEEP_CONVENTION <- c("95", "0.95", "0.05", "2.5", "97.5", "50", "100", "0.5", "1.1", "1.01", "80",
+                      "90", "0.25", "0.01", "0.001", "10", "−10", "-10", "1", "5", "0", "200")
+
 sweep_numbers <- function(repo, registry) {
   lines <- readLines(file.path(repo, "Supplementary/Supplementary_Appendix.qmd"), warn = FALSE)
   pu <- prose_units(lines)
-  all_files <- unique(unlist(regmatches(lines, gregexpr("tables/[A-Za-z0-9_./-]+\\.csv", lines))))
-  # files referenced inside each top-level section
   top <- sub("\\..*$", "", pu$section)
   sec_files <- tapply(seq_len(nrow(pu)), top, function(ix) {
     rng <- range(pu$line[ix]); seg <- lines[rng[1]:rng[2]]
     unique(unlist(regmatches(seg, gregexpr("tables/[A-Za-z0-9_./-]+\\.csv", seg))))
   }, simplify = FALSE)
-  pool_all <- table_values(repo, all_files)
   pool_sec <- lapply(sec_files, function(f) table_values(repo, f))
   reg_snips <- registry$snippet
-  convention <- c("95", "0.95", "0.05", "2.5", "97.5", "50", "100", "0.5", "1.1", "1.01")
   rows <- list()
   for (k in seq_len(nrow(pu))) {
     nums <- extract_numbers(pu$text[k])
@@ -132,16 +138,16 @@ sweep_numbers <- function(repo, registry) {
       if (dp == 0 && abs(n) < 10) next                                  # trivial small integers
       covered <- any(vapply(reg_snips, function(sn) grepl(s, sn, fixed = TRUE) &&
                               grepl(sn, pu$text[k], fixed = TRUE), logical(1)))
-      hit <- function(pool) any(abs(round(pool, dp) - n) < 10^(-dp) / 2 |
-                                abs(round(abs(pool), dp) - abs(n)) < 10^(-dp) / 2)
+      pool <- pool_sec[[top[k]]]
+      hint <- !is.null(pool) && any(abs(pool - n) <= 10^(-dp) / 2 + 1e-9)
       cat <- if (covered) "registry" else
-             if (s %in% convention) "convention" else
-             if (!is.null(pool_sec[[top[k]]]) && hit(pool_sec[[top[k]]])) "section_table" else
-             if (hit(pool_all)) "other_table" else "UNMATCHED"
+             if (s %in% SWEEP_CONSTANTS) "design_constant" else
+             if (s %in% SWEEP_CONVENTION) "convention" else "UNVERIFIED"
+      pos <- regexpr(s, pu$text[k], fixed = TRUE)
       rows[[length(rows) + 1]] <- data.frame(line = pu$line[k], section = pu$section[k],
         kind = pu$kind[k], number = s, category = cat,
-        context = substr(gsub("\\s+", " ", pu$text[k]), max(1, regexpr(s, pu$text[k], fixed = TRUE) - 60),
-                         regexpr(s, pu$text[k], fixed = TRUE) + 60))
+        hint = if (cat == "UNVERIFIED" && hint) "a summary table of this section holds this value" else "",
+        context = substr(gsub("\\s+", " ", pu$text[k]), max(1, pos - 70), pos + 70))
     }
   }
   do.call(rbind, rows)

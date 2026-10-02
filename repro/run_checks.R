@@ -19,7 +19,7 @@ utils::write.csv(man, file.path(log, "manifest_check.csv"), row.names = FALSE)
 reg   <- check_registry(repo)
 utils::write.csv(reg, file.path(log, "claims_result.csv"), row.names = FALSE)
 sw    <- sweep_numbers(repo, utils::read.csv(file.path(here, "claims.csv"), stringsAsFactors = FALSE))
-utils::write.csv(sw[sw$category == "UNMATCHED", ], file.path(log, "unmatched_numbers.csv"), row.names = FALSE)
+utils::write.csv(sw[sw$category == "UNVERIFIED", ], file.path(log, "unverified_numbers.csv"), row.names = FALSE)
 utils::write.csv(sw, file.path(log, "sweep_all_numbers.csv"), row.names = FALSE)
 wsc <- file.path(log, "workspace_compare.csv")
 ws  <- if (file.exists(wsc)) utils::read.csv(wsc, stringsAsFactors = FALSE) else NULL
@@ -75,7 +75,7 @@ w(sprintf("Registry: %d of %d claims pass.\n", sum(reg$status == "PASS"), nrow(r
 tbl(fail_reg)
 w(sprintf("Sweep of all other numbers in prose and captions (%d): ", nrow(sw)),
   paste(sprintf("%s %d", names(table(sw$category)), table(sw$category)), collapse = ", "),
-  ". Unmatched ones are listed in `unmatched_numbers.csv` for triage (sample sizes, thresholds and literature values legitimately have no table).\n")
+  ". Only the registry verifies a number. UNVERIFIED ones are listed in `unverified_numbers.csv`: quoted in the prose but tied to no table -- each is either worth adding to the registry (and, if no table stores it yet, to a table) or legitimately table-free (literature values, settings, dates).\n")
 writeLines(md, file.path(log, "summary.md"))
 cat(md, sep = "\n")
 quit(status = if (verdict == "PASS") 0 else 1)
