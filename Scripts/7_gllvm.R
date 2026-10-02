@@ -219,6 +219,9 @@ write.csv(model_comparison, file.path(out_dir, "gllvm_model_comparison.csv"),
           row.names = FALSE)
 
 # ---- Residual diagnostics (primary model: fit_nb_2_2) -----------------------
+# Dunn-Smyth residuals are randomised quantile residuals: seed so the figure
+# is the same on every run.
+set.seed(1)
 png(file.path(plot_dir, "gllvm_fit_nb_2_2_residuals.png"),
     width=3600, height=2400, res=300)
 par(mfrow=c(3,2), mar=c(4,4,2,1), ask=FALSE)
@@ -505,6 +508,7 @@ boot_wmean <- function(beta, w, R=500) {
   quantile(boots, c(0.025,0.975), na.rm=TRUE)
 }
 
+set.seed(1)   # boot_wmean() resamples; seed so the CIs are the same on every run
 genus_ci <- annot_raw %>%
   filter(Genus %in% genera_keep) %>%
   group_by(Genus, Order) %>%
