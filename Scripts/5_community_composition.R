@@ -485,7 +485,7 @@ print(tax_res_summary, n=Inf, width=Inf)
 writexl::write_xlsx(tax_res_summary, file.path(out_dir, "tax_assignment_summary_season.xlsx"))
 
 # =============================================================================
-# STAGE APPENDIX FIGURES -- Section 3.1 (Figures S2-S5) reads these copies.
+# STAGE APPENDIX FILES -- Section 3.1 (Figures S2-S5) and 3.3 read these copies.
 # =============================================================================
 supp_fig <- file.path(SUPP_DIR, "figures")
 dir.create(supp_fig, showWarnings = FALSE, recursive = TRUE)
@@ -495,3 +495,6 @@ invisible(file.copy(file.path(plot_dir, c("phylum_barplot_ordered_season.png",
                                           "genus_barplot_ordered_season.png")),
                     supp_fig, overwrite = TRUE))
 cat("Staged Section 3.1 barplots into", supp_fig, "\n")
+# Section 3.3 (placeholder) points readers at the assignment summary.
+invisible(file.copy(file.path(out_dir, "tax_assignment_summary_season.xlsx"),
+                    file.path(SUPP_DIR, "tables"), overwrite = TRUE))
