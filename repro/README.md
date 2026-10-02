@@ -13,6 +13,17 @@ cd Scripts_server
 
 Each run writes `repro/logs/<YYYY-MM-DD_HHMM>_<mode>/`. Start with `summary.md`.
 
+**CPU budget (shared server).** Cap a run with `REPRO_CORES`: it re-launches under
+`taskset` (only those cores) at `nice 19`. Match the thread counts to it, e.g. for 8 cores:
+
+```bash
+REPRO_CORES=88-95 OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2 HMSC_BLAS_THREADS=2 HMSC_NPARALLEL=4 \
+  setsid nohup ./repro/run_repro.sh cold > ~/Ptarmigan/repro_sandbox/cold_console.log 2>&1 &
+```
+
+`setsid nohup` keeps a long run alive after the terminal or Claude session closes; the
+run's PID is in `repro/logs/<RUN_ID>/run.pid` (`kill -- -<PID>` stops it and its children).
+
 ## What a run does
 
 1. Records the environment (`env.txt`) and checksums the upstream inputs

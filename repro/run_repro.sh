@@ -24,6 +24,14 @@
 # =============================================================================
 set -uo pipefail
 
+# CPU cap. REPRO_CORES="88-95" re-launches this script under taskset (only those
+# cores) at nice 19, so the run can never use more than that many CPUs, whatever
+# the R libraries ask for, and always yields to other users of the server.
+if [[ -n "${REPRO_CORES:-}" && -z "${REPRO_PINNED:-}" ]]; then
+  export REPRO_PINNED=1
+  exec taskset -c "$REPRO_CORES" nice -n 19 "$0" "$@"
+fi
+
 MODE="${1:-cached}"
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RSCRIPT=(conda run --no-capture-output -n r_env Rscript)
@@ -57,9 +65,13 @@ printf "step\tstatus\texit\tminutes\tlog\n" > "$STEPS"
 date +%s > "$LOG/.run_start_epoch"
 echo "$MODE" > "$LOG/.mode"
 echo "RUN $RUN_ID | repo $REPO | sandbox $SANDBOX"
+echo $$ > "$LOG/run.pid"
+echo "cpu: cores ${REPRO_CORES:-all} | OPENBLAS ${OPENBLAS_NUM_THREADS:-4} OMP ${OMP_NUM_THREADS:-4} HMSC_BLAS ${HMSC_BLAS_THREADS:-4} HMSC_NPARALLEL ${HMSC_NPARALLEL:-4}" | tee "$LOG/cpu_budget.txt"
 
 # Threads: HMSC oversubscribes BLAS on this 96-core box unless capped.
-export OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 HMSC_BLAS_THREADS=4 HMSC_NPARALLEL=4
+# Override any of these to fit a smaller CPU budget (see REPRO_CORES above).
+export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-4}" OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}" \
+       HMSC_BLAS_THREADS="${HMSC_BLAS_THREADS:-4}" HMSC_NPARALLEL="${HMSC_NPARALLEL:-4}"
 
 # step <name> <cmd...> : run, time, log; record PASS/FAIL. Never aborts the run
 # (except where a gate below says so) so one failure doesn't hide the rest.
