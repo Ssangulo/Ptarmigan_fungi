@@ -5,16 +5,14 @@
 #   id        short unique id (S4_permanova_season_R2)
 #   section   appendix section (4.2)
 #   file      table it comes from, relative to Supplementary/
-#   row       R expression evaluated inside the table selecting ONE row
-#             (e.g. term == "Season"); empty = the table has one row
-#   col       column name
-#   transform R expression in x (default x), e.g. 100 * x, exp(x)
+#   expr      R expression returning ONE number; the table is bound to `d`
+#             (e.g. d$R2[d$term == "Season"], or 100 * mean(d$x[d$Season == "winter"]));
+#             tab("tables/other.csv") reads a second table when a claim joins two
 #   digits    decimal places the prose rounds to
 #   quoted    the number exactly as the prose writes it (no thousands commas)
 #   snippet   a verbatim piece of the qmd containing that number
-# A claim PASSES when round(transform(value), digits) equals `quoted` AND the
-# snippet is still in the qmd -- so it fails whether the data moved or the
-# prose was edited.
+# A claim PASSES when round(value, digits) equals `quoted` AND the snippet is
+# still in the qmd -- so it fails whether the data moved or the prose was edited.
 #
 # (2) Sweep. Every other number in the prose and captions is matched against
 # the tables at the precision it is quoted to; the leftovers go to
@@ -36,24 +34,25 @@ check_registry <- function(repo) {
     r <- cl[i, ]
     val <- tryCatch({
       d <- get_tab(r$file)
-      sel <- if (is.na(r$row)) rep(TRUE, nrow(d)) else eval(parse(text = r$row), d, baseenv())
-      sel <- which(sel)
-      if (length(sel) != 1) stop(sprintf("row selector matched %d rows", length(sel)))
-      x <- d[[r$col]][sel]
-      if (is.null(x)) stop("no column ", r$col)
+      x <- eval(parse(text = r$expr), list(d = d, tab = get_tab), globalenv())
       x <- suppressWarnings(as.numeric(gsub("[,%]", "", as.character(x))))
-      eval(parse(text = if (is.na(r$transform)) "x" else r$transform), list(x = x), baseenv())
+      if (length(x) != 1) stop(sprintf("expr returned %d values", length(x)))
+      x
     }, error = function(e) structure(NA_real_, err = conditionMessage(e)))
     err <- attr(val, "err")
     dg  <- as.integer(r$digits)
     q   <- as.numeric(gsub("[,−]", "", sub("^−", "-", r$quoted)))
-    value_ok <- !is.na(val) && isTRUE(abs(round(val, dg) - q) < 10^(-dg) / 2)
+    # inclusive half-unit: a value exactly on a rounding boundary (often a CSV
+    # that itself stores a rounded number) cannot contradict either rounding
+    value_ok <- !is.na(val) && isTRUE(abs(val - q) <= 10^(-dg) / 2 + 1e-9)
+    tie <- value_ok && isTRUE(abs(abs(val - q) - 10^(-dg) / 2) < 1e-9)
     snip_ok  <- !is.na(r$snippet) && grepl(r$snippet, qmd, fixed = TRUE)
     data.frame(id = r$id, section = r$section, file = r$file, quoted = r$quoted,
                value = if (is.na(val)) NA_character_ else format(signif(val, 8)),
                value_ok = value_ok, snippet_ok = snip_ok,
                status = if (value_ok && snip_ok) "PASS" else "FAIL",
                detail = if (!is.null(err)) err else
+                        if (tie && snip_ok) "rounding tie (table precision cannot resolve the last digit)" else
                         if (!value_ok) sprintf("table gives %s at %d dp", format(round(val, dg), nsmall = dg), dg) else
                         if (!snip_ok) "snippet no longer in the qmd (prose edited?)" else "")
   })

@@ -1,0 +1,8 @@
+step	status	exit	minutes	log
+00_env	PASS	0	0	steps/00_env.log
+00_checksums	PASS	0	0	steps/00_checksums.log
+01_script4	PASS	0	0	steps/01_script4.log
+01_compare_workspace	PASS	0	0	steps/01_compare_workspace.log
+05_script5	PASS	0	0	steps/05_script5.log
+08_script8	PASS	0	0	steps/08_script8.log
+09_script9	PASS	0	0	steps/09_script9.log
