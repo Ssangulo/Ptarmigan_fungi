@@ -1,0 +1,17 @@
+# Fitted models copied into the sandbox for `run_repro.sh cached`, so the run
+# re-derives every table from the same posterior / likelihood fit without
+# refitting. `cold` mode leaves the sandbox empty and refits all of them.
+# Script 10's headline fits (hmsc_clr/rep/pa_fit.rds) are not listed: the
+# script itself falls back to the canonical copies read-only (HMSC_NO_REUSE=1
+# turns that off for cold mode).
+# Script 7's H1 fits (fit_nb_2*.rds, fit_poisson.rds) are always read from the
+# canonical models/ -- they are the documented Section 6 exception.
+H2_brms_diet_richness_gamma.rds
+H2_brms_diet_richness_gamma_noyear.rds
+H3_brms_hurdle_species.rds
+H3_brms_hurdle_genus.rds
+gllvm_H3sp_fit_lv0.rds
+gllvm_H3sp_fit_lv1.rds
+gllvm_H3sp_fit_lv2.rds
+gllvm_H3sp_null_lv0.rds
+hmsc_clr_phylo_fit.rds
