@@ -1,0 +1,24 @@
+# 01_compare_workspace
+# cmd: conda run --no-capture-output -n r_env Rscript /home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/repro/compare_workspace.R /home/daniel/Ptarmigan/trimmed/mergedPlates/eco_analysis.RData /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1250_cached/workspace/eco_analysis.RData /home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/repro/logs/2026-10-02_1250_cached/workspace_compare.csv
+# started 2026-10-02T12:51:35+02:00
+                   object             role   status
+                   alldat             GATE     PASS
+              alldat_full             GATE     PASS
+   alldat_rg2_sensitivity             GATE     PASS
+               alldat.rfy             GATE     PASS
+         fungaltraits_otu added_by_script8 EXPECTED
+             funguild_otu added_by_script8 EXPECTED
+             .Random.seed            other     INFO
+ unresolved_export_report            other     INFO
+                                                                                    detail
+                                                                                 identical
+                                                                                 identical
+                                                                                 identical
+                                                                                 identical
+                                                                         only in canonical
+                                                                         only in canonical
+                                                                       only in regenerated
+ Component “fasta_file”: 3 string mismatches | Component “table_file”: 3 string mismatches
+
+53 objects compared: 49 identical, 4 differ/unpaired
+GATE PASSED: all canonical analysis objects reproduce exactly.

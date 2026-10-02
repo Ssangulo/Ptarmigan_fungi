@@ -1,0 +1,19 @@
+# 20_sec2-build
+# cmd: bash -c cd '/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary' && conda run --no-capture-output -n r_env Rscript build_main_figure.R sec2-build
+# started 2026-10-02T13:44:17+02:00
+Running chunk 'sec2-build' (124 lines) from Supplementary_Appendix.qmd
+
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+57 samples, 5 dropped (<10,000 reads): S_2_9_P2_1G, W_1_3_P1_10C, W_1_4_P1_10D, W_1_6_P1_11B, W_2_8_P1_12B
+
+Done.

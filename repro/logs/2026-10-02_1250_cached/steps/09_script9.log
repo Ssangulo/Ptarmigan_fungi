@@ -1,0 +1,127 @@
+# 09_script9
+# cmd: env S9_OUT_ROOT=/home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1250_cached S9_SUPP_DIR=/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary conda run --no-capture-output -n r_env Rscript /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1250_cached/frozen/9_dark_taxa_SH_matching.R
+# started 2026-10-02T12:52:25+02:00
+alldat[[1]]: 52 samples x 1129 OTUs
+Dark taxa (is.na Genus): 493 / 1129 (43.7%)
+Wrote query fasta: /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1250_cached/sh_matching/indata/source_1 ( 1129 seqs )
+Reusing existing SH matching output: /home/daniel/Ptarmigan/sh_matching/outdata/source_1.zip 
+(set force_rerun <- TRUE to regenerate)
+ITSx-excluded (chimeric/non-ITS) OTUs: 21
+
+-- SH classification (all retained OTUs) --
+
+      excluded_nonITS           no_SH_match          novel_new_SH 
+                   21                    95                   460 
+placeable_existing_SH 
+                  553 
+
+-- SH classification for DARK taxa (is.na Genus) --
+
+      excluded_nonITS           no_SH_match          novel_new_SH 
+                   13                    90                   247 
+placeable_existing_SH 
+                  143 
+
+PlutoF live-DB upgrade: 79 OTUs novel->existing named SH (19 dark); 248 flagged chimeric (recorded, NOT excluded)
+-- DARK taxa SH classification AFTER PlutoF upgrade --
+
+      excluded_nonITS           no_SH_match          novel_new_SH 
+                   13                    90                   228 
+placeable_existing_SH 
+                  162 
+
+-- Mean per-sample read share by SH stratum (%) --
+                        summer winter
+Named                    68.78  48.69
+Dark: placeable          21.49  15.83
+Dark: candidate novel     7.23  29.24
+Dark: no reference <80%   2.50   6.24
+Dark total: winter 51.3%, summer 31.2%
+Candidate-novel share, winter vs summer: Wilcoxon p = 1.94e-05
+UNITE SH page links set for 633 placeable OTUs
+
+OTU1369 check: winter 20/26 (11.2% mean share), summer 3/26 (0.2%); SH=104 [novel_new_SH], 85.4% id
+
+-- E1: dark-taxa SH assignment summary --
+  n_dark placeable_existing_SH novel_new_SH excluded_nonITS no_SH_match
+1    493                   162          228              13          90
+  gained_finer_lineage median_similarity
+1                   83                98
+
+-- E1: top winter-dominant dark taxa --
+    OTU_ID              Class                Order        SH_code
+1  OTU1369 c__Dothideomycetes                 <NA>            104
+2   OTU252 c__Dothideomycetes      o__Pleosporales SH0568406.10FU
+3   OTU320   c__Leotiomycetes                 <NA>           <NA>
+4  OTU1320 c__Dothideomycetes      o__Pleosporales SH0659183.10FU
+5   OTU637 c__Dothideomycetes                 <NA>            124
+6   OTU691 c__Dothideomycetes       o__Dothideales            104
+7   OTU715 c__Dothideomycetes o__Botryosphaeriales            121
+8  OTU1283 c__Lecanoromycetes                 <NA>            123
+9   OTU827               <NA>                 <NA>            108
+10  OTU911               <NA>                 <NA>            108
+11 OTU1427 c__Dothideomycetes       o__Dothideales SH0623929.10FU
+12  OTU788 c__Dothideomycetes                 <NA> SH0690532.10FU
+                                  SH_URL              SH_class       SH_source
+1                                   <NA>          novel_new_SH UNITE_container
+2  https://unite.ut.ee/sh/SH0568406.10FU placeable_existing_SH UNITE_container
+3                                   <NA>       excluded_nonITS UNITE_container
+4  https://unite.ut.ee/sh/SH0659183.10FU placeable_existing_SH UNITE_container
+5                                   <NA>          novel_new_SH UNITE_container
+6                                   <NA>          novel_new_SH UNITE_container
+7                                   <NA>          novel_new_SH UNITE_container
+8                                   <NA>          novel_new_SH UNITE_container
+9                                   <NA>          novel_new_SH UNITE_container
+10                                  <NA>          novel_new_SH UNITE_container
+11 https://unite.ut.ee/sh/SH0623929.10FU placeable_existing_SH UNITE_container
+12 https://unite.ut.ee/sh/SH0690532.10FU placeable_existing_SH UNITE_container
+                                                           SH_common_taxonomy
+1                                   k__Fungi;p__Ascomycota;c__Dothideomycetes
+2  k__Fungi;p__Ascomycota;c__Dothideomycetes;o__Pleosporales;f__Didymellaceae
+3                                                                        <NA>
+4  k__Fungi;p__Ascomycota;c__Dothideomycetes;o__Pleosporales;f__Sporormiaceae
+5                                   k__Fungi;p__Ascomycota;c__Dothideomycetes
+6                                   k__Fungi;p__Ascomycota;c__Dothideomycetes
+7              k__Fungi;p__Ascomycota;c__Dothideomycetes;o__Botryosphaeriales
+8                                   k__Fungi;p__Ascomycota;c__Lecanoromycetes
+9                                                      k__Fungi;p__Ascomycota
+10                                                     k__Fungi;p__Ascomycota
+11                                  k__Fungi;p__Ascomycota;c__Dothideomycetes
+12                                  k__Fungi;p__Ascomycota;c__Dothideomycetes
+   similarity_percentage winter_occ winter_n winter_mean_share summer_occ
+1                   85.4         20       26       0.112433929          3
+2                  100.0         15       26       0.046662336          9
+3                     NA         15       26       0.034701310          9
+4                  100.0         11       26       0.032423259         17
+5                   93.6         14       26       0.024008439          3
+6                   85.4         15       26       0.023758770          0
+7                   85.3         11       26       0.021590581          0
+8                   90.2          8       26       0.018435311          0
+9                   84.9         11       26       0.018247438          3
+10                  86.1         10       26       0.017280012          1
+11                 100.0          5       26       0.009855958         11
+12                 100.0          9       26       0.009545069          0
+   summer_n summer_mean_share
+1        26      2.450587e-03
+2        26      5.695934e-03
+3        26      5.361175e-03
+4        26      3.456673e-02
+5        26      3.123633e-05
+6        26      0.000000e+00
+7        26      0.000000e+00
+8        26      0.000000e+00
+9        26      2.425665e-03
+10       26      5.395506e-08
+11       26      1.415945e-03
+12       26      0.000000e+00
+
+-- Winter caveat: dark reads = 51.3% of winter reads on average;
+   of those, 34.6% are placeable to an existing UNITE SH --
+Exported 476 novel/no-match OTUs for optional PlutoF DOI minting
+pdf 
+  2 
+pdf 
+  2 
+Staged E1 figures/tables into Supplementary/figures|tables
+
+Done. Tables -> /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1250_cached/models | plots -> /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1250_cached/plots 

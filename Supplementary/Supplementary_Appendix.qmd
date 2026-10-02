@@ -169,6 +169,7 @@ All downstream analyses draw on a small set of canonical phyloseq objects produc
 #          phyloseq_comparison_summary.csv (read by the Section 2.2 build chunk)
 # Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/4_data_prep.R
 #          < 1 min
+# Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
 ```{r load-objects}
@@ -438,6 +439,7 @@ Per-sample relative read abundance at four taxonomic ranks, with samples grouped
 #          figures/phylum_barplot_ordered_season.png
 # Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/5_community_composition.R
 #          < 1 min
+# Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
 ### 3.2 Coprophilous (dung-specialist) genera (E2)
@@ -648,6 +650,7 @@ kable(w_disp, digits = 1,
 #          tables/dark_taxa_SH_matching.csv
 # Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/9_dark_taxa_SH_matching.R
 #          < 1 min (container output reused)
+# Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
 ::: {.content-visible when-profile="docs"}
@@ -1255,6 +1258,7 @@ Summer's dominance is driven by three strongly season-skewed OTUs: **OTU1 (*Thel
 #          tables/H2_season_effect_per_sample.csv
 # Run    : (from Scripts_server/) S6_STOP_AFTER=H2 conda run -n r_env Rscript Scripts/6_diversity_analyses.R
 #          ~5 min (S6_STOP_AFTER=H2 stops after Section 2; the full script incl. Part B takes ~45 min)
+# Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
 ```{r sec5-build}
@@ -1498,6 +1502,7 @@ gt %>% transmute(Order, Genus, n_OTUs,
 #          tables/gllvm_perOTU_season_coef.csv
 # Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/7_gllvm.R
 #          ~1 min with the saved fits
+# Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
 ::: {.content-visible when-profile="docs"}
@@ -1618,6 +1623,7 @@ kable(rb,
 #          tables/H2_mechanism_sensitivity.csv
 # Run    : (from Scripts_server/) S6_STOP_AFTER=H2MECH conda run -n r_env Rscript Scripts/6_diversity_analyses.R
 #          ~10 min with the cached brms fits
+# Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
 ### 7.2 OTU–plant covariation (H3) - H3 not supported - still working 
@@ -1740,6 +1746,7 @@ kable(data.frame(Part = sg$part, Comparison = sg$comparison,
 #          tables/H3_specificity_index.csv
 # Run    : (from Scripts_server/) S6_STOP_AFTER=H3 conda run -n r_env Rscript Scripts/6_diversity_analyses.R
 #          ~15 min with the cached brms fits (Sections 1-3c)
+# Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
 ### 7.3 OTU–plant covariation — GLLVM cross-check (H3)
@@ -1858,6 +1865,7 @@ kable(data.frame(
 #          tables/gllvm_H3_vs_brms_resolved.csv
 # Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/7_gllvm.R
 #          ~1 min with the cached GLLVM fits (runs Sections 1-8)
+# Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
 ::: {.content-visible when-profile="docs"}
@@ -1973,6 +1981,7 @@ Panel C of Figure S-GUILDa and Table S-GUILDc show the same ordering in every ye
 #          tables/guild_season_year_readshare.csv
 # Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/8_functional_guilds.R
 #          < 1 min
+# Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
 ::: {.content-visible when-profile="docs"}
@@ -2353,6 +2362,7 @@ The explanatory fit is moderate (community-mean R² ≈ 0.29 for the headline ab
 # Run    : (from Scripts_server/) OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 HMSC_BLAS_THREADS=4 HMSC_NPARALLEL=4 \
 #          HMSC_RUN_PHYLO=1 HMSC_RUN_CV=0 conda run -n r_env Rscript Scripts/10_hmsc.R
 #          ~6 min with the cached fits; cold: ~5.5 h fits + ~2.5 h CV + ~5.7 h phylogeny
+# Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
 ```{r sec9-v1-source}
@@ -2367,6 +2377,7 @@ The explanatory fit is moderate (community-mean R² ≈ 0.29 for the headline ab
 # Output : tables/hmsc_v1_chain_disagreement.csv
 # Run    : (from Scripts_server/) conda run -n r_env Rscript hmsc_converge/04_v1_disagreement_table.R
 #          seconds
+# Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
 ::: {.content-visible when-profile="docs"}
