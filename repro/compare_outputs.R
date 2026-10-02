@@ -63,10 +63,11 @@ compare_png <- function(old, new) {
   if (!identical(dim(a), dim(b)))
     return(list(status = "VISUAL", detail = sprintf("dims %s -> %s",
       paste(dim(a), collapse = "x"), paste(dim(b), collapse = "x"))))
-  px <- apply(abs(a - b) > 1/255, c(1, 2), any)
-  frac <- mean(px)
+  dd <- abs(a - b)
+  m  <- if (length(dim(dd)) == 3) do.call(pmax, lapply(seq_len(dim(dd)[3]), function(k) dd[, , k])) else dd
+  frac <- mean(m > 1/255)
   list(status = if (frac == 0) "same_pixels" else "VISUAL",
-       detail = sprintf("%.4f%% of pixels differ, max channel diff %.3f", 100 * frac, max(abs(a - b))))
+       detail = sprintf("%.4f%% of pixels differ, max channel diff %.3f", 100 * frac, max(m)))
 }
 
 # PDFs embed creation dates / IDs; compare with those lines removed.

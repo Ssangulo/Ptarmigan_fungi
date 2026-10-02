@@ -345,3 +345,97 @@ Start sampling
 Compiling Stan program...
 Start sampling
 Compiling Stan program...
+Start sampling
+Compiling Stan program...
+Start sampling
+Compiling Stan program...
+Start sampling
+Compiling Stan program...
+Start sampling
+
+H2-mechanism sensitivity (Hill order x model structure):
+    metric           model median   lwr95 upr95 P_gt0
+q0      q0 Season-adjusted  0.098 -0.1492 0.363 0.783
+q1      q1 Season-adjusted  0.216 -0.1004 0.512 0.915
+q2      q2 Season-adjusted  0.238 -0.0467 0.519 0.952
+q01     q0       Drop-Year  0.166 -0.0660 0.408 0.921
+q11     q1       Drop-Year  0.336  0.0470 0.626 0.989
+q21     q2       Drop-Year  0.346  0.0649 0.618 0.990
+
+H2-mechanism robustness summary:
+   check                                   group          
+1  leave-one-out influence                 Season-adjusted
+2  leave-one-out influence                 Drop-Year      
+3  leave-one-out influence                 Season-adjusted
+4  leave-one-out influence                 Drop-Year      
+5  leave-one-out influence                 Season-adjusted
+6  leave-one-out influence                 Drop-Year      
+7  leave-one-out influence                 Season-adjusted
+8  leave-one-out influence                 Drop-Year      
+9  rank correlation (Spearman, unadjusted) overall        
+10 rank correlation (Spearman, unadjusted) within winter  
+11 rank correlation (Spearman, unadjusted) within summer  
+   quantity                    value           
+1  freq. slope (p)             0.224 (p=0.169) 
+2  freq. slope (p)             0.359 (p=0.051) 
+3  LOO slope range             0.023 to 0.280  
+4  LOO slope range             0.068 to 0.433  
+5  # of n-1 refits with p>0.05 27              
+6  # of n-1 refits with p>0.05 16              
+7  most influential sample     S_1_7_P1_8E     
+8  most influential sample     S_1_7_P1_8E     
+9  rho (n=27)                  -0.089 (p=0.659)
+10 rho (n=16)                  0.045 (p=0.869) 
+11 rho (n=11)                  0.214 (p=0.528) 
+pdf 
+  2 
+pdf 
+  2 
+Staged H2-mechanism figures/tables into Supplementary/figures|tables
+
+H3 matched subset: 30 biological samples (60 PCR-rep rows); 46 OTUs modelled (present in >=5 samples)
+
+H3 model checks:
+                              fit divergences max_rhat min_ess_bulk
+1     four diet species (primary)           0     1.00         1034
+2 three diet genera (sensitivity)           0     1.01          879
+  min_ess_tail obs_mean_count pred_mean_lwr95 pred_mean_upr95
+1         1401           2114            1828           13474
+2         1300           2114            1790           10998
+  zero_frac_cor_by_OTU zero_frac_max_gap P_pred_max_le_max_library
+1                0.989            0.0420                     0.154
+2                0.988            0.0456                     0.142
+H3: OTU-specific plant deviations with a 95% CrI excluding 0 -- abundance 0, occurrence 10 (of 184 OTU x plant pairs each)
+        part                              grouping copro_spec_med
+1  abundance                    FUNGuild (primary)          0.346
+2  abundance COPRO_GENERA genus list (sensitivity)          0.330
+3 occurrence                    FUNGuild (primary)          0.347
+4 occurrence COPRO_GENERA genus list (sensitivity)          0.374
+  plant_spec_med wilcox_p_copro_lower P_copro_lower
+1          0.362                0.446         0.484
+2          0.362                0.268         0.540
+3          0.328                0.723         0.371
+4          0.328                0.853         0.348
+pdf 
+  2 
+pdf 
+  2 
+Staged H3 figures/tables into Supplementary/figures|tables
+Loading precomputed ML tree from tree.rds 
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+Found more than one class "phylo" in cache; using the first, from namespace 'phyloseq'
+Also defined by ‘tidytree’
+
+winter summer 
+    60     54 

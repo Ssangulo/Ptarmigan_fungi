@@ -96,14 +96,20 @@ check_manifest <- function(repo, cmp) {
   if (is.null(stubs) || !nrow(stubs)) {
     add("-", "pointer_stubs", "INFO", "no *-source pointer chunks in the qmd yet")
   } else {
+    # A script may be pointed to from several sections (script 6 serves 5, 7.1
+    # and 7.2), so: each stub may list only files its source writes, and the
+    # stubs naming one source must together list every file it writes.
     for (s in unique(stubs$stub)) {
       st <- stubs[stubs$stub == s, ]
-      want <- man$file[man$producer == st$source[1] & man$role %in% c("shown", "input")]
-      got  <- na.omit(st$file)
-      miss <- setdiff(want, got); extra <- setdiff(got, want)
-      add(s, "pointer_stub_outputs", if (!length(miss) && !length(extra)) "PASS" else "FAIL",
-          sprintf("source %s; missing: %s; not from this source: %s", st$source[1],
-                  paste(miss, collapse = ", "), paste(extra, collapse = ", ")))
+      extra <- setdiff(na.omit(st$file), man$file[man$producer == st$source[1]])
+      add(s, "pointer_stub_outputs", if (!length(extra)) "PASS" else "FAIL",
+          if (length(extra)) sprintf("source %s does not write: %s", st$source[1],
+                                     paste(extra, collapse = ", ")) else st$source[1])
+    }
+    for (src in unique(stubs$source)) {
+      miss <- setdiff(man$file[man$producer == src], na.omit(stubs$file[stubs$source == src]))
+      add(src, "pointer_stub_coverage", if (!length(miss)) "PASS" else "FAIL",
+          if (length(miss)) paste("written but listed in no stub:", paste(miss, collapse = ", ")) else "")
     }
     covered <- unique(stubs$source)
     script_prod <- unique(man$producer[!startsWith(man$producer, "qmd:") & man$role == "shown"])
