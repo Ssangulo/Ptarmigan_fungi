@@ -1,0 +1,1218 @@
+# 01_script4
+# cmd: env S4_OUT_DIR=/home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/workspace conda run --no-capture-output -n r_env Rscript /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/frozen/4_data_prep.R
+# started 2026-10-02T15:10:24+02:00
+microViz version 0.12.7 - Copyright (C) 2021-2025 David Barnett
+! Website: https://david-barnett.github.io/microViz
+✔ Useful?  For citation details, run: `citation("microViz")`
+✖ Silence? `suppressPackageStartupMessages(library(microViz))`
+Loading required package: permute
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+Objects loaded:
+  nopoolps.dada2:    57 samples, 1463 taxa
+  poolps.dada2:      57 samples, 1532 taxa
+  pspoolps.dada2:    57 samples, 1495 taxa
+  rg2.nopoolps.tax:  57 samples, 1463 taxa
+  rg2.poolps.tax:    57 samples, 1532 taxa
+  rg2.pspoolps.tax:  57 samples, 1495 taxa
+  fullps_nopool:     114 PCR-replicate samples, 1463 taxa
+  fullps_pool:       114 PCR-replicate samples, 1532 taxa
+  fullps_pspool:     114 PCR-replicate samples, 1495 taxa
+
+Season distribution (nopool):
+
+summer winter   <NA> 
+    27     30      0 
+Year distribution (nopool):
+
+2022 2023 2024 <NA> 
+  19   20   18    0 
+TimeBlock distribution (nopool):
+
+ S_1  S_2  S_3  W_1  W_2  W_3 <NA> 
+   8   10    9   10   10   10    0 
+NAs detected in phyloseq tax_table:
+Consider using tax_fix() to make taxa uniquely identifiable
+NAs detected in phyloseq tax_table:
+Consider using tax_fix() to make taxa uniquely identifiable
+NAs detected in phyloseq tax_table:
+Consider using tax_fix() to make taxa uniquely identifiable
+Warning messages:
+1: In phyloseq_validate(x, remove_undetected = TRUE) :
+  Some taxa_sums were zero, removing the following taxa:
+	OTU18 
+	OTU28 
+	OTU50 
+	OTU52 
+	OTU53 
+	OTU60 
+	OTU76 
+	OTU77 
+	OTU82 
+	OTU83 
+	OTU105 
+	OTU112 
+	OTU114 
+	OTU117 
+	OTU135 
+	OTU145 
+	OTU162 
+	OTU169 
+	OTU177 
+	OTU183 
+	OTU198 
+	OTU203 
+	OTU233 
+	OTU243 
+	OTU247 
+	OTU262 
+	OTU263 
+	OTU264 
+	OTU282 
+	OTU312 
+	OTU318 
+	OTU322 
+	OTU324 
+	OTU327 
+	OTU330 
+	OTU342 
+	OTU352 
+	OTU375 
+	OTU379 
+	OTU412 
+	OTU424 
+	OTU435 
+	OTU443 
+	OTU453 
+	OTU455 
+	OTU474 
+	OTU490 
+	OTU497 
+	OTU532 
+	OTU543 
+	OTU560 
+	OTU572 
+	OTU584 
+	OTU595 
+	OTU596 
+	OTU597 
+	OTU607 
+	OTU612 
+	OTU627 
+	OTU629 
+	OTU645 
+	OTU670 
+	OTU679 
+	OTU693 
+	OTU694 
+	OTU704 
+	OTU728 
+	OTU732 
+	OTU739 
+	OTU746 
+	OTU751 
+	OTU768 
+	OTU780 
+	OTU785 
+	OTU786 
+	OTU789 
+	OTU790 
+	OTU796 
+	OTU802 
+	OTU803 
+	OTU823 
+	OTU824 
+	OTU825 
+	OTU826 
+	OTU832 
+	OTU833 
+	OTU840 
+	OTU841 
+	OTU844 
+	OTU855 
+	OTU856 
+	OTU858 
+	OTU865 
+	OTU876 
+	OTU877 
+	OTU878 
+	OTU891 
+	OTU898 
+	OTU899 
+	OTU907 
+	OTU908 
+	OTU923 
+	OTU924 
+	OTU925 
+	OTU939 
+	OTU960 
+	 [... truncated]
+2: In phyloseq_validate(x, remove_undetected = TRUE) :
+  Some taxa_sums were zero, removing the following taxa:
+	OTU14 
+	OTU27 
+	OTU87 
+	OTU94 
+	OTU99 
+	OTU115 
+	OTU126 
+	OTU153 
+	OTU199 
+	OTU215 
+	OTU232 
+	OTU260 
+	OTU261 
+	OTU280 
+	OTU295 
+	OTU323 
+	OTU327 
+	OTU366 
+	OTU368 
+	OTU372 
+	OTU398 
+	OTU407 
+	OTU413 
+	OTU549 
+	OTU563 
+	OTU571 
+	OTU572 
+	OTU578 
+	OTU591 
+	OTU594 
+	OTU618 
+	OTU646 
+	OTU648 
+	OTU660 
+	OTU661 
+	OTU684 
+	OTU705 
+	OTU706 
+	OTU723 
+	OTU740 
+	OTU744 
+	OTU753 
+	OTU764 
+	OTU784 
+	OTU794 
+	OTU795 
+	OTU804 
+	OTU805 
+	OTU809 
+	OTU810 
+	OTU824 
+	OTU825 
+	OTU827 
+	OTU837 
+	OTU845 
+	OTU853 
+	OTU858 
+	OTU874 
+	OTU875 
+	OTU887 
+	OTU888 
+	OTU889 
+	OTU903 
+	OTU904 
+	OTU918 
+	OTU919 
+	OTU936 
+	OTU951 
+	OTU953 
+	OTU954 
+	OTU955 
+	OTU956 
+	OTU975 
+	OTU977 
+	OTU978 
+	OTU979 
+	OTU980 
+	OTU981 
+	OTU982 
+	OTU1121 
+	OTU1333 
+	OTU1340 
+	OTU1411 
+	OTU1485 
+	OTU1513 
+	OTU1514 
+	OTU1524 
+	OTU1526
+This may be caused by using `subset_samples()`.
+Try using `ps_filter()` instead, with .keep_all_taxa = FALSE.
+Otherwise, to avoid this warning, try fi [... truncated]
+3: In phyloseq_validate(x, remove_undetected = TRUE) :
+  Some taxa_sums were zero, removing the following taxa:
+	OTU19 
+	OTU30 
+	OTU53 
+	OTU54 
+	OTU55 
+	OTU64 
+	OTU74 
+	OTU80 
+	OTU86 
+	OTU87 
+	OTU108 
+	OTU115 
+	OTU116 
+	OTU140 
+	OTU167 
+	OTU179 
+	OTU187 
+	OTU201 
+	OTU202 
+	OTU207 
+	OTU228 
+	OTU248 
+	OTU254 
+	OTU267 
+	OTU270 
+	OTU290 
+	OTU317 
+	OTU323 
+	OTU326 
+	OTU328 
+	OTU330 
+	OTU332 
+	OTU350 
+	OTU364 
+	OTU388 
+	OTU391 
+	OTU421 
+	OTU426 
+	OTU432 
+	OTU438 
+	OTU454 
+	OTU463 
+	OTU467 
+	OTU485 
+	OTU543 
+	OTU552 
+	OTU584 
+	OTU585 
+	OTU599 
+	OTU609 
+	OTU619 
+	OTU624 
+	OTU641 
+	OTU644 
+	OTU657 
+	OTU689 
+	OTU705 
+	OTU712 
+	OTU714 
+	OTU725 
+	OTU754 
+	OTU760 
+	OTU779 
+	OTU802 
+	OTU812 
+	OTU813 
+	OTU815 
+	OTU816 
+	OTU821 
+	OTU826 
+	OTU848 
+	OTU849 
+	OTU850 
+	OTU853 
+	OTU855 
+	OTU861 
+	OTU862 
+	OTU866 
+	OTU879 
+	OTU880 
+	OTU882 
+	OTU890 
+	OTU891 
+	OTU893 
+	OTU899 
+	OTU900 
+	OTU901 
+	OTU914 
+	OTU923 
+	OTU924 
+	OTU936 
+	OTU937 
+	OTU949 
+	OTU963 
+	OTU997 
+	OTU998 
+	OTU999 
+	OTU1000 
+	OTU1024 
+	OTU1025 
+	OTU1026 
+	OTU1050 
+	OTU1051 
+	OTU1052 
+	OTU1053 
+	O [... truncated]
+NAs detected in phyloseq tax_table:
+Consider using tax_fix() to make taxa uniquely identifiable
+NAs detected in phyloseq tax_table:
+Consider using tax_fix() to make taxa uniquely identifiable
+NAs detected in phyloseq tax_table:
+Consider using tax_fix() to make taxa uniquely identifiable
+Warning messages:
+1: In phyloseq_validate(x, remove_undetected = TRUE) :
+  Some taxa_sums were zero, removing the following taxa:
+	OTU3 
+	OTU4 
+	OTU5 
+	OTU6 
+	OTU7 
+	OTU8 
+	OTU10 
+	OTU11 
+	OTU12 
+	OTU13 
+	OTU18 
+	OTU20 
+	OTU23 
+	OTU24 
+	OTU25 
+	OTU28 
+	OTU31 
+	OTU33 
+	OTU34 
+	OTU35 
+	OTU36 
+	OTU37 
+	OTU39 
+	OTU40 
+	OTU44 
+	OTU48 
+	OTU50 
+	OTU52 
+	OTU53 
+	OTU54 
+	OTU56 
+	OTU57 
+	OTU58 
+	OTU60 
+	OTU61 
+	OTU63 
+	OTU66 
+	OTU67 
+	OTU68 
+	OTU69 
+	OTU71 
+	OTU75 
+	OTU76 
+	OTU77 
+	OTU79 
+	OTU81 
+	OTU82 
+	OTU83 
+	OTU85 
+	OTU86 
+	OTU87 
+	OTU89 
+	OTU96 
+	OTU98 
+	OTU99 
+	OTU100 
+	OTU101 
+	OTU103 
+	OTU105 
+	OTU106 
+	OTU107 
+	OTU109 
+	OTU111 
+	OTU112 
+	OTU114 
+	OTU115 
+	OTU117 
+	OTU118 
+	OTU119 
+	OTU120 
+	OTU124 
+	OTU126 
+	OTU129 
+	OTU130 
+	OTU132 
+	OTU133 
+	OTU135 
+	OTU140 
+	OTU141 
+	OTU142 
+	OTU143 
+	OTU145 
+	OTU146 
+	OTU148 
+	OTU151 
+	OTU156 
+	OTU157 
+	OTU158 
+	OTU160 
+	OTU162 
+	OTU164 
+	OTU166 
+	OTU167 
+	OTU168 
+	OTU169 
+	OTU172 
+	OTU173 
+	OTU177 
+	OTU178 
+	OTU179 
+	OTU180 
+	OTU181 
+	OTU183 
+	OTU184 
+	OTU185 
+	OTU188 
+	OTU189 
+	OTU190 
+	OTU191 
+	OTU192 
+	OTU193 
+	OTU195 [... truncated]
+2: In phyloseq_validate(x, remove_undetected = TRUE) :
+  Some taxa_sums were zero, removing the following taxa:
+	OTU7 
+	OTU13 
+	OTU14 
+	OTU15 
+	OTU17 
+	OTU18 
+	OTU19 
+	OTU20 
+	OTU21 
+	OTU22 
+	OTU23 
+	OTU26 
+	OTU27 
+	OTU28 
+	OTU29 
+	OTU31 
+	OTU34 
+	OTU35 
+	OTU37 
+	OTU38 
+	OTU40 
+	OTU45 
+	OTU47 
+	OTU50 
+	OTU51 
+	OTU52 
+	OTU54 
+	OTU58 
+	OTU60 
+	OTU61 
+	OTU64 
+	OTU66 
+	OTU67 
+	OTU71 
+	OTU74 
+	OTU79 
+	OTU80 
+	OTU81 
+	OTU82 
+	OTU84 
+	OTU87 
+	OTU90 
+	OTU91 
+	OTU92 
+	OTU93 
+	OTU94 
+	OTU95 
+	OTU97 
+	OTU98 
+	OTU99 
+	OTU101 
+	OTU102 
+	OTU103 
+	OTU104 
+	OTU108 
+	OTU109 
+	OTU114 
+	OTU115 
+	OTU118 
+	OTU119 
+	OTU120 
+	OTU121 
+	OTU122 
+	OTU124 
+	OTU126 
+	OTU127 
+	OTU128 
+	OTU130 
+	OTU136 
+	OTU138 
+	OTU141 
+	OTU142 
+	OTU143 
+	OTU144 
+	OTU146 
+	OTU149 
+	OTU150 
+	OTU153 
+	OTU154 
+	OTU156 
+	OTU157 
+	OTU159 
+	OTU162 
+	OTU164 
+	OTU165 
+	OTU166 
+	OTU169 
+	OTU172 
+	OTU174 
+	OTU176 
+	OTU179 
+	OTU181 
+	OTU183 
+	OTU185 
+	OTU187 
+	OTU188 
+	OTU189 
+	OTU190 
+	OTU194 
+	OTU195 
+	OTU197 
+	OTU198 
+	OTU199 
+	OTU200 
+	OTU205 
+	OTU206 
+	OTU207 
+	OTU208 
+	OTU210 
+	OTU211 
+	OTU21 [... truncated]
+3: In phyloseq_validate(x, remove_undetected = TRUE) :
+  Some taxa_sums were zero, removing the following taxa:
+	OTU3 
+	OTU5 
+	OTU6 
+	OTU7 
+	OTU9 
+	OTU10 
+	OTU11 
+	OTU13 
+	OTU14 
+	OTU19 
+	OTU20 
+	OTU24 
+	OTU26 
+	OTU27 
+	OTU28 
+	OTU29 
+	OTU30 
+	OTU32 
+	OTU37 
+	OTU38 
+	OTU39 
+	OTU41 
+	OTU42 
+	OTU43 
+	OTU44 
+	OTU52 
+	OTU53 
+	OTU54 
+	OTU55 
+	OTU56 
+	OTU59 
+	OTU60 
+	OTU62 
+	OTU64 
+	OTU65 
+	OTU66 
+	OTU69 
+	OTU70 
+	OTU71 
+	OTU73 
+	OTU74 
+	OTU75 
+	OTU76 
+	OTU79 
+	OTU80 
+	OTU82 
+	OTU86 
+	OTU87 
+	OTU89 
+	OTU90 
+	OTU91 
+	OTU94 
+	OTU97 
+	OTU99 
+	OTU100 
+	OTU101 
+	OTU105 
+	OTU106 
+	OTU107 
+	OTU108 
+	OTU110 
+	OTU111 
+	OTU112 
+	OTU114 
+	OTU115 
+	OTU116 
+	OTU119 
+	OTU122 
+	OTU123 
+	OTU125 
+	OTU130 
+	OTU131 
+	OTU135 
+	OTU136 
+	OTU137 
+	OTU138 
+	OTU140 
+	OTU141 
+	OTU144 
+	OTU145 
+	OTU148 
+	OTU149 
+	OTU150 
+	OTU153 
+	OTU160 
+	OTU161 
+	OTU162 
+	OTU163 
+	OTU164 
+	OTU165 
+	OTU167 
+	OTU169 
+	OTU170 
+	OTU171 
+	OTU177 
+	OTU179 
+	OTU180 
+	OTU181 
+	OTU182 
+	OTU183 
+	OTU185 
+	OTU187 
+	OTU188 
+	OTU190 
+	OTU191 
+	OTU192 
+	OTU193 
+	OTU195 
+	OTU197 
+	OTU198 
+	OTU200 
+	OTU2 [... truncated]
+NAs detected in phyloseq tax_table:
+Consider using tax_fix() to make taxa uniquely identifiable
+NAs detected in phyloseq tax_table:
+Consider using tax_fix() to make taxa uniquely identifiable
+NAs detected in phyloseq tax_table:
+Consider using tax_fix() to make taxa uniquely identifiable
+Warning messages:
+1: In phyloseq_validate(x, remove_undetected = TRUE) :
+  Some taxa_sums were zero, removing the following taxa:
+	OTU18 
+	OTU28 
+	OTU50 
+	OTU52 
+	OTU53 
+	OTU60 
+	OTU76 
+	OTU77 
+	OTU82 
+	OTU83 
+	OTU105 
+	OTU112 
+	OTU114 
+	OTU117 
+	OTU135 
+	OTU145 
+	OTU162 
+	OTU169 
+	OTU177 
+	OTU183 
+	OTU198 
+	OTU203 
+	OTU233 
+	OTU243 
+	OTU247 
+	OTU262 
+	OTU263 
+	OTU264 
+	OTU282 
+	OTU312 
+	OTU318 
+	OTU322 
+	OTU324 
+	OTU327 
+	OTU330 
+	OTU342 
+	OTU352 
+	OTU375 
+	OTU379 
+	OTU412 
+	OTU424 
+	OTU435 
+	OTU443 
+	OTU453 
+	OTU455 
+	OTU474 
+	OTU490 
+	OTU497 
+	OTU532 
+	OTU543 
+	OTU560 
+	OTU572 
+	OTU584 
+	OTU595 
+	OTU596 
+	OTU597 
+	OTU607 
+	OTU612 
+	OTU627 
+	OTU629 
+	OTU645 
+	OTU670 
+	OTU679 
+	OTU693 
+	OTU694 
+	OTU704 
+	OTU728 
+	OTU732 
+	OTU739 
+	OTU746 
+	OTU751 
+	OTU768 
+	OTU780 
+	OTU785 
+	OTU786 
+	OTU789 
+	OTU790 
+	OTU796 
+	OTU802 
+	OTU803 
+	OTU823 
+	OTU824 
+	OTU825 
+	OTU826 
+	OTU832 
+	OTU833 
+	OTU840 
+	OTU841 
+	OTU844 
+	OTU855 
+	OTU856 
+	OTU858 
+	OTU865 
+	OTU876 
+	OTU877 
+	OTU878 
+	OTU891 
+	OTU898 
+	OTU899 
+	OTU907 
+	OTU908 
+	OTU923 
+	OTU924 
+	OTU925 
+	OTU939 
+	OTU960 
+	 [... truncated]
+2: In phyloseq_validate(x, remove_undetected = TRUE) :
+  Some taxa_sums were zero, removing the following taxa:
+	OTU14 
+	OTU27 
+	OTU87 
+	OTU94 
+	OTU99 
+	OTU115 
+	OTU126 
+	OTU153 
+	OTU199 
+	OTU215 
+	OTU232 
+	OTU260 
+	OTU261 
+	OTU280 
+	OTU295 
+	OTU323 
+	OTU327 
+	OTU366 
+	OTU368 
+	OTU372 
+	OTU398 
+	OTU407 
+	OTU413 
+	OTU549 
+	OTU563 
+	OTU571 
+	OTU572 
+	OTU578 
+	OTU591 
+	OTU594 
+	OTU618 
+	OTU646 
+	OTU648 
+	OTU660 
+	OTU661 
+	OTU684 
+	OTU705 
+	OTU706 
+	OTU723 
+	OTU740 
+	OTU744 
+	OTU753 
+	OTU764 
+	OTU784 
+	OTU794 
+	OTU795 
+	OTU804 
+	OTU805 
+	OTU809 
+	OTU810 
+	OTU824 
+	OTU825 
+	OTU827 
+	OTU837 
+	OTU845 
+	OTU853 
+	OTU858 
+	OTU874 
+	OTU875 
+	OTU887 
+	OTU888 
+	OTU889 
+	OTU903 
+	OTU904 
+	OTU918 
+	OTU919 
+	OTU936 
+	OTU951 
+	OTU953 
+	OTU954 
+	OTU955 
+	OTU956 
+	OTU975 
+	OTU977 
+	OTU978 
+	OTU979 
+	OTU980 
+	OTU981 
+	OTU982 
+	OTU1121 
+	OTU1333 
+	OTU1340 
+	OTU1411 
+	OTU1485 
+	OTU1513 
+	OTU1514 
+	OTU1524 
+	OTU1526
+This may be caused by using `subset_samples()`.
+Try using `ps_filter()` instead, with .keep_all_taxa = FALSE.
+Otherwise, to avoid this warning, try fi [... truncated]
+3: In phyloseq_validate(x, remove_undetected = TRUE) :
+  Some taxa_sums were zero, removing the following taxa:
+	OTU19 
+	OTU30 
+	OTU53 
+	OTU54 
+	OTU55 
+	OTU64 
+	OTU74 
+	OTU80 
+	OTU86 
+	OTU87 
+	OTU108 
+	OTU115 
+	OTU116 
+	OTU140 
+	OTU167 
+	OTU179 
+	OTU187 
+	OTU201 
+	OTU202 
+	OTU207 
+	OTU228 
+	OTU248 
+	OTU254 
+	OTU267 
+	OTU270 
+	OTU290 
+	OTU317 
+	OTU323 
+	OTU326 
+	OTU328 
+	OTU330 
+	OTU332 
+	OTU350 
+	OTU364 
+	OTU388 
+	OTU391 
+	OTU421 
+	OTU426 
+	OTU432 
+	OTU438 
+	OTU454 
+	OTU463 
+	OTU467 
+	OTU485 
+	OTU543 
+	OTU552 
+	OTU584 
+	OTU585 
+	OTU599 
+	OTU609 
+	OTU619 
+	OTU624 
+	OTU641 
+	OTU644 
+	OTU657 
+	OTU689 
+	OTU705 
+	OTU712 
+	OTU714 
+	OTU725 
+	OTU754 
+	OTU760 
+	OTU779 
+	OTU802 
+	OTU812 
+	OTU813 
+	OTU815 
+	OTU816 
+	OTU821 
+	OTU826 
+	OTU848 
+	OTU849 
+	OTU850 
+	OTU853 
+	OTU855 
+	OTU861 
+	OTU862 
+	OTU866 
+	OTU879 
+	OTU880 
+	OTU882 
+	OTU890 
+	OTU891 
+	OTU893 
+	OTU899 
+	OTU900 
+	OTU901 
+	OTU914 
+	OTU923 
+	OTU924 
+	OTU936 
+	OTU937 
+	OTU949 
+	OTU963 
+	OTU997 
+	OTU998 
+	OTU999 
+	OTU1000 
+	OTU1024 
+	OTU1025 
+	OTU1026 
+	OTU1050 
+	OTU1051 
+	OTU1052 
+	OTU1053 
+	O [... truncated]
+PlutoF export — taxonomy-unresolved OTUs (no Phylum OR Phylum but no Class):
+  nopool: 368 unresolved OTUs exported (185 no-phylum | 183 phylum-no-class) — 29.2% of reads
+    -> /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/workspace/plutof_unresolved_nopool.fasta
+  pool: 387 unresolved OTUs exported (193 no-phylum | 194 phylum-no-class) — 29.9% of reads
+    -> /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/workspace/plutof_unresolved_pool.fasta
+  pspool: 385 unresolved OTUs exported (198 no-phylum | 187 phylum-no-class) — 30.0% of reads
+    -> /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/workspace/plutof_unresolved_pspool.fasta
+  object n_exported n_no_phylum n_phylum_no_class reads_exported pct_reads
+1 nopool        368         185               183        7215478      29.2
+2   pool        387         193               194        7367963      29.9
+3 pspool        385         198               187        7407724      30.0
+                                                                                          fasta_file
+1 /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/workspace/plutof_unresolved_nopool.fasta
+2   /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/workspace/plutof_unresolved_pool.fasta
+3 /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/workspace/plutof_unresolved_pspool.fasta
+                                                                                              table_file
+1 /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/workspace/plutof_unresolved_nopool_table.csv
+2   /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/workspace/plutof_unresolved_pool_table.csv
+3 /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/workspace/plutof_unresolved_pspool_table.csv
+nopool: non-fungal OTUs flagged (present in object): 138
+pool: PlutoF output is empty (run failed) — no non-fungal OTUs removed for this strategy.
+pspool: non-fungal OTUs flagged (present in object): 150
+Non-fungal OTU audit (before removal):
+  object taxa_total nonfungal_taxa_present reads_total reads_nonfungal
+1 nopool       1282                    138    24708213         5941601
+2   pool       1444                      0    24626597               0
+3 pspool       1331                    150    24654973         5894283
+  pct_reads_nonfungal
+1               24.05
+2                0.00
+3               23.91
+
+Kingdom breakdown of non-fungal OTUs removed:
+  strategy          kingdom n_otus
+1   nopool k__Viridiplantae    138
+2   pspool k__Viridiplantae    150
+nopool: 75 OTUs had taxonomy improved from PlutoF (fungal, finer resolution).
+pool: PlutoF output empty — no taxonomy updates applied.
+pspool: 83 OTUs had taxonomy improved from PlutoF (fungal, finer resolution).
+nopool: 30 OTUs had taxonomy improved from PlutoF (fungal, finer resolution).
+pool: PlutoF output empty — no taxonomy updates applied.
+pspool: 30 OTUs had taxonomy improved from PlutoF (fungal, finer resolution).
+nopool: 75 OTUs had taxonomy improved from PlutoF (fungal, finer resolution).
+pool: PlutoF output empty — no taxonomy updates applied.
+pspool: 83 OTUs had taxonomy improved from PlutoF (fungal, finer resolution).
+
+Non-fungal reads summary:
+  object taxa_total nonfungal_taxa_present pct_taxa_nonfungal reads_total
+1 nopool       1282                    138              10.76    24708213
+2   pool       1444                      0               0.00    24626597
+3 pspool       1331                    150              11.27    24654973
+  reads_nonfungal pct_reads_nonfungal taxa_fungal reads_fungal pct_reads_fungal
+1         5941601               24.05        1144     18766612            75.95
+2               0                0.00        1444     24626597           100.00
+3         5894283               23.91        1181     18760690            76.09
+
+Sample depth range before depth filter:
+  nopool   min=92  max=1049942
+  pool     min=12600  max=1098539
+  pspool   min=108  max=1047803
+
+Samples remaining after depth filter (>= 10,000 reads):
+  nopool   52 samples, 1129 taxa
+  pool     57 samples, 1444 taxa
+  pspool   52 samples, 1166 taxa
+
+Samples remaining after depth filter, rg2 sensitivity objects:
+  nopool   48 samples, 500 taxa
+  pool     55 samples, 860 taxa
+  pspool   48 samples, 528 taxa
+
+Samples remaining after depth filter, full-complexity objects (>= 1000 reads):
+  nopool   109 samples, 1143 taxa
+  pool     113 samples, 1444 taxa
+  pspool   109 samples, 1179 taxa
+`set.seed(1)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(1); .Random.seed` for the full vector
+...
+221OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+`set.seed(1)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(1); .Random.seed` for the full vector
+...
+221OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+`set.seed(1)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(1); .Random.seed` for the full vector
+...
+222OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+
+Rarefaction depths:
+  nopool   rarefied to 12615 reads/sample (52 samples, 908 taxa)
+  pool     rarefied to 12600 reads/sample (57 samples, 1223 taxa)
+  pspool   rarefied to 12622 reads/sample (52 samples, 944 taxa)
+
+Taxonomy cleaned. Example (nopool, first 5 taxa):
+Taxonomy Table:     [5 taxa by 7 taxonomic ranks]:
+     Kingdom    Phylum          Class                Order                 
+OTU1 "k__Fungi" "p__Ascomycota" "c__Leotiomycetes"   "o__Thelebolales"     
+OTU2 "k__Fungi" "p__Ascomycota" "c__Dothideomycetes" "o__Myriangiales"     
+OTU3 "k__Fungi" "p__Ascomycota" "c__Leotiomycetes"   "o__Thelebolales"     
+OTU4 "k__Fungi" "p__Ascomycota" "c__Saccharomycetes" "o__Saccharomycetales"
+OTU5 "k__Fungi" "p__Ascomycota" "c__Leotiomycetes"   NA                    
+     Family                               Genus                               
+OTU1 "f__Thelebolaceae"                   "g__Thelebolus"                     
+OTU2 "f__Myriangiales_fam_Incertae_sedis" "g__Myriangiales_gen_Incertae_sedis"
+OTU3 "f__Thelebolaceae"                   "g__Thelebolus"                     
+OTU4 "f__Trichomonascaceae"               "g__Blastobotrys"                   
+OTU5 NA                                   NA                                  
+     Species       
+OTU1 NA            
+OTU2 NA            
+OTU3 NA            
+OTU4 "s__arbuscula"
+OTU5 NA            
+
+Phyloseq comparison summary (all steps x all strategies):
+                    step      object n_samples n_taxa total_reads min_depth
+1                initial      nopool        57   1282    24708213     12615
+2                initial        pool        57   1444    24626597     12600
+3                initial      pspool        57   1331    24654973     12623
+4                initial nopool_full       114   1282    24708213         4
+5                initial   pool_full       114   1444    24626597         5
+6                initial pspool_full       114   1331    24654973         7
+7     post_PlutoF_filter      nopool        57   1144    18766612        92
+8     post_PlutoF_filter        pool        57   1444    24626597     12600
+9     post_PlutoF_filter      pspool        57   1181    18760690       108
+10    post_PlutoF_filter nopool_full       114   1144    18766612         4
+11    post_PlutoF_filter   pool_full       114   1444    24626597         5
+12    post_PlutoF_filter pspool_full       114   1181    18760690         7
+13     post_depth_filter      nopool        52   1129    18750696     12615
+14     post_depth_filter        pool        57   1444    24626597     12600
+15     post_depth_filter      pspool        52   1166    18744716     12622
+16     post_depth_filter nopool_full       109   1143    18765620      1104
+17     post_depth_filter   pool_full       113   1444    24626592     12595
+18     post_depth_filter pspool_full       109   1179    18759652      1101
+19    final_non_rarefied      nopool        52   1129    18750696     12615
+20    final_non_rarefied        pool        57   1444    24626597     12600
+21    final_non_rarefied      pspool        52   1166    18744716     12622
+22        final_rarefied      nopool        52    908      655980     12615
+23        final_rarefied        pool        57   1223      718200     12600
+24        final_rarefied      pspool        52    944      656344     12622
+25 final_rg2_sensitivity  nopool_rg2        48    500    15446267     11268
+26 final_rg2_sensitivity    pool_rg2        55    860    21924620     10252
+27 final_rg2_sensitivity  pspool_rg2        48    528    15547715     11294
+28 final_full_complexity nopool_full       109   1143    18765620      1104
+29 final_full_complexity   pool_full       113   1444    24626592     12595
+30 final_full_complexity pspool_full       109   1179    18759652      1101
+   max_depth median_depth
+1    1060608       381194
+2    1098539       376910
+3    1058517       379629
+4     642248       192239
+5     671686       190599
+6     642125       192232
+7    1049942       242534
+8    1098539       376910
+9    1047803       244905
+10    637374       131546
+11    671686       190599
+12    637275       131412
+13   1049942       288598
+14   1098539       376910
+15   1047803       288629
+16    637374       136340
+17    671686       191156
+18    637275       136211
+19   1049942       288598
+20   1098539       376910
+21   1047803       288629
+22     12615        12615
+23     12600        12600
+24     12622        12622
+25   1030359       198800
+26   1079910       345994
+27   1027590       207830
+28    637374       136340
+29    671686       191156
+30    637275       136211
+
+Workspace saved to eco_analysis.RData
+Load with: load('eco_analysis.RData')
+
+Next step: 5_community_composition.R

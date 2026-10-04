@@ -1,0 +1,40 @@
+# 20_fig4-build
+# cmd: bash -c cd '/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary' && conda run --no-capture-output -n r_env Rscript build_main_figure.R fig4-build
+# started 2026-10-03T04:36:18+02:00
+Running chunk 'fig4-build' (398 lines) from Supplementary_Appendix.qmd
+
+Figure 4B: Size-standardised Hill numbers at m = 12615 reads: 52 assemblages (51 via estimate3D, 1 via exact formula, S.obs < 5)
+Season-pool diversity, depth-controlled and coverage-standardised (Table S8):
+                 q         summer         winter
+ q = 0  (richness) 548 [494, 597] 383 [329, 439]
+  q = 1  (Shannon) 412 [374, 444] 261 [229, 293]
+  q = 2  (Simpson) 287 [264, 310] 162 [145, 178]
+
+Per-sample Hill means (n = 52, size-standardised to 12615 reads):
+ Season    q0    q1    q2
+ Winter 31.31 14.92 10.06
+ Summer 48.28  7.37  4.56
+
+Per-sample gamma GLM, summer/winter ratio (n = 52; Table S9):
+ metric ratio   lwr   upr        p
+     q0 1.583 1.082 2.317 2.57e-02
+     q1 0.464 0.294 0.733 1.15e-03
+     q2 0.401 0.262 0.615 4.72e-05
+
+Top-1 OTU read share: summer 56.4% vs winter 25.4%  (p < 0.001)
+Pielou evenness J   : summer 0.38  vs winter 0.72   (p < 0.001)
+
+Top-5 OTUs per season (mean within-season read share):
+ Season     OTU share_pct detected             guild
+ Winter OTU1369     11.24    20/26 Unassigned / dark
+ Winter    OTU2      5.05    21/26 Unassigned / dark
+ Winter  OTU252      4.67    15/26  Plant-associated
+ Winter  OTU136      4.34    11/26  Plant-associated
+ Winter  OTU320      3.47    15/26 Unassigned / dark
+ Summer    OTU1     24.85    15/26   Dung saprotroph
+ Summer OTU1225     10.13    15/26   Dung saprotroph
+ Summer  OTU636      9.05    15/26   Dung saprotroph
+ Summer OTU1231      3.85     3/26  Plant-associated
+ Summer OTU1275      3.69     3/26        Pathotroph
+
+Done.

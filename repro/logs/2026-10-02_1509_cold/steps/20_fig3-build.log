@@ -1,0 +1,53 @@
+# 20_fig3-build
+# cmd: bash -c cd '/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary' && conda run --no-capture-output -n r_env Rscript build_main_figure.R fig3-build
+# started 2026-10-03T04:36:10+02:00
+Running chunk 'fig3-build' (445 lines) from Supplementary_Appendix.qmd
+
+Panel A: 22 OTUs at >= 1% modelled read share each = 73.2% of modelled reads.
+Resolved: 16 of 22 at 0.95 posterior support (11 at the winter end); 74 of 226 OTUs community-wide have a 95% CrI excluding 0.
+CLR convergence (caption): Beta median PSRF 1.00, 100% of parameters < 1.1.
+Credible intervals clipped at +/-6.0 (arrowed): 1 of 22.
+
+Panel A rows, summer end first:
+     OTU                      label             guild  beta support read_pct
+    OTU1          Thelebolus (OTU1)   Dung saprotroph  4.17   1.000    16.57
+  OTU636      Sporormiella (OTU636)   Dung saprotroph  3.52   1.000     6.82
+ OTU1225      Coniochaeta (OTU1225)   Dung saprotroph  3.44   1.000     6.10
+ OTU1320    Sporormiaceae (OTU1320)   Dung saprotroph  2.20   0.998     3.96
+   OTU92    Coniochaetaceae (OTU92)   Dung saprotroph  1.45   0.982     1.36
+  OTU175        Mrakiaceae (OTU175)    Other assigned  0.98   0.906     2.33
+  OTU483      Venturiaceae (OTU483)  Plant-associated  0.59   0.828     2.03
+ OTU1275       Bergerella (OTU1275)        Pathotroph -0.24   0.316     2.18
+ OTU1231       Coleophoma (OTU1231)  Plant-associated -0.44   0.195     2.66
+   OTU45         Coleophoma (OTU45)  Plant-associated -0.72   0.112     2.00
+  OTU136           Candida (OTU136)  Plant-associated -0.91   0.076     3.41
+  OTU252     Didymellaceae (OTU252)  Plant-associated -1.31   0.003     3.09
+  OTU911        Ascomycota (OTU911) Unassigned / dark -1.45   0.001     1.02
+  OTU827        Ascomycota (OTU827) Unassigned / dark -1.47   0.002     1.22
+ OTU1283  Lecanoromycetes (OTU1283) Unassigned / dark -1.72   0.002     1.09
+  OTU715 Botryosphaeriales (OTU715) Unassigned / dark -1.73   0.000     1.27
+  OTU320     Leotiomycetes (OTU320) Unassigned / dark -1.83   0.002     2.37
+  OTU733   Psilolechiaceae (OTU733)        Pathotroph -1.92   0.000     1.09
+  OTU637   Dothideomycetes (OTU637) Unassigned / dark -1.93   0.001     1.42
+  OTU691       Dothideales (OTU691) Unassigned / dark -2.70   0.000     1.40
+    OTU2        Myriangiales (OTU2)    Other assigned -2.82   0.000     2.98
+ OTU1369  Dothideomycetes (OTU1369) Unassigned / dark -5.00   0.000     6.78
+
+Guild means over all 226 OTUs:
+             guild  n mean_beta            IQR
+   Dung saprotroph 14     1.320  [-0.01, 2.07]
+  Plant-associated 50    -0.095  [-0.33, 0.18]
+        Pathotroph 16    -0.332 [-0.56, -0.00]
+    Other assigned 67     0.223  [-0.06, 0.47]
+ Unassigned / dark 79    -0.312  [-0.71, 0.14]
+
+Variance partition (mean % per OTU):
+                       group Season Year Random: sample
+ All modelled OTUs (n = 226)   31.5 18.5           49.9
+    Dung saprotroph (n = 14)   49.8 26.5           23.8
+  Unassigned / dark (n = 79)   33.1 15.0           51.9
+   Plant-associated (n = 50)   23.9 19.1           57.0
+         Pathotroph (n = 16)   34.9 21.6           43.5
+     Other assigned (n = 67)   30.7 19.9           49.4
+
+Done.
