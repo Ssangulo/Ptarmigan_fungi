@@ -23,8 +23,8 @@
 #                      capped at 2 factors, YScale = TRUE.
 #   COMPLEMENT m_rep : the same CLR at the PCR-replicate level (109 rows) with
 #                      BOTH sample (2 factors) and PCR (1 factor) latent levels.
-#   ROBUSTNESS m_pa  : presence/absence probit, PCR-replicate level, capped like
-#                      m_rep (refitted 2026-10-04, see the random-level note).
+#   ROBUSTNESS m_pa  : presence/absence probit, PCR-replicate level, uncapped
+#                      (2026-07-21 fit; see the random-level note).
 # Why: the previous CLR model (7 sample + 5 PCR factors, uncapped) did not
 # converge -- its chains disagreed on the Season effects and the variance
 # partition, because Season is constant within a dropping and unconstrained
@@ -219,14 +219,23 @@ stopifnot(nlevels(studyDesign$pcr) == nrow(Yk))    # one PCR unit per observatio
 cat(sprintf("Random levels: %d biological samples, %d PCR replicates (bird level dropped -- see note)\n",
             nlevels(studyDesign$sample), nlevels(studyDesign$pcr)))
 
-# CAPPED random levels. Uncapped, the sample level took 7 factors: enough to
-# reproduce the Season contrast (Season is constant within a dropping), so each
-# chain split the Season signal differently between Beta and the factors. Two
-# sample factors + one PCR factor removes that freedom. Used by the replicate-
-# level CLR model and, since 2026-10-04, by the probit too: its uncapped
-# 2026-07-21 fit reproduced only loosely on a cold refit (Season Beta PSRF < 1.1
-# for 58% of OTUs, chains up to 0.60 apart on a guild mean; repro/logs/
-# 2026-10-02_1509_cold/findings.md) -- the same failure the CLR model had.
+# Default (uncapped) random levels -- used ONLY by the probit, whose
+# specification is unchanged from the 2026-07-21 fit so its cache stays valid.
+# Tested 2026-10-04 (repro/logs/2026-10-02_1509_cold/findings.md): a fresh fit
+# of this specification mixes worse than the cached one (chains up to 0.60
+# apart on a guild mean), and capping its factors as below did NOT fix that
+# (0.53) -- unlike the CLR models, the occurrence chains disagree on the common,
+# strongly seasonal OTUs. Every refit gave the same conclusions (per-OTU Season
+# Beta r >= 0.99 with the cached fit, same guild directions), so the cached fit
+# is kept and appendix Section 9.1 reports probit magnitudes as approximate.
+rL_sample <- HmscRandomLevel(units = levels(studyDesign$sample))
+rL_pcr    <- HmscRandomLevel(units = levels(studyDesign$pcr))
+ranLevels <- list(sample = rL_sample, pcr = rL_pcr)
+
+# CAPPED random levels for the CLR models. Uncapped, the sample level took 7
+# factors: enough to reproduce the Season contrast (Season is constant within a
+# dropping), so each chain split the Season signal differently between Beta and
+# the factors. Two sample factors + one PCR factor removes that freedom.
 rLc_sample <- setPriors(HmscRandomLevel(units = levels(studyDesign$sample)), nfMax = 2, nfMin = 2)
 rLc_pcr    <- setPriors(HmscRandomLevel(units = levels(studyDesign$pcr)),    nfMax = 1, nfMin = 1)
 ranLevels_rep <- list(sample = rLc_sample, pcr = rLc_pcr)
@@ -290,7 +299,7 @@ write_tab(otu_guild_tbl, "hmsc_otu_guild.csv")
 # =============================================================================
 # SECTION 3 -- MODEL OBJECTS
 # =============================================================================
-mk_hmsc <- function(Y, XForm, Xd, distr, sD = studyDesign, rL = ranLevels_rep,
+mk_hmsc <- function(Y, XForm, Xd, distr, sD = studyDesign, rL = ranLevels,
                     YScale = FALSE, phyloTree = NULL) {
   Hmsc(Y = Y, XData = Xd, XFormula = XForm,
        TrData = TrData, TrFormula = TrFormula,
@@ -302,8 +311,7 @@ m_clr <- mk_hmsc(Yclr,     ~Season + Year, XData_drop, "normal",
                  sD = studyDesign_drop, rL = ranLevels_drop, YScale = TRUE)
 m_rep <- mk_hmsc(Yclr_rep, ~Season + Year, XData,      "normal",
                  sD = studyDesign, rL = ranLevels_rep, YScale = TRUE)
-m_pa  <- mk_hmsc(Ypa,      ~Season + Year, XData,      "probit",
-                 sD = studyDesign, rL = ranLevels_rep)
+m_pa  <- mk_hmsc(Ypa,      ~Season + Year, XData,      "probit")
 # (The former library-size robustness fit, m_lib, was never summarised anywhere
 # and has been removed.)
 

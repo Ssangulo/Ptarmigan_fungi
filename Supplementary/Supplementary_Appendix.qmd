@@ -2060,7 +2060,8 @@ With the cap, both CLR models converge on the Season effects (Table S-HMSCb). Th
 
 The two models agree on what the figures report: per-OTU Season coefficients correlate at Pearson r = 0.97 (Spearman ρ = 0.89), and 56 OTUs have a 95% credible interval excluding zero in both (Table S-HMSCc4). The replicate-level model is therefore kept as the complement that carries an explicit PCR-replicate level, and the PCR-replicate variance the headline model averages away is measured directly in Section 9.2 (Table S-HMSCc2).
 
-The **probit (occurrence)** model was not refitted. Its PSRFs are low (Beta median 1.01, 99.6% below 1.1), but compared chain by chain its guild means differ by up to 0.24 on the probit scale — the same qualitative answer in every chain, with looser agreement than the CLR models.
+<!-- CLAUDE DRAFT 2026-10-05 (softened after the 2026-10-04 refit tests; rewrite freely) -->
+The **probit (occurrence)** model was not refitted. Its PSRFs are low (Beta median 1.01, 99.6% below 1.1), but compared chain by chain its guild means differ by up to 0.24 on the probit scale — the same qualitative answer in every chain, with looser agreement than the CLR models. That agreement is also partly a property of this particular fit: refitted from scratch, and again with its latent factors capped as in the CLR models, the same model mixes less well, with chains up to about 0.6 apart on a guild mean, chiefly for the common, strongly seasonal OTUs. Every refit returns the same answers — per-OTU Season coefficients correlate at r ≥ 0.99 with the fit reported here, and every guild-level direction is unchanged — so the probit results below should be read for their direction and ranking, not their exact size.
 :::
 
 ### 9.2 Variance partitioning: a reproducible seasonal axis within large individual heterogeneity

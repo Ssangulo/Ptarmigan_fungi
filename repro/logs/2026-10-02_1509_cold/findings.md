@@ -75,3 +75,22 @@ informational only.
 The refit outputs were not committed. The appendix still shows the committed (2026-07-20)
 probit results, and the refit tables stay in the sandbox
 (`~/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/`) for comparison.
+
+## Follow-up (2026-10-04/05): probit decision
+
+- **Capping tried.** The probit was refitted with its latent factors capped like the CLR models
+  (sample nfMax 2, PCR nfMax 1; 47.6 min on 8 cores). It did **not** fix the chain disagreement:
+  Season Beta PSRF < 1.1 for 69% of OTUs, max PSRF 2.03, chains up to 0.53 apart on a guild mean.
+- **Where the chains disagree.** On the common, strongly seasonal OTUs (*Coniochaeta* OTU1225,
+  OTU1369, *Thelebolus* OTU1, OTU1320), not on rare or separated ones.
+- **Conclusions unchanged.** Per-OTU r = 0.99 with the July fit; dung-saprotroph summer support 0.955;
+  OTU1369 still the most winter-shifted.
+- **Decision (Daniel, 2026-10-05).** Keep the 2026-07-21 fit, since the probit carries no
+  main-text result. The cap was reverted (the July fit is reused and every HMSC output stays
+  byte-identical, checked). The §9.1 sentence was softened to report probit results for direction
+  and ranking, not exact size (CLAUDE DRAFT, for Daniel to rewrite). Script 10 keeps one
+  improvement: a cached fit whose specification no longer matches is now refitted instead of
+  stopping the script.
+- **Kept for reference.** The refit fits stay in `~/Ptarmigan/repro_sandbox/2026-10-02_1509_cold/models/`
+  (uncapped) and `.../probit_capped_20261004/models/` (capped).
+- **Still open.** The CV R² prose (≈ 0.03 vs 0.040 on refit) is not changed.

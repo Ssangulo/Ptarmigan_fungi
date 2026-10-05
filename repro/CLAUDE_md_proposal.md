@@ -39,3 +39,12 @@ Not applied: `/home/daniel/CLAUDE.md` is edited only after Daniel approves the m
 - **2026-09-13 entry** ("`Supplementary/hill_size_helper.R` is the SINGLE SOURCE for both
   appendix chunks"): append "(since 2026-10-02 only fig4-build sources it; §5.2 comes from
   script 6)".
+
+## HMSC probit (2026-10-05)
+
+Add to the 2026-09-29 HMSC entry: "Probit stays the UNCAPPED 2026-07-21 fit, by Daniel's decision.
+A cold refit mixes worse (chains up to 0.60 apart on a guild mean), and capping its factors
+did not fix that (0.53, on the common strongly seasonal OTUs). Conclusions are stable across all
+three fits (per-OTU r >= 0.99), and §9.1 reports probit magnitudes as approximate. Script 10's
+fit_or_load() now refits instead of stopping when a cached fit's specification changed. Refit
+fits are kept in repro_sandbox/2026-10-02_1509_cold and probit_capped_20261004."
