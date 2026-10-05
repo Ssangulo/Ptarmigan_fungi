@@ -34,11 +34,17 @@ setwd("/home/daniel/Ptarmigan/trimmed/mergedPlates/")
 loaded_objs <- load("eco_analysis.RData")
 
 # ---- Canonical output dirs (absolute; see CLAUDE.md plotting convention) -----
-out_dir  <- "/home/daniel/Ptarmigan/models"     # tables (staging source)
-plot_dir <- "/home/daniel/Ptarmigan/plots"
-tab_dir  <- "/home/daniel/Ptarmigan/tables"     # CSVs mirrored here
-supp_fig <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/figures"
-supp_tab <- "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
+# S8_OUT_ROOT / S8_SUPP_DIR redirect everything this script WRITES (same pattern
+# as 6_diversity_analyses.R's S6_OUT_ROOT / S6_SUPP_DIR); defaults unchanged.
+# With S8_OUT_ROOT set, a Section 2d workspace restore is also written there
+# rather than over the canonical eco_analysis.RData.
+OUT_ROOT <- Sys.getenv("S8_OUT_ROOT", "/home/daniel/Ptarmigan")
+SUPP_DIR <- Sys.getenv("S8_SUPP_DIR", "/home/daniel/Ptarmigan/Scripts_server/Supplementary")
+out_dir  <- file.path(OUT_ROOT, "models")       # tables (staging source)
+plot_dir <- file.path(OUT_ROOT, "plots")
+tab_dir  <- file.path(OUT_ROOT, "tables")       # CSVs mirrored here
+supp_fig <- file.path(SUPP_DIR, "figures")
+supp_tab <- file.path(SUPP_DIR, "tables")
 for (d in c(out_dir, plot_dir, tab_dir)) dir.create(d, showWarnings = FALSE, recursive = TRUE)
 
 # Headless plotting: a standing null device removes R's X11 fallback for ANY
@@ -299,7 +305,8 @@ fungaltraits_otu <- chk_ft$value
 
 if (any(c(chk_fg$action, chk_ft$action) == "save")) {
   save(list = unique(c(loaded_objs, "funguild_otu", "fungaltraits_otu")),
-       file = "/home/daniel/Ptarmigan/trimmed/mergedPlates/eco_analysis.RData")
+       file = if (nzchar(Sys.getenv("S8_OUT_ROOT"))) file.path(OUT_ROOT, "eco_analysis.RData")
+              else "/home/daniel/Ptarmigan/trimmed/mergedPlates/eco_analysis.RData")
   cat("  -> restored missing guild object(s) into eco_analysis.RData\n")
 } else {
   cat("  -> eco_analysis.RData left untouched\n")
@@ -309,14 +316,14 @@ if (any(c(chk_fg$action, chk_ft$action) == "save")) {
 # SECTION 3 -- GUILD CLASSIFICATION (canonical object)
 # =============================================================================
 # Backbone rule is taken VERBATIM from 10_hmsc.R:193-213 (itself from
-# 6_diversity_analyses.R:882-899) so Section 9 and Section 10 of the appendix
+# 6_diversity_analyses.R:882-899) so Section 8 and Section 9 of the appendix
 # classify OTUs identically. Priority, first match wins:
 #   dung_saprotroph > plant_associated > pathotroph > dark_unassigned > other
 #
-# Two deliberate differences from Section 10, both recorded in the crosswalk:
+# Two deliberate differences from Section 9, both recorded in the crosswalk:
 #   (1) NO prevalence filter -- all 1129 OTUs of alldat$nopool, because this is
 #       a descriptive read-share layer, not a model design matrix.
-#   (2) The `other` bin is SPLIT for display. In Section 10 `other` mixes
+#   (2) The `other` bin is SPLIT for display. In Section 9 `other` mixes
 #       FUNGuild-assigned OTUs with 46 that have a genus but no guild call at
 #       all; those carry ~10% of winter reads. Acceptable as a model trait,
 #       misleading in a read-share figure.
@@ -362,8 +369,8 @@ guild_display <- ifelse(guild_class == "dung_saprotroph",  "Dung saprotroph",
 guild_display <- factor(guild_display, levels = GUILD_LEVELS)
 stopifnot(!anyNA(guild_display))
 
-cat("\nSection 10 guild_class (all canonical OTUs):\n"); print(table(guild_class))
-cat("\nSection 9 display guild:\n");                     print(table(guild_display))
+cat("\nSection 9 guild_class (all canonical OTUs):\n"); print(table(guild_class))
+cat("\nSection 8 display guild:\n");                     print(table(guild_display))
 
 # =============================================================================
 # SECTION 4 -- SEASONAL READ-SHARE ANALYSIS
@@ -547,7 +554,7 @@ ann <- data.frame(
 pB <- ggplot(guild_long, aes(Guild, share, fill = Season)) +
   geom_boxplot(outlier.shape = NA, width = 0.65, alpha = 0.85,
                position = position_dodge(width = 0.75)) +
-  geom_point(position = position_jitterdodge(jitter.width = 0.12, dodge.width = 0.75),
+  geom_point(position = position_jitterdodge(jitter.width = 0.12, dodge.width = 0.75, seed = 1),
              size = 0.9, alpha = 0.5, show.legend = FALSE) +
   geom_text(data = ann, aes(Guild, y, label = lab), inherit.aes = FALSE,
             size = 3.6, fontface = "bold") +
@@ -616,8 +623,8 @@ otu_assign <- data.frame(
   FUNGuild_Guild     = guild_str,
   Trophic_Mode       = troph,
   Confidence_Ranking = conf,
-  guild_class        = guild_class,             # Section 10 (5-level model trait)
-  guild_display      = as.character(guild_display),  # Section 9 (5-level display)
+  guild_class        = guild_class,             # Section 9 (5-level model trait)
+  guild_display      = as.character(guild_display),  # Section 8 (5-level display)
   total_reads        = colSums(m),
   prevalence         = colSums(m > 0),
   stringsAsFactors   = FALSE
@@ -632,18 +639,18 @@ per_sample <- data.frame(SampleID = rownames(share), Season = Season, Year = Yea
                          as.data.frame(share), check.names = FALSE)
 write_tab(per_sample, "guild_composition_per_sample.csv")
 
-# (e) Crosswalk so Section 9 and Table S-HMSCa reconcile
+# (e) Crosswalk so Section 8 and Table S-HMSCa reconcile
 crosswalk <- as.data.frame(table(guild_class = guild_class,
                                  guild_display = as.character(guild_display)))
 crosswalk <- crosswalk[crosswalk$Freq > 0, ]
 names(crosswalk)[3] <- "n_OTUs"
 crosswalk$note <- ifelse(
   crosswalk$guild_class == "other" & crosswalk$guild_display == "Unassigned / dark",
-  "Section 10 'other' OTUs with a genus but NO FUNGuild call -- split out for display",
+  "Section 9 'other' OTUs with a genus but NO FUNGuild call -- split out for display",
   ifelse(crosswalk$guild_class == "other",
-         "Section 10 'other' OTUs that DO carry a FUNGuild call", ""))
+         "Section 9 'other' OTUs that DO carry a FUNGuild call", ""))
 write_tab(crosswalk, "guild_scheme_crosswalk.csv")
-cat("\nSection 10 -> Section 9 crosswalk:\n"); print(crosswalk, row.names = FALSE)
+cat("\nSection 9 -> Section 8 crosswalk:\n"); print(crosswalk, row.names = FALSE)
 stopifnot(sum(crosswalk$n_OTUs) == length(otu_ids))
 
 # =============================================================================

@@ -1,0 +1,27 @@
+# 20_sec4-build
+# cmd: bash -c cd '/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary' && conda run --no-capture-output -n r_env Rscript build_main_figure.R sec4-build
+# started 2026-10-02T13:46:12+02:00
+Running chunk 'sec4-build' (257 lines) from Supplementary_Appendix.qmd
+
+Loading required package: permute
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+Detected both seasons: 171 | winter only: 265 | summer only: 693
+At >= 5 detections in a season -- winter only 9, summer only 51, both 11
+Sorensen (presence/absence): Season R2 = 0.113, p = 0.001
+Warning messages:
+1: In cmdscale(d, k = nrow(otu_mat) - 1, eig = TRUE) :
+  only 27 of the first 51 eigenvalues are > 0
+2: In cmdscale(d, k = nrow(otu_mat) - 1, eig = TRUE) :
+  only 46 of the first 51 eigenvalues are > 0
+
+Done.

@@ -1,0 +1,94 @@
+# 08_script8
+# cmd: env S8_OUT_ROOT=/home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1032_cached S8_SUPP_DIR=/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary conda run --no-capture-output -n r_env Rscript /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1032_cached/frozen/8_functional_guilds.R
+# started 2026-10-02T10:34:05+02:00
+Section 1: FUNGuild input regeneration SKIPPED (REGEN_FUNGUILD_INPUT = FALSE);
+            using the cached .guilds.txt as an OTU -> guild lookup.
+FUNGuild lookup: 700 of 1144 OTUs guild-assigned (61.2%)
+funguild_otu (rebuilt): 700 guild-assigned OTUs
+fungaltraits_otu (rebuilt): 198 genus-assigned OTUs
+Guild object integrity check:
+  funguild_otu: unchanged (700 rows) -> no save needed
+  fungaltraits_otu: DIFFERS -> kept workspace copy, rebuild dumped to /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1032_cached/models/fungaltraits_otu_rebuilt_DIFFERS.csv
+Warning message:
+fungaltraits_otu rebuilt from the cached .guilds.txt DIFFERS from the workspace copy (workspace 195 rows vs rebuild 198 rows). NOT overwriting -- appendix Sections 6/7/10 were built on the workspace copy. Rebuild dumped to /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1032_cached/models/fungaltraits_otu_rebuilt_DIFFERS.csv for inspection. 
+  -> eco_analysis.RData left untouched
+
+Canonical object: 52 samples x 1129 OTUs
+Guild-file coverage of canonical OTUs: 693 of 1129 (61.4%) have a FUNGuild call
+
+Section 10 guild_class (all canonical OTUs):
+guild_class
+ dark_unassigned  dung_saprotroph            other       pathotroph 
+             390               37              306               98 
+plant_associated 
+             298 
+
+Section 9 display guild:
+guild_display
+  Dung saprotroph  Plant-associated        Pathotroph    Other assigned 
+               37               298                98               260 
+Unassigned / dark 
+              436 
+
+Season x Year cell sizes:
+        Year
+Season   2022 2023 2024
+  Winter   10    9    7
+  Summer    9    9    8
+
+Dung saprotroph OTUs: 37 total (13 via COPRO_GENERA genus, 24 via FUNGuild string only)
+
+Mean per-sample read share by season:
+             Guild summer winter       q
+   Dung saprotroph  0.515  0.136 0.01160
+  Plant-associated  0.180  0.234 0.02460
+        Pathotroph  0.047  0.058 0.00142
+    Other assigned  0.048  0.060 0.55200
+ Unassigned / dark  0.210  0.511 0.00142
+
+Reads on a guild-assigned OTU: summer 79%, winter 49%
+
+Dung-saprotroph share, winter vs summer within each year:
+ Year n_summer n_winter mean_summer mean_winter diff_summer_minus_winter
+ 2022        9       10       0.413      0.2454                    0.168
+ 2023        9        9       0.683      0.1085                    0.574
+ 2024        8        7       0.440      0.0167                    0.423
+ p_value q_value
+ 0.74288  0.7429
+ 0.00915  0.0275
+ 0.03556  0.0533
+Same direction (summer > winter) in 3 of 3 years
+
+Wrote figure:
+   /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1032_cached/plots/Fig1_guild_season.png 
+   /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1032_cached/plots/Fig1_guild_season.pdf 
+
+Trophic modes (trimmed) across canonical OTUs:
+troph
+                       Saprotroph Pathotroph-Saprotroph-Symbiotroph 
+                              233                               137 
+                       Pathotroph                       Symbiotroph 
+                              103                                80 
+            Pathotroph-Saprotroph            Saprotroph-Symbiotroph 
+                               77                                47 
+ Pathotroph-Pathotroph-Saprotroph            Pathotroph-Symbiotroph 
+                                9                                 7 
+
+Section 10 -> Section 9 crosswalk:
+      guild_class     guild_display n_OTUs
+  dung_saprotroph   Dung saprotroph     37
+            other    Other assigned    260
+       pathotroph        Pathotroph     98
+ plant_associated  Plant-associated    298
+  dark_unassigned Unassigned / dark    390
+            other Unassigned / dark     46
+                                                                               note
+                                                                                   
+                              Section 10 'other' OTUs that DO carry a FUNGuild call
+                                                                                   
+                                                                                   
+                                                                                   
+ Section 10 'other' OTUs with a genus but NO FUNGuild call -- split out for display
+
+Staged 2 figures and 5 tables into Supplementary/figures|tables
+Script 8 complete.

@@ -1,0 +1,3 @@
+# 00_env
+# cmd: conda run --no-capture-output -n r_env Rscript /home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/repro/env_info.R /home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit /home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/repro/logs/2026-10-02_1032_cached/env.txt
+# started 2026-10-02T10:32:24+02:00

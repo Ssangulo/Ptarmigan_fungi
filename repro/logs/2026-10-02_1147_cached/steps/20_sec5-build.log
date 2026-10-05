@@ -1,0 +1,33 @@
+# 20_sec5-build
+# cmd: bash -c cd '/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary' && conda run --no-capture-output -n r_env Rscript build_main_figure.R sec5-build
+# started 2026-10-02T12:43:36+02:00
+Running chunk 'sec5-build' (130 lines) from Supplementary_Appendix.qmd
+
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+# A tibble: 2 × 3
+  Season mean_pct median_pct
+  <chr>     <dbl>      <dbl>
+1 summer    45.7       47.5 
+2 winter     8.72       0.02
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  copro_pct_share by Season
+W = 513, p-value = 0.001227
+alternative hypothesis: true location shift is not equal to 0
+
+Warning message:
+In wilcox.test.default(x = DATA[[1L]], y = DATA[[2L]], ...) :
+  cannot compute exact p-value with ties
+
+Done.

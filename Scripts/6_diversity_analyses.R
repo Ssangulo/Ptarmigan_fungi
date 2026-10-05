@@ -215,7 +215,7 @@ p_TD_3 <- ggiNEXT3D(out_TD, type=3, facet.var="Order.q") +
   theme_minimal(base_size=14) +
   theme(plot.title=element_blank(), legend.title=element_blank())
 
-save_png(p_TD_1, "H2_iNEXT_TD_Season_sampleSize.png", width=10, height=6, dpi=800)
+save_png(p_TD_1, "H2_iNEXT_TD_by_Season.png", width=10, height=6, dpi=800)   # appendix Section 5.1 (raw-count curves)
 save_png(p_TD_3, "H2_iNEXT_TD_by_Season_coverage.png", width=10, height=6, dpi=800)
 
 # ---- Coverage-standardised comparison at shared minimum coverage -----------
@@ -232,8 +232,8 @@ write.csv(est_TD, file.path(out_dir, "H2_iNEXT3D_TD_coverage_standardised.csv"),
 cat(sprintf("\nCoverage-standardised TD at shared coverage Cmin=%.4f:\n", Cmin))
 print(est_TD)
 
-# NOTE: mirrored VERBATIM (paths aside) from the sec5-build chunk of
-# Supplementary/Supplementary_Appendix.qmd -- change one, change the other.
+# Single source for appendix Sections 5.1-5.2 (the sec5-build chunk used to
+# carry a verbatim copy; it now reads the tables staged at the end of Section 2).
 # ---- Table S8 (primary) -- the same comparison with sequencing depth held equal
 # The incidence matrices above record whether an OTU was DETECTED in a dropping,
 # and detection rises with read depth. Summer libraries are ~2.6x deeper than
@@ -491,11 +491,24 @@ hill_sample <- data.frame(
   stringsAsFactors = FALSE
 )
 write.csv(hill_sample, file.path(out_dir, "H2_hill_per_sample.csv"), row.names=FALSE)
+
+# Figure S8 (appendix Section 5.2) -- moved here from the sec5-build chunk.
+hl_sample <- hill_sample %>% pivot_longer(c(q0, q1, q2), names_to = "q", values_to = "value")
+p_hill_sample_box <- ggplot(hl_sample, aes(Season, value)) +
+  geom_boxplot(outlier.shape = NA, fill = "grey92") +
+  geom_jitter(aes(colour = Year), width = 0.15, size = 1.6, alpha = 0.7) +
+  facet_wrap(~q, scales = "free_y",
+             labeller = as_labeller(c(q0 = "q0 richness", q1 = "q1 Shannon",
+                                      q2 = "q2 Simpson"))) +
+  labs(title = sprintf("Per-sample Hill diversity (PCR-collapsed, iNEXT3D size-standardised to %d reads)",
+                       samp_depth), y = "Hill number", x = NULL) +
+  theme_bw(base_size = 12)
+save_png(p_hill_sample_box, "H2_hill_boxplot_Season.png", width = 10, height = 4.5)
 cat(sprintf("\nPer-sample (PCR-collapsed) Hill diversity size-standardised to %d reads (%d samples)\n",
             samp_depth, nrow(hill_sample)))
 
-# NOTE: mirrored VERBATIM (paths aside) from the sec5-build chunk of
-# Supplementary/Supplementary_Appendix.qmd -- change one, change the other.
+# Single source for appendix Sections 5.1-5.2 (the sec5-build chunk used to
+# carry a verbatim copy; it now reads the tables staged at the end of Section 2).
 # ===========================================================================
 # Table S9 (primary) + S9b -- Season effect on PER-SAMPLE Hill numbers
 # ===========================================================================
@@ -550,6 +563,27 @@ s9b <- do.call(rbind, lapply(c("q0", "q1", "q2"), function(q) {
 }))
 write.csv(s9b, file.path(out_dir, "H2_season_effect_family_sensitivity.csv"), row.names = FALSE)
 print(s9); print(s9b)
+
+# ---- Stage Section 5.1-5.2 outputs for the Quarto appendix -------------------
+# Tables S8, S8b, S9, S9b, S9c and Figures S7, S8 (+ their per-draw / per-sample
+# source tables, which the remaining sec5-build chunk and fig4-build read).
+invisible(file.copy(file.path(plot_dir, c("H2_iNEXT_TD_by_Season.png",
+                                          "H2_iNEXT_TD_by_Season_rarefied.png",
+                                          "H2_hill_boxplot_Season.png",
+                                          "H2_hill_boxplot_Season_pcr.png")),
+                    file.path(SUPP_DIR, "figures"), overwrite = TRUE))
+invisible(file.copy(file.path(out_dir, c("H2_iNEXT3D_TD_asymptotic.csv",
+                                         "H2_iNEXT3D_TD_coverage_standardised.csv",
+                                         "H2_iNEXT3D_TD_coverage_rarefied.csv",
+                                         "H2_iNEXT3D_TD_coverage_rarefied_draws.csv",
+                                         "H2_hill_per_pcr_replicate.csv",
+                                         "H2_lmm_season_effect.csv",
+                                         "H2_hill_per_sample.csv",
+                                         "H2_season_effect_per_sample.csv",
+                                         "H2_season_effect_family_sensitivity.csv")),
+                    file.path(SUPP_DIR, "tables"), overwrite = TRUE))
+cat("Staged Section 5 (H2) figures/tables into Supplementary/figures|tables\n")
+if (Sys.getenv("S6_STOP_AFTER") == "H2") quit(save = "no", status = 0)
 
 # ---- Build the plant-matched subset -----------------------------------------
 # Matched = canonical fungal samples (ps_rar_sample, PCR-collapsed raw counts;
@@ -935,7 +969,7 @@ invisible(file.copy(file.path(out_dir, c("H2_mechanism_model_comparison.csv",
                     supp_tab, overwrite=TRUE))
 cat("Staged H2-mechanism figures/tables into Supplementary/figures|tables\n")
 
-# Run control: S6_STOP_AFTER=H2MECH stops here, =H3 after Section 3c (e.g. a
+# Run control: S6_STOP_AFTER=H2 stops after Section 2, =H2MECH here, =H3 after Section 3c (e.g. a
 # worktree run with S6_OUT_ROOT / S6_SUPP_DIR overridden). Unset = full script.
 if (Sys.getenv("S6_STOP_AFTER") == "H2MECH") quit(save = "no", status = 0)
 

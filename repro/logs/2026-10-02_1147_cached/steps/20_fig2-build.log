@@ -1,0 +1,13 @@
+# 20_fig2-build
+# cmd: bash -c cd '/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary' && conda run --no-capture-output -n r_env Rscript build_main_figure.R fig2-build
+# started 2026-10-02T12:43:55+02:00
+Running chunk 'fig2-build' (138 lines) from Supplementary_Appendix.qmd
+
+PCoA axes: 58.0% / 31.3%
+PERMANOVA Season R2 = 0.112, p = 0.002
+Mean distance to season centroid:
+       2022 2023 2024
+Winter 16.4 15.2  8.1
+Summer 26.6 25.1 22.4
+
+Done.

@@ -1,0 +1,221 @@
+# 05_script5
+# cmd: env S5_OUT_ROOT=/home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1147_cached S5_SUPP_DIR=/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary conda run --no-capture-output -n r_env Rscript /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1147_cached/frozen/5_community_composition.R
+# started 2026-10-02T11:48:45+02:00
+microViz version 0.12.7 - Copyright (C) 2021-2025 David Barnett
+! Website: https://david-barnett.github.io/microViz
+✔ Useful?  For citation details, run: `citation("microViz")`
+✖ Silence? `suppressPackageStartupMessages(library(microViz))`
+Loading required package: permute
+Loading required package: glue
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+PCR-collapsed object (summed from alldat_full$nopool):
+   55 samples, 1143 taxa
+Sample Data:        [6 samples by 19 sample variables]:
+                 sample SampleID_lab Sample_ID_field Sample.date sample_mass
+S_1_1_P2_1C S_1_1_P2_1C        S_1_1         RL_1976  2024-06-20      0.0440
+S_1_2_P1_8D S_1_2_P1_8D        S_1_2         RL_1978  2024-06-12      0.1032
+S_1_3_P2_1D S_1_3_P2_1D        S_1_3      RL_1101_01  2024-06-07      0.0444
+S_1_4_P1_1B S_1_4_P1_1B        S_1_4         RL_1515  2024-06-07      0.0625
+S_1_5_P2_1E S_1_5_P2_1E        S_1_5         RL_1979  2024-05-30      0.0620
+S_1_6_P1_1C S_1_6_P1_1C        S_1_6         RL_1983  2024-05-30      0.0584
+            DNA.conc..ng.ul. A260.280 NINAmicrosat         species indivID
+S_1_1_P2_1C             13.0     0.71       failed            <NA>    <NA>
+S_1_2_P1_8D             21.7     0.81       failed            <NA>    <NA>
+S_1_3_P2_1D             18.0     1.07       failed            <NA>    <NA>
+S_1_4_P1_1B             10.6     1.52       failed            <NA>    <NA>
+S_1_5_P2_1E             12.7     0.75      success Lagopus.lagopus  Lla615
+S_1_6_P1_1C             16.1     0.70      success Lagopus.lagopus  Lla541
+               sex extract_blank extract_batch TimeBlock Season Year sampletype
+S_1_1_P2_1C   <NA>           B13            12       S_1 summer 2024          S
+S_1_2_P1_8D   <NA>           B13            12       S_1 summer 2024          S
+S_1_3_P2_1D   <NA>           B13            12       S_1 summer 2024          S
+S_1_4_P1_1B   <NA>           B13            12       S_1 summer 2024          S
+S_1_5_P2_1E   male           B11            10       S_1 summer 2024          S
+S_1_6_P1_1C female           B11            10       S_1 summer 2024          S
+            iNext_plate     root_id
+S_1_1_P2_1C          P2 S_1_1_P2_1C
+S_1_2_P1_8D          P1 S_1_2_P1_8D
+S_1_3_P2_1D          P2 S_1_3_P2_1D
+S_1_4_P1_1B          P1 S_1_4_P1_1B
+S_1_5_P2_1E          P2 S_1_5_P2_1E
+S_1_6_P1_1C          P1 S_1_6_P1_1C
+        
+         2022 2023 2024
+  summer    9    9    8
+  winter   10   10    9
+        
+         S_1 S_2 S_3 W_1 W_2 W_3
+  summer   8   9   9   0   0   0
+  winter   0   0   0   9  10  10
+pdf 
+  2 
+pdf 
+  2 
+Permutation test for adonis under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 999
+
+adonis2(formula = dists ~ Season * Year, data = sampledf, by = "terms")
+            Df SumOfSqs      R2      F Pr(>F)   
+Season       1   3149.1 0.10526 6.9430  0.002 **
+Year         2   1022.5 0.03418 1.1272  0.355   
+Season:Year  2   3519.9 0.11766 3.8803  0.004 **
+Residual    49  22224.5 0.74290                 
+Total       54  29916.0 1.00000                 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 999
+
+Response: Distances
+          Df Sum Sq Mean Sq      F N.Perm Pr(>F)    
+Groups     1 1769.2 1769.21 16.948    999  0.001 ***
+Residuals 53 5532.7  104.39                         
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 999
+
+Response: Distances
+          Df Sum Sq Mean Sq      F N.Perm Pr(>F)  
+Groups     2  826.1  413.03 3.4225    999  0.043 *
+Residuals 52 6275.5  120.68                       
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+== dbRDA overall ==
+Permutation test for capscale under reduced model
+Permutation: free
+Number of permutations: 999
+
+Model: capscale(formula = d_ait ~ Season + Condition(Year), data = sam)
+         Df Variance      F Pr(>F)    
+Model     1    58.19 6.2251  0.001 ***
+Residual 51   476.75                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+== dbRDA by term ==
+Permutation test for capscale under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 999
+
+Model: capscale(formula = d_ait ~ Season + Condition(Year), data = sam)
+         Df Variance      F Pr(>F)   
+Season    1    58.19 6.2251  0.002 **
+Residual 51   476.75                 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+== dbRDA by axis ==
+Permutation test for capscale under reduced model
+Forward tests for axes
+Permutation: free
+Number of permutations: 999
+
+Model: capscale(formula = d_ait ~ Season + Condition(Year), data = sam)
+         Df Variance      F Pr(>F)    
+CAP1      1    58.19 6.2251  0.001 ***
+Residual 51   476.75                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Warning messages:
+1: In match.fun(FUN)(...) : "level" is not a graphical parameter
+2: In match.fun(FUN)(...) : "level" is not a graphical parameter
+Warning messages:
+1: In plot.xy(xy.coords(x, y), type = type, ...) :
+  "level" is not a graphical parameter
+2: In plot.xy(xy.coords(x, y), type = type, ...) :
+  "plot" is not a graphical parameter
+3: In plot.xy(xy.coords(x, y), type = type, ...) :
+  "level" is not a graphical parameter
+4: In plot.xy(xy.coords(x, y), type = type, ...) :
+  "plot" is not a graphical parameter
+pdf 
+  2 
+Analysis of Variance Table
+
+Response: dist_centroid
+            Df Sum Sq Mean Sq F value    Pr(>F)    
+Season       1 1738.8 1738.75 17.5251 0.0001174 ***
+Year         2  353.0  176.51  1.7791 0.1795187    
+Season:Year  2   17.4    8.68  0.0875 0.9163647    
+Residuals   49 4861.5   99.22                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Call:
+lm(formula = dist_centroid ~ Season * Year, data = df)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-18.8266  -6.0978  -0.7827   6.2516  22.1388 
+
+Coefficients:
+                      Estimate Std. Error t value Pr(>|t|)    
+(Intercept)            26.7291     3.3202   8.050  1.6e-10 ***
+Seasonwinter          -10.5782     4.5766  -2.311   0.0251 *  
+Year2023               -1.1022     4.6955  -0.235   0.8154    
+Year2024               -4.6720     4.8400  -0.965   0.3391    
+Seasonwinter:Year2023   0.1632     6.4723   0.025   0.9800    
+Seasonwinter:Year2024  -2.3495     6.6612  -0.353   0.7258    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 9.961 on 49 degrees of freedom
+Multiple R-squared:  0.3026,	Adjusted R-squared:  0.2314 
+F-statistic: 4.252 on 5 and 49 DF,  p-value: 0.002734
+
+pdf 
+  2 
+Registered S3 method overwritten by 'seriation':
+  method         from 
+  reorder.hclust vegan
+pdf 
+  2 
+pdf 
+  2 
+pdf 
+  2 
+pdf 
+  2 
+pdf 
+  2 
+# A tibble: 8 × 8
+  rank   Season total_reads reads_assigned pct_reads_assigned total_otus
+  <fct>  <fct>        <dbl>          <dbl>              <dbl>      <int>
+1 Phylum Winter     5967987        5954725               99.8        453
+2 Phylum Summer    12797633       12794672              100.0        864
+3 Class  Winter     5967987        5595531               93.8        453
+4 Class  Summer    12797633       12565643               98.2        864
+5 Order  Winter     5967987        4211903               70.6        453
+6 Order  Summer    12797633       12108505               94.6        864
+7 Genus  Winter     5967987        2418951               40.5        453
+8 Genus  Summer    12797633        8786914               68.7        864
+  otus_assigned pct_otus_assigned
+          <int>             <dbl>
+1           441              97.4
+2           844              97.7
+3           399              88.1
+4           778              90.0
+5           345              76.2
+6           664              76.9
+7           240              53.0
+8           455              52.7
+Staged Section 3.1 barplots into /home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary/figures 

@@ -1,0 +1,46 @@
+# 20_sec3-build
+# cmd: bash -c cd '/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary' && conda run --no-capture-output -n r_env Rscript build_main_figure.R sec3-build
+# started 2026-10-02T13:46:06+02:00
+Running chunk 'sec3-build' (73 lines) from Supplementary_Appendix.qmd
+
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+     rank otus_assigned pct_otus_assigned otus_incertae_sedis pct_otus_named
+1  Phylum          1098             97.25                   0          97.25
+2   Class          1003             88.84                   1          88.75
+3   Order           901             79.81                  44          75.91
+4  Family           753             66.70                  65          60.94
+5   Genus           636             56.33                  41          52.70
+6 Species           250             22.14                   0          22.14
+  pct_otus_assigned_winter pct_otus_assigned_summer pct_reads_assigned_pooled
+1                    97.48                    97.69                     99.92
+2                    88.07                    90.05                     96.79
+3                    79.13                    80.90                     87.33
+4                    66.06                    67.82                     81.84
+5                    57.11                    56.37                     64.60
+6                    25.46                    20.83                     23.07
+  mean_pct_reads_winter mean_pct_reads_summer median_pct_reads_winter
+1                 99.51                 99.98                  100.00
+2                 93.32                 97.53                   93.85
+3                 69.72                 93.33                   68.82
+4                 59.33                 88.89                   57.61
+5                 48.69                 68.78                   45.71
+6                 17.87                 22.02                   12.69
+  median_pct_reads_summer wilcox_p_reads_season bh_q_reads_season
+1                 100.000             1.906e-01         0.2286705
+2                  99.990             8.259e-04         0.0016518
+3                  99.698             2.561e-05         0.0001138
+4                  99.046             3.794e-05         0.0001138
+5                  80.607             5.198e-03         0.0077975
+6                   8.225             4.399e-01         0.4399113
+
+Done.

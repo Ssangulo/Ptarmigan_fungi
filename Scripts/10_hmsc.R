@@ -23,7 +23,8 @@
 #                      capped at 2 factors, YScale = TRUE.
 #   COMPLEMENT m_rep : the same CLR at the PCR-replicate level (109 rows) with
 #                      BOTH sample (2 factors) and PCR (1 factor) latent levels.
-#   ROBUSTNESS m_pa  : presence/absence probit, PCR-replicate level, unchanged.
+#   ROBUSTNESS m_pa  : presence/absence probit, PCR-replicate level, uncapped
+#                      (2026-07-21 fit; see the random-level note).
 # Why: the previous CLR model (7 sample + 5 PCR factors, uncapped) did not
 # converge -- its chains disagreed on the Season effects and the variance
 # partition, because Season is constant within a dropping and unconstrained
@@ -83,6 +84,8 @@
 #     so an experimental run cannot overwrite main's models/plots/tables).
 #   HMSC_RUN_PHYLO=1 -> also fit the phylogeny variant (slow; default off).
 #   HMSC_RUN_CV=0    -> reuse the stored 2-fold CV (~2.5 h) if it matches the fit.
+#   HMSC_NO_REUSE=1  -> never fall back to the read-only CANON_MODELS fits: with
+#     an empty HMSC_OUT_ROOT/models this forces a cold refit (repro/run_repro.sh).
 #   HMSC_PHYLO_THIN  -> phylo thinning (default = headline, 50: ~10 h; 10: ~2 h).
 #   Launch long runs from a COPY of this file: Rscript reads the script
 #   incrementally, so editing it mid-run corrupts the tail of the run.
@@ -109,7 +112,7 @@ if (!exists("funguild_otu"))
 # ---- Output dirs (absolute; overridable so a worktree run stays isolated) ----
 OUT_ROOT <- Sys.getenv("HMSC_OUT_ROOT", "/home/daniel/Ptarmigan")
 SUPP_DIR <- Sys.getenv("HMSC_SUPP_DIR", "/home/daniel/Ptarmigan/Scripts_server/Supplementary")
-CANON_MODELS <- "/home/daniel/Ptarmigan/models"   # read-only inputs (GLLVM table, cached probit)
+CANON_MODELS <- "/home/daniel/Ptarmigan/models"   # read-only inputs (GLLVM table, cached fits)
 out_dir  <- file.path(OUT_ROOT, "models")        # fitted models + (per convention) tables
 plot_dir <- file.path(OUT_ROOT, "plots")
 tab_dir  <- file.path(OUT_ROOT, "tables")        # user-requested tables/ dir (CSVs mirrored here)
@@ -218,6 +221,13 @@ cat(sprintf("Random levels: %d biological samples, %d PCR replicates (bird level
 
 # Default (uncapped) random levels -- used ONLY by the probit, whose
 # specification is unchanged from the 2026-07-21 fit so its cache stays valid.
+# Tested 2026-10-04 (repro/logs/2026-10-02_1509_cold/findings.md): a fresh fit
+# of this specification mixes worse than the cached one (chains up to 0.60
+# apart on a guild mean), and capping its factors as below did NOT fix that
+# (0.53) -- unlike the CLR models, the occurrence chains disagree on the common,
+# strongly seasonal OTUs. Every refit gave the same conclusions (per-OTU Season
+# Beta r >= 0.99 with the cached fit, same guild directions), so the cached fit
+# is kept and appendix Section 9.1 reports probit magnitudes as approximate.
 rL_sample <- HmscRandomLevel(units = levels(studyDesign$sample))
 rL_pcr    <- HmscRandomLevel(units = levels(studyDesign$pcr))
 ranLevels <- list(sample = rL_sample, pcr = rL_pcr)
@@ -340,19 +350,6 @@ if (RUN_PHYLO) {
 # =============================================================================
 # SECTION 4 -- FIT (MCMC), cached to models/ (delete an .rds to force a refit)
 # =============================================================================
-# `reuse`: a read-only cache elsewhere, loaded when `path` is absent, so a
-# worktree run does not refit models main already holds. The caller checks that
-# the cached data and specification match (spec_ok below).
-fit_or_load <- function(m, path, mcp = mc, reuse = NULL) {
-  if (file.exists(path)) { cat("Loading cached fit:", path, "\n"); return(readRDS(path)) }
-  if (!is.null(reuse) && file.exists(reuse)) { cat("Reusing cached fit:", reuse, "\n"); return(readRDS(reuse)) }
-  cat("Fitting:", basename(path), "...\n"); t0 <- Sys.time()
-  m <- sampleMcmc(m, samples = mcp$samples, thin = mcp$thin, transient = mcp$transient,
-                  nChains = nChains, nParallel = nParallel,
-                  verbose = max(1, round((mcp$transient + mcp$samples * mcp$thin) / 10)))
-  cat(sprintf("  done in %.1f min\n", as.numeric(difftime(Sys.time(), t0, units = "mins"))))
-  saveRDS(m, path); m
-}
 # A cached fit is only accepted if it was fitted to the same response and
 # design with the same latent-factor caps and scaling as the object built above.
 spec_ok <- function(fit, spec) {
@@ -360,6 +357,23 @@ spec_ok <- function(fit, spec) {
   identical(dim(fit$Y), dim(spec$Y)) && isTRUE(all.equal(unname(fit$Y), unname(spec$Y))) &&
     identical(colnames(fit$Y), colnames(spec$Y)) && isTRUE(all.equal(fit$X, spec$X)) &&
     identical(nf(fit), nf(spec)) && identical(is.null(fit$YScalePar), is.null(spec$YScalePar))
+}
+# `reuse`: a read-only cache elsewhere, loaded when `path` is absent, so a
+# worktree run does not refit models main already holds. A cache (either one)
+# whose data or specification no longer matches `m` is ignored and the model is
+# refitted, so changing a model can never silently reload the old fit.
+fit_or_load <- function(m, path, mcp = mc, reuse = NULL, check = TRUE) {
+  ok <- function(f) { fit <- readRDS(f); if (!check || spec_ok(fit, m)) fit else {
+    cat("Ignoring cached fit (specification changed):", f, "\n"); NULL } }
+  if (file.exists(path)) { cat("Loading cached fit:", path, "\n"); fit <- ok(path); if (!is.null(fit)) return(fit) }
+  if (Sys.getenv("HMSC_NO_REUSE") == "1") reuse <- NULL
+  if (!is.null(reuse) && file.exists(reuse)) { cat("Reusing cached fit:", reuse, "\n"); fit <- ok(reuse); if (!is.null(fit)) return(fit) }
+  cat("Fitting:", basename(path), "...\n"); t0 <- Sys.time()
+  m <- sampleMcmc(m, samples = mcp$samples, thin = mcp$thin, transient = mcp$transient,
+                  nChains = nChains, nParallel = nParallel,
+                  verbose = max(1, round((mcp$transient + mcp$samples * mcp$thin) / 10)))
+  cat(sprintf("  done in %.1f min\n", as.numeric(difftime(Sys.time(), t0, units = "mins"))))
+  saveRDS(m, path); m
 }
 spec_clr <- m_clr; spec_rep <- m_rep; spec_pa <- m_pa
 m_clr <- fit_or_load(m_clr, file.path(out_dir, "hmsc_clr_fit.rds"),
@@ -501,7 +515,7 @@ gamma_fig(m_clr, file.path(plot_dir, "hmsc_gamma.png"),
           "Gamma: guild trait -> abundance response (CLR, standardised)")
 cat("CLR Gamma (trait x covariate) Season rows:\n")
 print(gamma_tbl[gamma_tbl$covariate == "Seasonsummer", ])
-# Probit (occurrence) Gamma -- unchanged model
+# Probit (occurrence) Gamma
 mpost_pa <- convertToCodaObject(m_pa)
 gamma_pa <- gamma_table(m_pa, mpost_pa)
 write_tab(gamma_pa, "hmsc_probit_gamma_CrI.csv")

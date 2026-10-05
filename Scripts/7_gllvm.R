@@ -219,6 +219,9 @@ write.csv(model_comparison, file.path(out_dir, "gllvm_model_comparison.csv"),
           row.names = FALSE)
 
 # ---- Residual diagnostics (primary model: fit_nb_2_2) -----------------------
+# Dunn-Smyth residuals are randomised quantile residuals: seed so the figure
+# is the same on every run.
+set.seed(1)
 png(file.path(plot_dir, "gllvm_fit_nb_2_2_residuals.png"),
     width=3600, height=2400, res=300)
 par(mfrow=c(3,2), mar=c(4,4,2,1), ask=FALSE)
@@ -505,6 +508,7 @@ boot_wmean <- function(beta, w, R=500) {
   quantile(boots, c(0.025,0.975), na.rm=TRUE)
 }
 
+set.seed(1)   # boot_wmean() resamples; seed so the CIs are the same on every run
 genus_ci <- annot_raw %>%
   filter(Genus %in% genera_keep) %>%
   group_by(Genus, Order) %>%
@@ -565,6 +569,19 @@ panel_AB <- p_heat_clean + p_bar_clean +
 
 save_png(file.path(plot_dir, "panel_AB_heatmap_barplot_season.png"),
          panel_AB, width=11, height=6.5, res=900)
+
+# ---- Stage H1 GLLVM outputs for the Quarto appendix (Section 6) -------------
+# Previously copied by hand; staged here like Section 8's H3 outputs below.
+invisible(file.copy(file.path(plot_dir, c("gllvm_perOTU_season_coef.png",
+                                          "gllvm_residual_ordination.png",
+                                          "panel_AB_heatmap_barplot_season.png",
+                                          "gllvm_fit_nb_2_2_residuals.png")),
+                    file.path(SUPP_DIR, "figures"), overwrite = TRUE))
+invisible(file.copy(file.path(out_dir, c("gllvm_model_comparison.csv",
+                                         "gllvm_perOTU_season_coef.csv",
+                                         "genus_table_season.csv")),
+                    file.path(SUPP_DIR, "tables"), overwrite = TRUE))
+message("Staged H1 GLLVM figures/tables into Supplementary/figures|tables")
 
 
 # #############################################################################

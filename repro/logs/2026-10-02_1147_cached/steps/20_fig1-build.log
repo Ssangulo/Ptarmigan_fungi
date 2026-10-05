@@ -1,0 +1,24 @@
+# 20_fig1-build
+# cmd: bash -c cd '/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary' && conda run --no-capture-output -n r_env Rscript build_main_figure.R fig1-build
+# started 2026-10-02T12:43:42+02:00
+Running chunk 'fig1-build' (191 lines) from Supplementary_Appendix.qmd
+
+Top 9 genera (mean per-sample read share, %):
+             Thelebolus            Sporormiella             Coniochaeta 
+                  15.08                    6.88                    5.16 
+             Coleophoma                 Candida Myriangiales (unclass.) 
+                   4.01                    3.19                    2.93 
+  Mrakiaceae (unclass.)              Bergerella                Venturia 
+                   1.98                    1.85                    1.30 
+           Other genera   Unassigned (no genus) 
+                  16.35                   41.26 
+
+Guild read share by season (mean %) and BH q:
+             Guild summer winter       q
+   Dung saprotroph   51.5   13.6 0.01160
+  Plant-associated   18.0   23.4 0.02460
+        Pathotroph    4.7    5.8 0.00142
+    Other assigned    4.8    6.0 0.55200
+ Unassigned / dark   21.0   51.1 0.00142
+
+Done.

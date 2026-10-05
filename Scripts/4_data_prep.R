@@ -50,6 +50,10 @@ library(tidyr)
 # =============================================================================
 
 setwd("/home/daniel/Ptarmigan/trimmed/mergedPlates/")
+# Inputs are read from here. Outputs are written here too unless S4_OUT_DIR is
+# set (e.g. an isolated reproducibility run, see repro/run_repro.sh), in which
+# case every file this script writes goes to S4_OUT_DIR instead. Inlined as
+# Sys.getenv() calls so no extra object ends up in eco_analysis.RData.
 
 # Primary analysis objects: PCR-collapsed (summed), NO rg2 filter,
 # taxonomy-annotated (minBoot=80). Built in 2_DADA2_lulu.R Section 5
@@ -272,7 +276,7 @@ taxa_ps_list <- list(nopool = nopoolps.dada2, pool = poolps.dada2, pspool = pspo
 
 cat("PlutoF export — taxonomy-unresolved OTUs (no Phylum OR Phylum but no Class):\n")
 unresolved_export_report <- dplyr::bind_rows(lapply(names(taxa_ps_list), function(nm) {
-  export_unresolved_fasta(taxa_ps_list[[nm]], nm)
+  export_unresolved_fasta(taxa_ps_list[[nm]], nm, out_dir = Sys.getenv("S4_OUT_DIR", "."))
 }))
 print(unresolved_export_report)
 
@@ -533,8 +537,8 @@ nonfungal_summary <- audit_tbl |>
     taxa_fungal, reads_fungal, pct_reads_fungal
   )
 
-write.csv(nonfungal_summary,   "nonfungal_reads_summary.csv",       row.names=FALSE)
-write.csv(kingdom_breakdown,   "nonfungal_kingdom_breakdown.csv",   row.names=FALSE)
+write.csv(nonfungal_summary,   file.path(Sys.getenv("S4_OUT_DIR", "."), "nonfungal_reads_summary.csv"),     row.names=FALSE)
+write.csv(kingdom_breakdown,   file.path(Sys.getenv("S4_OUT_DIR", "."), "nonfungal_kingdom_breakdown.csv"), row.names=FALSE)
 cat("\nNon-fungal reads summary:\n")
 print(nonfungal_summary)
 
@@ -697,7 +701,7 @@ comparison_tbl <- dplyr::bind_rows(
   step_final_full
 )
 
-write.csv(comparison_tbl, "phyloseq_comparison_summary.csv", row.names=FALSE)
+write.csv(comparison_tbl, file.path(Sys.getenv("S4_OUT_DIR", "."), "phyloseq_comparison_summary.csv"), row.names=FALSE)
 cat("\nPhyloseq comparison summary (all steps x all strategies):\n")
 print(comparison_tbl)
 
@@ -731,15 +735,15 @@ print(comparison_tbl)
 # Pool and pspool kept for sensitivity comparisons.
 # =============================================================================
 
-save.image(file="eco_analysis.RData")
+save.image(file=file.path(Sys.getenv("S4_OUT_DIR", "."), "eco_analysis.RData"))
 cat("\nWorkspace saved to eco_analysis.RData\n")
 cat("Load with: load('eco_analysis.RData')\n")
 cat("\nNext step: 5_community_composition.R\n")
 
 #SAVED OBJECTS IN WORKSPACE
 
-funguild_otu
-fungaltraits_otu
+# funguild_otu
+# fungaltraits_otu
 
 
 

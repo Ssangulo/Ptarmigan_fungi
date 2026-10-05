@@ -1,0 +1,141 @@
+# 07_script7
+# cmd: env S7_OUT_ROOT=/home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1147_cached S7_SUPP_DIR=/home/daniel/Ptarmigan/Scripts_server/.worktrees/repro-audit/Supplementary conda run --no-capture-output -n r_env Rscript /home/daniel/Ptarmigan/repro_sandbox/2026-10-02_1147_cached/frozen/7_gllvm.R
+# started 2026-10-02T12:34:53+02:00
+Loading required package: TMB
+
+Attaching package: ‘gllvm’
+
+The following object is masked from ‘package:stats’:
+
+    simulate
+
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+PCR replicates per Season:
+
+winter summer 
+    60     54 
+Samples (pcr_replicate_id) per Season:
+
+winter summer 
+    30     27 
+Individuals (incl. unidentified singletons): 52
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+      4   40879  131546  164619  286160  637374 
+Adopted saved fits' response: 114 rows x 327 OTUs; offset + design recovered from backup (libsize 4-637374).
+                                             model      object        logLik
+1                   Poisson (num.lv=0, PCR-rep RE) fit_poisson -1.400869e+09
+2 Negative binomial (num.lv=1, indiv + PCR-rep RE)    fit_nb_2 -2.731433e+04
+3 Negative binomial (num.lv=2, indiv + PCR-rep RE)  fit_nb_2_2 -2.662681e+04
+           AIC         dAIC
+1 2.801739e+09 2.801682e+09
+2 5.724865e+04 7.230262e+02
+3 5.652562e+04 0.000000e+00
+Warning messages:
+1: In plot.xy(xy.coords(x, y), type = type, ...) :
+  supplied color is neither numeric nor character
+2: In plot.xy(xy.coords(x, y), type = type, ...) :
+  supplied color is neither numeric nor character
+pdf 
+  2 
+Per-OTU Season coefficients: 327 OTUs, 209 significant at BH q<0.05 (166 up in summer, 43 up in winter); 134 flagged near-separated
+Warning message:
+`geom_errorbarh()` was deprecated in ggplot2 4.0.0.
+ℹ Please use the `orientation` argument of `geom_errorbar()` instead. 
+`height` was translated to `width`.
+pdf 
+  2 
+# A tibble: 10 × 7
+   Order           Genus n_OTUs mean_beta_season q90_beta_season max_beta_season
+   <chr>           <chr>  <int>            <dbl>           <dbl>           <dbl>
+ 1 Pleosporales    Spor…      7           85.5             387.            743. 
+ 2 Filobasidiales  Pisk…     17          149.              346.            756. 
+ 3 Kriegeriales    Phen…      7           79.6             193.            328. 
+ 4 Candelariales   Pycn…      5           50.6             140.            211. 
+ 5 Tremellales     Vish…      6           41.8             131.            169. 
+ 6 Cystofilobasid… Mrak…      5           -0.387           106.            127. 
+ 7 Venturiales     Vent…      7           37.8              75.9           131. 
+ 8 Malasseziales   Mala…      5          -48.2              61.9           103. 
+ 9 Exobasidiales   Exob…      7           11.2              32.1            44.4
+10 Phaeomoniellal… Para…      5          -68.7              20.0            25.6
+# ℹ 1 more variable: wmean_beta_season <dbl>
+# A tibble: 15 × 6
+   Order               n_OTUs median_beta_season q90_beta_season max_beta_season
+   <chr>                <int>              <dbl>           <dbl>           <dbl>
+ 1 Pleosporales             8             16.7             744.            746. 
+ 2 Filobasidiales          27             42.5             387.            765. 
+ 3 Cystofilobasidiales      8             63.8             292.            319. 
+ 4 Helotiales               9             27.5             208.            225. 
+ 5 Kriegeriales             7             37.1             193.            328. 
+ 6 Tremellales              9             20.8             183.            238. 
+ 7 Microbotryomycetes…      5            137.              167.            178. 
+ 8 Candelariales            5             11.3             140.            211. 
+ 9 Cantharellales           6             38.3             119.            150. 
+10 Venturiales              8             31.1              66.7           131. 
+11 Malasseziales            5            -36.0              61.9           103. 
+12 Hypocreales              6             -4.92             44.6            45.7
+13 Mycosphaerellales        6              0.873            41.9            56.4
+14 Exobasidiales            7              3.48             32.1            44.4
+15 Phaeomoniellales         6             -3.38             18.5            25.6
+# ℹ 1 more variable: wmean_beta_season <dbl>
+# A tibble: 20 × 13
+   Order              Genus n_OTUs total_w_abund mean_w_abund median_beta_season
+   <chr>              <chr>  <int>         <dbl>        <dbl>              <dbl>
+ 1 Filobasidiales     Goff…      2         21925       10962.             572.  
+ 2 Cystofilobasidial… Mrak…      5         38284        7657.              53.0 
+ 3 Cantharellales     Cera…      2        209962      104981               79.3 
+ 4 Kriegeriales       Phen…      7        200896       28699.              37.1 
+ 5 Filobasidiales     Pisk…     17         56581        3328.              52.9 
+ 6 Venturiales        Vent…      7        291031       41576.              31.1 
+ 7 Coniochaetales     Coni…      1       1153941     1153941               17.3 
+ 8 Cantharellales     Sist…      3         73760       24587.               5.80
+ 9 Mycosphaerellales  Meri…      4        135405       33851.              16.2 
+10 Exobasidiales      Exob…      7         28896        4128                3.48
+11 Thelebolales       Thel…      2       3715780     1857890                5.51
+12 Hypocreales        Tric…      2         25219       12610.              24.0 
+13 Helotiales         Cole…      2        424053      212026.               9.45
+14 Candelariales      Pycn…      5         22941        4588.              11.3 
+15 Dothideales        Aure…      2         70657       35328.              -5.49
+16 Saccharomycetales  Cand…      2        280642      140321             -103.  
+17 Lichenostigmatales Anta…      1         31075       31075               -6.13
+18 Capnodiales        Peru…      2         33474       16737               -4.77
+19 Phaeomoniellales   Para…      5         86734       17347.              -8.80
+20 Lecanorales        Mela…      3         26888        8963.             -10.1 
+# ℹ 7 more variables: mean_beta_season <dbl>, q90_beta_season <dbl>,
+#   max_beta_season <dbl>, w_median_beta_season <dbl>,
+#   w_mean_beta_season <dbl>, perc_enriched_season <dbl>,
+#   perc_enriched_season_w <dbl>
+`height` was translated to `width`.
+Warning messages:
+1: In RColorBrewer::brewer.pal(n, pal) :
+  n too large, allowed maximum for palette Dark2 is 8
+Returning the palette you asked for with that many colors
+
+2: Removed 4 rows containing missing values or values outside the scale range
+(`geom_point()`). 
+`height` was translated to `width`.
+Warning messages:
+1: In RColorBrewer::brewer.pal(n, pal) :
+  n too large, allowed maximum for palette Dark2 is 8
+Returning the palette you asked for with that many colors
+
+2: Removed 4 rows containing missing values or values outside the scale range
+(`geom_point()`). 
+Staged H1 GLLVM figures/tables into Supplementary/figures|tables
+H3 GLLVM matched subset: 30 biological samples (60 PCR-rep rows); 46 OTUs (present in >=5 samples).
+H3 GLLVM plant predictors: Betula_sp, Vaccinium_myrtillus, Vaccinium_uliginosum, Empetrum_nigrum (condition number 4.14)
+H3 GLLVM: num.lv=0 is AIC-preferred among the plant models (conv=TRUE). Plant vs null (Season+Year only): dAIC=-219.8 -- plant predictors improve fit.
+H3 GLLVM per-OTU slopes: 46 OTUs, 15 flagged near-separated (31 retained for specificity).
+H3 GLLVM contrast (FUNGuild primary): copro n=6 spec=0.344 vs plant-assoc n=8 spec=0.327; Wilcoxon(copro<plant) p=0.793; propagated P(copro more diffuse)=0.391
+H3 GLLVM verdict: 22/31 retained OTUs show a resolved single-plant association (90% Wald CI of the dominant-plant slope excludes 0).
+H3 GLLVM vs brms: 8 of 10 Bayesian-resolved deviations have the same GLLVM sign; 6 have a GLLVM 95% CI excluding 0.
+Staged H3 GLLVM figures/tables into Supplementary/figures|tables
