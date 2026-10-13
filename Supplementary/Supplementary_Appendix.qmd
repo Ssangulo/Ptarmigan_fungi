@@ -167,7 +167,7 @@ All downstream analyses draw on a small set of canonical phyloseq objects produc
 # Output : eco_analysis.RData (alldat, alldat.rfy, alldat_full, alldat_rg2_sensitivity;
 #            kept outside the repository with the other large data objects)
 #          phyloseq_comparison_summary.csv (read by the Section 2.2 build chunk)
-# Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/4_data_prep.R
+# Run    : (from the repository root) conda run -n r_env Rscript Scripts/4_data_prep.R
 #          < 1 min
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -437,7 +437,7 @@ Per-sample relative read abundance at four taxonomic ranks, with samples grouped
 #          figures/class_barplot_ordered_season.png
 #          figures/genus_barplot_ordered_season.png
 #          figures/phylum_barplot_ordered_season.png
-# Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/5_community_composition.R
+# Run    : (from the repository root) conda run -n r_env Rscript Scripts/5_community_composition.R
 #          < 1 min
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -648,7 +648,7 @@ kable(w_disp, digits = 1,
 #          tables/E1_SH_readshare_by_sample.csv
 #          tables/E1_winter_dominant_dark_taxa_SH.csv
 #          tables/dark_taxa_SH_matching.csv
-# Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/9_dark_taxa_SH_matching.R
+# Run    : (from the repository root) conda run -n r_env Rscript Scripts/9_dark_taxa_SH_matching.R
 #          < 1 min (container output reused)
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -1256,7 +1256,7 @@ Summer's dominance is driven by three strongly season-skewed OTUs: **OTU1 (*Thel
 #          tables/H2_lmm_season_effect.csv
 #          tables/H2_season_effect_family_sensitivity.csv
 #          tables/H2_season_effect_per_sample.csv
-# Run    : (from Scripts_server/) S6_STOP_AFTER=H2 conda run -n r_env Rscript Scripts/6_diversity_analyses.R
+# Run    : (from the repository root) S6_STOP_AFTER=H2 conda run -n r_env Rscript Scripts/6_diversity_analyses.R
 #          ~5 min (S6_STOP_AFTER=H2 stops after Section 2; the full script incl. Part B takes ~45 min)
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -1500,7 +1500,7 @@ gt %>% transmute(Order, Genus, n_OTUs,
 #          tables/genus_table_season.csv
 #          tables/gllvm_model_comparison.csv
 #          tables/gllvm_perOTU_season_coef.csv
-# Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/7_gllvm.R
+# Run    : (from the repository root) conda run -n r_env Rscript Scripts/7_gllvm.R
 #          ~1 min with the saved fits
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -1621,7 +1621,7 @@ kable(rb,
 #          tables/H2_mechanism_model_comparison.csv
 #          tables/H2_mechanism_robustness.csv
 #          tables/H2_mechanism_sensitivity.csv
-# Run    : (from Scripts_server/) S6_STOP_AFTER=H2MECH conda run -n r_env Rscript Scripts/6_diversity_analyses.R
+# Run    : (from the repository root) S6_STOP_AFTER=H2MECH conda run -n r_env Rscript Scripts/6_diversity_analyses.R
 #          ~10 min with the cached brms fits
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -1744,7 +1744,7 @@ kable(data.frame(Part = sg$part, Comparison = sg$comparison,
 #          tables/H3_species_vs_genus.csv
 #          tables/H3_specificity_contrast.csv
 #          tables/H3_specificity_index.csv
-# Run    : (from Scripts_server/) S6_STOP_AFTER=H3 conda run -n r_env Rscript Scripts/6_diversity_analyses.R
+# Run    : (from the repository root) S6_STOP_AFTER=H3 conda run -n r_env Rscript Scripts/6_diversity_analyses.R
 #          ~15 min with the cached brms fits (Sections 1-3c)
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -1863,7 +1863,7 @@ kable(data.frame(
 #          tables/gllvm_H3_specificity_index.csv
 #          tables/gllvm_H3_vs_brms_by_plant.csv
 #          tables/gllvm_H3_vs_brms_resolved.csv
-# Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/7_gllvm.R
+# Run    : (from the repository root) conda run -n r_env Rscript Scripts/7_gllvm.R
 #          ~1 min with the cached GLLVM fits (runs Sections 1-8)
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -1979,7 +1979,7 @@ Panel C of Figure S-GUILDa and Table S-GUILDc show the same ordering in every ye
 #          tables/guild_scheme_crosswalk.csv
 #          tables/guild_season_readshare.csv
 #          tables/guild_season_year_readshare.csv
-# Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/8_functional_guilds.R
+# Run    : (from the repository root) conda run -n r_env Rscript Scripts/8_functional_guilds.R
 #          < 1 min
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -2360,7 +2360,7 @@ The explanatory fit is moderate (community-mean R² ≈ 0.29 for the headline ab
 #          tables/hmsc_season_by_lineage.csv
 #          tables/hmsc_variance_partition.csv
 #          tables/hmsc_vs_gllvm_season.csv
-# Run    : (from Scripts_server/) OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 HMSC_BLAS_THREADS=4 HMSC_NPARALLEL=4 \
+# Run    : (from the repository root) OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 HMSC_BLAS_THREADS=4 HMSC_NPARALLEL=4 \
 #          HMSC_RUN_PHYLO=1 HMSC_RUN_CV=0 conda run -n r_env Rscript Scripts/10_hmsc.R
 #          ~6 min with the cached fits; cold: ~5.5 h fits + ~2.5 h CV + ~5.7 h phylogeny
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
@@ -2376,7 +2376,7 @@ The explanatory fit is moderate (community-mean R² ≈ 0.29 for the headline ab
 # Input  : models/hmsc_v2/hmsc_clr_fit_diag.rds (saved diagnostics of the superseded fit;
 #            historical, not regenerable from the current scripts)
 # Output : tables/hmsc_v1_chain_disagreement.csv
-# Run    : (from Scripts_server/) conda run -n r_env Rscript model_development/hmsc_convergence/04_v1_disagreement_table.R
+# Run    : (from the repository root) conda run -n r_env Rscript model_development/hmsc_convergence/04_v1_disagreement_table.R
 #          seconds
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```

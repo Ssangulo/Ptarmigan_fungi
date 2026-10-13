@@ -121,7 +121,7 @@ supp_tab <- file.path(SUPP_DIR, "tables")
 for (d in c(out_dir, plot_dir, tab_dir)) dir.create(d, showWarnings = FALSE, recursive = TRUE)
 cat("Outputs ->", OUT_ROOT, "| staging ->", SUPP_DIR, "\n")
 
-# Headless plotting (see CLAUDE.md): a standing null device removes R's X11
+# Headless plotting (the analysis server has no display): a standing null device removes R's X11
 # fallback for ANY base-graphics call (corrplot / Hmsc plots included). ggplot
 # figures go through save_png(); base-graphics figures use raw png()/dev.off().
 grDevices::pdf(NULL)

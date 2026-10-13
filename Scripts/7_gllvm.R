@@ -83,7 +83,7 @@ model_dir <- "/home/daniel/Ptarmigan/models"
 dir.create(out_dir,  showWarnings = FALSE, recursive = TRUE)
 dir.create(plot_dir, showWarnings = FALSE, recursive = TRUE)
 
-# Headless plotting convention (see CLAUDE.md): a standing null device removes
+# Headless plotting convention (the server has no display): a standing null device removes
 # R's X11 fallback for ANY base-graphics call (gllvm's plot()/ordiplot()
 # included); every figure is then written through an explicit png() device.
 grDevices::pdf(NULL)
@@ -649,7 +649,7 @@ otu_mat_of <- function(ps) { m <- as(otu_table(ps), "matrix"); if (taxa_are_rows
 load("eco_analysis.RData", envir = .h3_env)
 if (!("funguild_otu" %in% ls(.h3_env)))
   stop("funguild_otu not found in eco_analysis.RData -- a script-4 re-run wipes it. ",
-       "Restore it first (see scratchpad/restore_funguild.R / CLAUDE.md 2026-07-14) before running Section 8.")
+       "Restore it first by re-running 8_functional_guilds.R (its Section 2d rebuilds it) before running Section 8.")
 alldat_full_h3 <- .h3_env$alldat_full
 alldat_h3      <- .h3_env$alldat
 funguild_otu   <- .h3_env$funguild_otu

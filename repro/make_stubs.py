@@ -143,7 +143,7 @@ def stub_text(s, run_id):
         L.append(("# Input  : " if i == 0 else "#          ") + x)
     for i, x in enumerate(files):
         L.append(("# Output : " if i == 0 else "#          ") + x)
-    L.append(f"# Run    : (from Scripts_server/) {s['run']}")
+    L.append(f"# Run    : (from the repository root) {s['run']}")
     L.append(f"#          {s['runtime']}")
     if run_id:
         L.append(f"# Checked: repro/logs/{run_id}/summary.md")

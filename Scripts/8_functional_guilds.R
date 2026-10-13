@@ -33,7 +33,7 @@ suppressPackageStartupMessages({
 setwd("/home/daniel/Ptarmigan/trimmed/mergedPlates/")
 loaded_objs <- load("eco_analysis.RData")
 
-# ---- Canonical output dirs (absolute; see CLAUDE.md plotting convention) -----
+# ---- Canonical output dirs (absolute paths on the analysis server) ------------
 # S8_OUT_ROOT / S8_SUPP_DIR redirect everything this script WRITES (same pattern
 # as 6_diversity_analyses.R's S6_OUT_ROOT / S6_SUPP_DIR); defaults unchanged.
 # With S8_OUT_ROOT set, a Section 2d workspace restore is also written there
@@ -268,7 +268,7 @@ cat("fungaltraits_otu (rebuilt):", nrow(fungaltraits_otu_rebuilt), "genus-assign
 # SECTION 2d -- NON-DESTRUCTIVE PERSISTENCE INTO THE CANONICAL WORKSPACE
 # =============================================================================
 # Re-running 4_data_prep.R regenerates eco_analysis.RData from scratch and WIPES
-# funguild_otu / fungaltraits_otu (see CLAUDE.md). This block is the restore
+# funguild_otu / fungaltraits_otu. This block is the restore
 # path. It is deliberately conservative:
 #   missing    -> rebuild and save (restore)
 #   identical  -> skip the save entirely (no needless workspace rewrite)

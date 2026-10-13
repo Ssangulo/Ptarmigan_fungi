@@ -17,7 +17,7 @@
 #   alldat, alldat.rfy, alldat_full  (each: list nopool/pool/pspool)
 # Requires: /home/daniel/Ptarmigan/plant_ITS/phyloseq_plant_ITS.rds
 #   (plant ITS2 phyloseq, samples keyed by Sample_ID_field / RL_#### -- see
-#   4_data_prep.R / CLAUDE.md for the join-key gotcha: raw RL_#### string,
+#   4_data_prep.R for the join key: the raw RL_#### string,
 #   no suffix stripping)
 #
 # nopool is the primary strategy throughout (matches scripts 4/5/7).
@@ -589,7 +589,7 @@ if (Sys.getenv("S6_STOP_AFTER") == "H2") quit(save = "no", status = 0)
 # Matched = canonical fungal samples (ps_rar_sample, PCR-collapsed raw counts;
 # only sample identity and metadata are taken from it here)
 # that also have a plant ITS2 sample, joined on the raw Sample_ID_field key
-# (RL_####, no suffix stripping -- see 4_data_prep.R / CLAUDE.md gotcha).
+# (RL_####, no suffix stripping -- see 4_data_prep.R).
 # This is the literal "matched subset" of the preregistration (~31 samples
 # per the project design note); it does NOT additionally require
 # microsatellite-confirmed species ID.
@@ -1133,7 +1133,7 @@ h3_long <- function(pg_z) {
 # parts (regularising); per-OTU intercept / Season / Year SDs in the count part
 # widened to student_t(3,0,2.5) so season-exclusive OTUs are reachable; other
 # hu SDs keep brms defaults. Sampler as validated in the production run.
-# GOTCHA (CLAUDE.md): brms file= caches the fit -- delete/rename the cached .rds
+# GOTCHA: brms file= caches the fit -- delete/rename the cached .rds
 # after any change to formula, priors or data, or it silently reloads.
 library(brms)
 fit_h3 <- function(level) {
