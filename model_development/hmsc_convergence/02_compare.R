@@ -1,9 +1,9 @@
 # =============================================================================
-# hmsc_converge/02_compare.R  (branch exp/hmsc-converge -- experimental)
+# model_development/hmsc_convergence/02_compare.R  (branch exp/hmsc-converge -- experimental)
 # Summarise one new fit in the SAME table schema Figure 5 / appendix Section 9
 # read, and compare it with the canonical fits.
 #
-# Usage: conda run -n r_env Rscript hmsc_converge/02_compare.R <tag>
+# Usage: conda run -n r_env Rscript model_development/hmsc_convergence/02_compare.R <tag>
 #   e.g. tag = prod_A_thin50  (reads models/hmsc_v2/<tag>.rds + <tag>_meta.rds)
 # Writes models/hmsc_v2/<tag>_tables/{hmsc_beta_season, hmsc_variance_partition,
 #   hmsc_convergence_psrf, hmsc_gamma_CrI, hmsc_predictive_R2_summary}.csv

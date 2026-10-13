@@ -1,5 +1,5 @@
 # =============================================================================
-# hmsc_converge/03_fig5_draft.R  (branch exp/hmsc-converge -- experimental)
+# model_development/hmsc_convergence/03_fig5_draft.R  (branch exp/hmsc-converge -- experimental)
 # Draft Figure 3 (the HMSC figure; Figure 5 before the 2026-09-30 renumber) from a new fit WITHOUT copying or editing the figure code: the
 # fig3-build chunk is read from main's Supplementary_Appendix.qmd, its input
 # (tab_dir) and output (out_dir) are repointed at models|plots/hmsc_v2, and its
@@ -7,7 +7,7 @@
 # printed list of exactly which quoted numbers the new model moves.
 #
 # Usage (run from anywhere):
-#   conda run -n r_env Rscript hmsc_converge/03_fig5_draft.R <tag>
+#   conda run -n r_env Rscript model_development/hmsc_convergence/03_fig5_draft.R <tag>
 # Needs 02_compare.R to have written models/hmsc_v2/<tag>_tables/ first.
 # Writes plots/hmsc_v2/<tag>_Fig5_draft.{png,jpg,pdf} + <tag>_fig5_console.txt
 # =============================================================================

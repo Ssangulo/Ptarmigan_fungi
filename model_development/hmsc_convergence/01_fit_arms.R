@@ -1,5 +1,5 @@
 # =============================================================================
-# hmsc_converge/01_fit_arms.R  (branch exp/hmsc-converge -- experimental)
+# model_development/hmsc_convergence/01_fit_arms.R  (branch exp/hmsc-converge -- experimental)
 # Fit one HMSC abundance "arm" for the convergence study. Data assembly and the
 # guild rule are copied VERBATIM from Scripts/10_hmsc.R Sections 1-2; only the
 # response transform, prevalence filter and random-level priors differ by arm.
@@ -19,7 +19,7 @@
 # YScale = TRUE in every arm.
 #
 # Run: HMSC_ARM=A HMSC_RUN_MODE=pilot OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
-#        conda run -n r_env Rscript hmsc_converge/01_fit_arms.R
+#        conda run -n r_env Rscript model_development/hmsc_convergence/01_fit_arms.R
 # Outputs ONLY to models/hmsc_v2/ -- never touches the canonical hmsc_* caches.
 # =============================================================================
 

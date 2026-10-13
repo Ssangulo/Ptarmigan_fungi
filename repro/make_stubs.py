@@ -112,12 +112,12 @@ STUBS = [
          run="OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 HMSC_BLAS_THREADS=4 HMSC_NPARALLEL=4 \\\n#          HMSC_RUN_PHYLO=1 HMSC_RUN_CV=0 conda run -n r_env Rscript Scripts/10_hmsc.R",
          runtime="~6 min with the cached fits; cold: ~5.5 h fits + ~2.5 h CV + ~5.7 h phylogeny",
          anchor="#### Documentation notes — Section 9", section_filter=None),
-    dict(id="sec9-v1", source="hmsc_converge/04_v1_disagreement_table.R",
-         summary="Source: hmsc_converge/04_v1_disagreement_table.R -- the superseded model's chain table",
+    dict(id="sec9-v1", source="model_development/hmsc_convergence/04_v1_disagreement_table.R",
+         summary="Source: model_development/hmsc_convergence/04_v1_disagreement_table.R -- the superseded model's chain table",
          what="whole script (Table S-HMSCb2: per-chain values of the superseded 2026-07-20 fit)",
          inputs=["models/hmsc_v2/hmsc_clr_fit_diag.rds (saved diagnostics of the superseded fit;",
                  "  historical, not regenerable from the current scripts)"],
-         run="conda run -n r_env Rscript hmsc_converge/04_v1_disagreement_table.R", runtime="seconds",
+         run="conda run -n r_env Rscript model_development/hmsc_convergence/04_v1_disagreement_table.R", runtime="seconds",
          anchor="#### Documentation notes — Section 9", section_filter=None),
 ]
 

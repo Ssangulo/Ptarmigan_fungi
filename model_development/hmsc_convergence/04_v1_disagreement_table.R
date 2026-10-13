@@ -1,5 +1,5 @@
 # =============================================================================
-# hmsc_converge/04_v1_disagreement_table.R  (branch exp/hmsc-converge)
+# model_development/hmsc_convergence/04_v1_disagreement_table.R  (branch exp/hmsc-converge)
 # One-off provenance table: how the four chains of the SUPERSEDED CLR HMSC
 # (fitted 2026-07-20, 7 sample + 5 PCR latent factors, uncapped) disagreed on
 # the quantities Figure 5 reported. Read from the saved diagnostics of that fit
@@ -7,7 +7,7 @@
 # so the ~200 MB fit need not be reloaded.
 #
 # Writes Supplementary/tables/hmsc_v1_chain_disagreement.csv (this worktree).
-# Run from the worktree root: conda run -n r_env Rscript hmsc_converge/04_v1_disagreement_table.R
+# Run from the repository root: conda run -n r_env Rscript model_development/hmsc_convergence/04_v1_disagreement_table.R
 # =============================================================================
 
 d <- readRDS("/home/daniel/Ptarmigan/models/hmsc_v2/hmsc_clr_fit_diag.rds")

@@ -4,7 +4,7 @@
 #
 # manifest.csv columns
 #   file         path relative to Supplementary/ (tables/x.csv, figures/y.png)
-#   producer     Scripts/N_*.R | qmd:<chunk-label> | hmsc_converge/04_*.R
+#   producer     Scripts/N_*.R | qmd:<chunk-label> | model_development/hmsc_convergence/04_*.R
 #   where        script section / chunk part that writes it (free text)
 #   sections     appendix section(s) that show it ("-" if not shown)
 #   role         shown | input (read only by a build chunk) | unused (tracked, not referenced)

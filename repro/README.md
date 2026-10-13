@@ -38,14 +38,14 @@ run's PID is in `repro/logs/<RUN_ID>/run.pid` (`kill -- -<PID>` stops it and its
    and stages its appendix files into **this checkout's** `Supplementary/`.
    Scripts run from frozen copies, because `Rscript` reads a file incrementally.
 4. Runs the appendix build chunks (`sec2/4/5-build`, `fig1`-`fig5-build`) with
-   `Supplementary/build_main_figure.R`, and `hmsc_converge/04_v1_disagreement_table.R`.
+   `Supplementary/build_main_figure.R`, and `model_development/hmsc_convergence/04_v1_disagreement_table.R`.
 5. Renders both appendix profiles, greps for stray `:::` fences, and checks that
    no pointer chunk sits inside a docs-only block.
 6. Runs the checks below.
 
 The canonical `~/Ptarmigan/models|plots|tables` and `eco_analysis.RData` are only
 ever **read**. Because everything is staged into the checkout, the run refuses to
-start unless `Supplementary/`, `Scripts/` and `hmsc_converge/` are committed, and
+start unless `Supplementary/`, `Scripts/` and `model_development/` are committed, and
 `git diff` afterwards shows exactly what the run changed.
 
 ## The checks
@@ -60,7 +60,7 @@ start unless `Supplementary/`, `Scripts/` and `hmsc_converge/` are committed, an
 ## Files you edit
 
 - **`manifest.csv`**: one row per file under `Supplementary/tables|figures`. It names
-  the producer (`Scripts/N_*.R`, `qmd:<chunk>` or `hmsc_converge/04_*.R`), the script
+  the producer (`Scripts/N_*.R`, `qmd:<chunk>` or `model_development/hmsc_convergence/04_*.R`), the script
   section, the appendix section and the role (`shown`, `input` = read only by a build
   chunk, `unused`, `deliverable`). A non-empty `exception` marks a documented
   reproducibility exception (reported as EXCEPTION rather than FAIL when the file

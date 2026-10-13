@@ -736,7 +736,7 @@ dev.off()
 #   (1) b_h2        : Season-adjusted, Year fixed -- primary (fitted above)
 #   (2) b_h2_noyear : Season only (Year dropped)  -- less-conservative variant
 # plus a small family-choice table recording why Gamma replaced the Gaussian
-# used until 2026-09 (pilot evidence: brms_refit/MEMO_brms_refit.md).
+# used until 2026-09 (pilot evidence: model_development/brms_refit/README.md).
 # =============================================================================
 
 # ---- (2) Drop-Year model ----------------------------------------------------
@@ -984,8 +984,8 @@ if (Sys.getenv("S6_STOP_AFTER") == "H2MECH") quit(save = "no", status = 0)
 # DIFFUSELY. Inference is forward-directional only -- a diffuse/absent
 # association is never read as evidence of residency.
 #
-# REBUILT 2026-10-01 (branch exp/brms-refit; evidence in brms_refit/
-# MEMO_brms_refit.md). The previous version had three structural problems that
+# REBUILT 2026-10-01 (branch exp/brms-refit; evidence in
+# model_development/brms_refit/README.md). The previous version had three structural problems that
 # no amount of sampling fixes:
 #   (1) its six plant predictors (decostand "rclr") were EXACTLY rank 3 --
 #       vegan imputes zeros by rank-3 matrix completion -- so half of each OTU's
@@ -1074,7 +1074,7 @@ cat(sprintf("\nH3 matched subset: %d biological samples (%d PCR-rep rows); %d OT
 # the result does not depend on plant read depth), CLR-transformed over the
 # WHOLE diet composition, and the chosen columns z-scored. Unlike
 # decostand("rclr") this is full rank (asserted). Predictors correlate >= 0.98
-# across zero shares 0.01%-0.5% (brms_refit/MEMO_brms_refit.md).
+# across zero shares 0.01%-0.5% (model_development/brms_refit/README.md).
 field_ids <- unique(md_f$Sample_ID_field)
 plant_m <- prune_samples(field_ids, plant)
 plant_m <- prune_taxa(taxa_sums(plant_m) > 0, plant_m)

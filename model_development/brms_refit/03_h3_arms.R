@@ -1,5 +1,5 @@
 # =============================================================================
-# brms_refit/03_h3_arms.R  (branch exp/brms-refit -- experimental)
+# model_development/brms_refit/03_h3_arms.R  (branch exp/brms-refit -- experimental)
 # Fit and score ONE H3 arm. Data build and scoring come from 02_h3_data.R.
 #
 #   H3_ARM    L1 : negbinomial, one shape            (current likelihood)
@@ -27,7 +27,7 @@
 #
 # Run: H3_ARM=L1 H3_STRUCT=S H3_PRED=species H3_MODE=pilot \
 #      OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
-#        conda run -n r_env Rscript brms_refit/03_h3_arms.R
+#        conda run -n r_env Rscript model_development/brms_refit/03_h3_arms.R
 # Outputs ONLY to models/_brms_refit/ -- never touches the canonical H3 caches.
 # =============================================================================
 

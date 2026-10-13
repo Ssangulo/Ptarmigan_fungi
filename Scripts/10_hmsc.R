@@ -16,7 +16,7 @@
 # A secondary phylogeny-augmented variant reports rho (phylogenetic signal in
 # seasonal niches).
 #
-# MODEL STRUCTURE (revised 2026-09-29 -- see hmsc_converge/MEMO_hmsc_convergence.md
+# MODEL STRUCTURE (revised 2026-09-29 -- see model_development/hmsc_convergence/README.md
 # on branch exp/hmsc-converge for the full convergence study):
 #   HEADLINE  m_clr  : CLR abundance, AVERAGED over each dropping's PCR
 #                      replicates (55 rows), biological-sample latent level
