@@ -50,7 +50,7 @@ fi
 [[ "$MODE" == "cached" || "$MODE" == "cold" ]] || { echo "mode must be cached|cold|checks"; exit 2; }
 
 # -- refuse to start on a dirty tree (git diff must mean "this run changed it")
-dirty=$(git -C "$REPO" status --porcelain -- Supplementary Scripts hmsc_converge)
+dirty=$(git -C "$REPO" status --porcelain -- Supplementary Scripts model_development)
 if [[ -n "$dirty" && "${REPRO_ALLOW_DIRTY:-0}" != "1" ]]; then
   echo "Supplementary/ or Scripts/ has uncommitted changes -- commit or stash first:"
   echo "$dirty"; exit 2
@@ -145,7 +145,7 @@ fi
 for lab in sec2-build sec3-build sec4-build sec5-build fig1-build fig2-build fig3-build fig4-build fig5-build; do
   step "20_${lab}" bash -c "cd '$SUPP' && ${RSCRIPT[*]} build_main_figure.R $lab"
 done
-step 21_hmsc_v1_table bash -c "cd '$REPO' && ${RSCRIPT[*]} hmsc_converge/04_v1_disagreement_table.R"
+step 21_hmsc_v1_table bash -c "cd '$REPO' && ${RSCRIPT[*]} model_development/hmsc_convergence/04_v1_disagreement_table.R"
 
 # -- 6. render both profiles -------------------------------------------------------
 step 30_render_submission bash -c "cd '$SUPP' && conda run --no-capture-output -n r_env quarto render Supplementary_Appendix.qmd --to html"

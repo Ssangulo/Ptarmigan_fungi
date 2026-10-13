@@ -1,9 +1,9 @@
 # =============================================================================
-# hmsc_converge/00_diagnostics.R  (branch exp/hmsc-converge -- experimental)
+# model_development/hmsc_convergence/00_diagnostics.R  (branch exp/hmsc-converge -- experimental)
 # One convergence test applied identically to every HMSC fit. Packages the
 # per-chain checks that exposed the CLR fit's chain disagreement (2026-09-29).
 #
-# Usage: conda run -n r_env Rscript hmsc_converge/00_diagnostics.R <fit.rds> [meta.rds]
+# Usage: conda run -n r_env Rscript model_development/hmsc_convergence/00_diagnostics.R <fit.rds> [meta.rds]
 #   meta.rds (from 01_fit_arms.R) supplies count-based prevalence + guild; for
 #   the canonical fits (no meta) prevalence is read off the CLR row-minimum and
 #   guild from models/hmsc_otu_guild.csv.

@@ -167,7 +167,7 @@ All downstream analyses draw on a small set of canonical phyloseq objects produc
 # Output : eco_analysis.RData (alldat, alldat.rfy, alldat_full, alldat_rg2_sensitivity;
 #            kept outside the repository with the other large data objects)
 #          phyloseq_comparison_summary.csv (read by the Section 2.2 build chunk)
-# Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/4_data_prep.R
+# Run    : (from the repository root) conda run -n r_env Rscript Scripts/4_data_prep.R
 #          < 1 min
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -437,7 +437,7 @@ Per-sample relative read abundance at four taxonomic ranks, with samples grouped
 #          figures/class_barplot_ordered_season.png
 #          figures/genus_barplot_ordered_season.png
 #          figures/phylum_barplot_ordered_season.png
-# Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/5_community_composition.R
+# Run    : (from the repository root) conda run -n r_env Rscript Scripts/5_community_composition.R
 #          < 1 min
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -648,7 +648,7 @@ kable(w_disp, digits = 1,
 #          tables/E1_SH_readshare_by_sample.csv
 #          tables/E1_winter_dominant_dark_taxa_SH.csv
 #          tables/dark_taxa_SH_matching.csv
-# Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/9_dark_taxa_SH_matching.R
+# Run    : (from the repository root) conda run -n r_env Rscript Scripts/9_dark_taxa_SH_matching.R
 #          < 1 min (container output reused)
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -1256,7 +1256,7 @@ Summer's dominance is driven by three strongly season-skewed OTUs: **OTU1 (*Thel
 #          tables/H2_lmm_season_effect.csv
 #          tables/H2_season_effect_family_sensitivity.csv
 #          tables/H2_season_effect_per_sample.csv
-# Run    : (from Scripts_server/) S6_STOP_AFTER=H2 conda run -n r_env Rscript Scripts/6_diversity_analyses.R
+# Run    : (from the repository root) S6_STOP_AFTER=H2 conda run -n r_env Rscript Scripts/6_diversity_analyses.R
 #          ~5 min (S6_STOP_AFTER=H2 stops after Section 2; the full script incl. Part B takes ~45 min)
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -1500,7 +1500,7 @@ gt %>% transmute(Order, Genus, n_OTUs,
 #          tables/genus_table_season.csv
 #          tables/gllvm_model_comparison.csv
 #          tables/gllvm_perOTU_season_coef.csv
-# Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/7_gllvm.R
+# Run    : (from the repository root) conda run -n r_env Rscript Scripts/7_gllvm.R
 #          ~1 min with the saved fits
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -1555,7 +1555,7 @@ kable(data.frame(
   `PPC skewness p` = round(fc$ppc_p_skewness, 3),
   `ΔELPD vs primary (SE)` = sprintf("%.1f (%.1f)", fc$elpd_diff_vs_primary, fc$se_diff),
   check.names = FALSE),
-  caption = "Table S12b (documentation build). Family choice for the H2-mechanism model. Until 2026-09 the model was Gaussian on the z-scored Hill number; it fails the posterior-predictive skewness check (Bayesian p ≈ 0) and is outperformed by ≈ 13 ELPD (PSIS-LOO on the raw q1 scale). Gamma and lognormal fit equally well; Gamma was adopted because Table S9 already uses it. Source: 6_diversity_analyses.R Section 3b; pilot comparison of further families in brms_refit/MEMO_brms_refit.md.")
+  caption = "Table S12b (documentation build). Family choice for the H2-mechanism model. Until 2026-09 the model was Gaussian on the z-scored Hill number; it fails the posterior-predictive skewness check (Bayesian p ≈ 0) and is outperformed by ≈ 13 ELPD (PSIS-LOO on the raw q1 scale). Gamma and lognormal fit equally well; Gamma was adopted because Table S9 already uses it. Source: 6_diversity_analyses.R Section 3b; pilot comparison of further families in model_development/brms_refit/README.md.")
 ```
 ::::
 
@@ -1621,7 +1621,7 @@ kable(rb,
 #          tables/H2_mechanism_model_comparison.csv
 #          tables/H2_mechanism_robustness.csv
 #          tables/H2_mechanism_sensitivity.csv
-# Run    : (from Scripts_server/) S6_STOP_AFTER=H2MECH conda run -n r_env Rscript Scripts/6_diversity_analyses.R
+# Run    : (from the repository root) S6_STOP_AFTER=H2MECH conda run -n r_env Rscript Scripts/6_diversity_analyses.R
 #          ~10 min with the cached brms fits
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -1633,7 +1633,7 @@ Section 7.1 asked whether overall fungal diversity tracks overall diet richness.
 **Model.** We fit a single hierarchical hurdle negative-binomial model (brms) to the diet-matched subset. To retain as many matched samples as possible we use the PCR-replicate-level, minimally depth-filtered object (mirroring the GLLVM of Section 6) rather than the collapsed, 10,000-read-filtered object of Sections 4–5; this recovers three additional low-depth winter dung samples that carry paired plant data, raising the matched subset to **n = 30 biological samples (60 PCR-replicate libraries; 19 winter, 11 summer)**. Forty-six OTUs present in ≥5 of the 30 samples are modelled. The hurdle model has two parts: whether an OTU is detected in a library (**occurrence**) and how abundant it is when detected (**abundance given presence**). Both parts carry Season, Year and four diet-plant predictors, each with a community-wide coefficient and a per-OTU deviation (partial pooling); the abundance part also has a per-replicate log-library-size offset and a per-OTU biological-sample random effect, so the two PCR replicates of a sample are treated as replication rather than independent samples. The preregistered "individual" random effect is replaced by the sample effect for the same reason as in Section 7.1. The diet predictors are the four plant taxa present as ≥1% of diet reads in at least seven matched samples — *Betula* (resolved only to genus), *Vaccinium myrtillus*, *V. uliginosum* and *Empetrum nigrum* — each as a centred log-ratio of its share of the diet (zero reads set to 0.1% of the diet), standardised. Occurrence slopes are reported on the detection scale: positive means the OTU is detected more often as that plant rises in the diet. Because a slope shared by every OTU is not specificity, an OTU–plant association counts as **resolved** when the OTU's own deviation from the community-wide slope has a 95% credible interval excluding zero. Per-OTU specificity is summarised, separately for each part, by a Herfindahl–Hirschman index (HHI) of the \|plant slopes\| (0.25 if spread evenly across the four plants, 1 if concentrated on one), and the preregistered contrast compares it between FUNGuild-flagged coprophilous OTUs and plant-associated (endophyte/phyllosphere/plant-saprotroph) OTUs. The model converged cleanly (no divergent transitions, maximum R̂ = 1.004, minimum bulk ESS 1,034) and reproduces the observed mean count and the per-OTU fraction of zeros (r = 0.99 between observed and predicted); its negative-binomial tail predicts occasional counts above the largest library size.
 
 ::: {.content-visible when-profile="docs"}
-**What changed (2026-10-01, branch `exp/brms-refit`).** Until 2026-09 this section used a joint negative-binomial model with six plant genera transformed by `decostand("rclr")`, a single community-wide Season coefficient and one overdispersion parameter. Three problems surfaced: the rCLR imputes zeros by rank-3 matrix completion, so the six predictors were exactly rank 3 and half of each OTU's plant slopes were set by the prior; per-OTU seasonality leaked into the plant slopes (*Vaccinium* is the summer diet at this site, *Betula* the winter one); and the single negative-binomial shape (0.024) predicted mean counts about five times too high. A pilot of nine likelihood × structure variants found the hurdle model to be the only one that converged and reproduced the data (`brms_refit/MEMO_brms_refit.md`). The old model's single resolved association (*Thelebolus*–*Vaccinium*) does not survive the correction.
+**What changed (2026-10-01, branch `exp/brms-refit`).** Until 2026-09 this section used a joint negative-binomial model with six plant genera transformed by `decostand("rclr")`, a single community-wide Season coefficient and one overdispersion parameter. Three problems surfaced: the rCLR imputes zeros by rank-3 matrix completion, so the six predictors were exactly rank 3 and half of each OTU's plant slopes were set by the prior; per-OTU seasonality leaked into the plant slopes (*Vaccinium* is the summer diet at this site, *Betula* the winter one); and the single negative-binomial shape (0.024) predicted mean counts about five times too high. A pilot of nine likelihood × structure variants found the hurdle model to be the only one that converged and reproduced the data (`model_development/brms_refit/README.md`). The old model's single resolved association (*Thelebolus*–*Vaccinium*) does not survive the correction.
 :::
 
 ![](figures/H3_perOTU_plant_coef.png)
@@ -1744,7 +1744,7 @@ kable(data.frame(Part = sg$part, Comparison = sg$comparison,
 #          tables/H3_species_vs_genus.csv
 #          tables/H3_specificity_contrast.csv
 #          tables/H3_specificity_index.csv
-# Run    : (from Scripts_server/) S6_STOP_AFTER=H3 conda run -n r_env Rscript Scripts/6_diversity_analyses.R
+# Run    : (from the repository root) S6_STOP_AFTER=H3 conda run -n r_env Rscript Scripts/6_diversity_analyses.R
 #          ~15 min with the cached brms fits (Sections 1-3c)
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -1863,7 +1863,7 @@ kable(data.frame(
 #          tables/gllvm_H3_specificity_index.csv
 #          tables/gllvm_H3_vs_brms_by_plant.csv
 #          tables/gllvm_H3_vs_brms_resolved.csv
-# Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/7_gllvm.R
+# Run    : (from the repository root) conda run -n r_env Rscript Scripts/7_gllvm.R
 #          ~1 min with the cached GLLVM fits (runs Sections 1-8)
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -1979,7 +1979,7 @@ Panel C of Figure S-GUILDa and Table S-GUILDc show the same ordering in every ye
 #          tables/guild_scheme_crosswalk.csv
 #          tables/guild_season_readshare.csv
 #          tables/guild_season_year_readshare.csv
-# Run    : (from Scripts_server/) conda run -n r_env Rscript Scripts/8_functional_guilds.R
+# Run    : (from the repository root) conda run -n r_env Rscript Scripts/8_functional_guilds.R
 #          < 1 min
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
@@ -2360,7 +2360,7 @@ The explanatory fit is moderate (community-mean R² ≈ 0.29 for the headline ab
 #          tables/hmsc_season_by_lineage.csv
 #          tables/hmsc_variance_partition.csv
 #          tables/hmsc_vs_gllvm_season.csv
-# Run    : (from Scripts_server/) OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 HMSC_BLAS_THREADS=4 HMSC_NPARALLEL=4 \
+# Run    : (from the repository root) OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 HMSC_BLAS_THREADS=4 HMSC_NPARALLEL=4 \
 #          HMSC_RUN_PHYLO=1 HMSC_RUN_CV=0 conda run -n r_env Rscript Scripts/10_hmsc.R
 #          ~6 min with the cached fits; cold: ~5.5 h fits + ~2.5 h CV + ~5.7 h phylogeny
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
@@ -2370,13 +2370,13 @@ The explanatory fit is moderate (community-mean R² ≈ 0.29 for the headline ab
 #| eval: false
 #| echo: !expr knitr::is_html_output()
 #| code-fold: true
-#| code-summary: "Source: hmsc_converge/04_v1_disagreement_table.R -- the superseded model's chain table"
+#| code-summary: "Source: model_development/hmsc_convergence/04_v1_disagreement_table.R -- the superseded model's chain table"
 
-# Source : hmsc_converge/04_v1_disagreement_table.R, whole script (Table S-HMSCb2: per-chain values of the superseded 2026-07-20 fit)
+# Source : model_development/hmsc_convergence/04_v1_disagreement_table.R, whole script (Table S-HMSCb2: per-chain values of the superseded 2026-07-20 fit)
 # Input  : models/hmsc_v2/hmsc_clr_fit_diag.rds (saved diagnostics of the superseded fit;
 #            historical, not regenerable from the current scripts)
 # Output : tables/hmsc_v1_chain_disagreement.csv
-# Run    : (from Scripts_server/) conda run -n r_env Rscript hmsc_converge/04_v1_disagreement_table.R
+# Run    : (from the repository root) conda run -n r_env Rscript model_development/hmsc_convergence/04_v1_disagreement_table.R
 #          seconds
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```

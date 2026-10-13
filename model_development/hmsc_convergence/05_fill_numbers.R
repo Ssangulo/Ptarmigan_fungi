@@ -1,12 +1,12 @@
 # =============================================================================
-# hmsc_converge/05_fill_numbers.R  (branch exp/hmsc-converge -- one-off)
+# model_development/hmsc_convergence/05_fill_numbers.R  (branch exp/hmsc-converge -- one-off)
 # Replace the __TOKEN__ placeholders left in Supplementary_Appendix.qmd while
 # the revised HMSC was still running. Every value is computed here from the
 # STAGED tables (Supplementary/tables), with the same selection rule as the
 # fig3-build chunk, so prose, drift guards and figure share one source.
 # Tokens inside the fig3-build chunk get plain numbers (guards); tokens in
 # prose get formatted text. Refuses to write if any token is left unfilled.
-# Run from the worktree root: conda run -n r_env Rscript hmsc_converge/05_fill_numbers.R
+# Run from the repository root: conda run -n r_env Rscript model_development/hmsc_convergence/05_fill_numbers.R
 # =============================================================================
 
 qmd <- "Supplementary/Supplementary_Appendix.qmd"

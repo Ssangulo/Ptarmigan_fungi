@@ -1,5 +1,5 @@
 # =============================================================================
-# brms_refit/01_h2_arms.R  (branch exp/brms-refit -- experimental)
+# model_development/brms_refit/01_h2_arms.R  (branch exp/brms-refit -- experimental)
 # H2 mechanism (appendix 7.1): alternatives to the current brms model.
 # The model frame is script 6's own output (models/H2_diet_richness_matched_
 # data.csv); priors and sampler settings are copied VERBATIM from
@@ -17,7 +17,7 @@
 # each under  ~ plant_richness_z + Season + Year  (SY)  and  + Season  (S).
 #
 # Run: OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
-#        conda run -n r_env Rscript brms_refit/01_h2_arms.R
+#        conda run -n r_env Rscript model_development/brms_refit/01_h2_arms.R
 # Outputs ONLY to models/_brms_refit/ -- never touches the canonical H2 caches.
 # =============================================================================
 

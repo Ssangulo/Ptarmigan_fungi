@@ -1,10 +1,10 @@
 # =============================================================================
-# brms_refit/04_h3_compare.R  (branch exp/brms-refit -- experimental)
+# model_development/brms_refit/04_h3_compare.R  (branch exp/brms-refit -- experimental)
 # Collect the H3 arm scores written by 03_h3_arms.R, score the CURRENT cached
 # fit (models/H3_brms_joint_repRE.rds, read-only) with the same function as the
 # baseline row, and write the comparison tables for the memo.
 #
-# Run: H3_MODE=pilot conda run -n r_env Rscript brms_refit/04_h3_compare.R
+# Run: H3_MODE=pilot conda run -n r_env Rscript model_development/brms_refit/04_h3_compare.R
 # Outputs ONLY to models/_brms_refit/.
 # =============================================================================
 

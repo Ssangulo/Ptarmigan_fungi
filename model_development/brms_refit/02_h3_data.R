@@ -1,5 +1,5 @@
 # =============================================================================
-# brms_refit/02_h3_data.R  (branch exp/brms-refit -- experimental)
+# model_development/brms_refit/02_h3_data.R  (branch exp/brms-refit -- experimental)
 # Shared data build + scoring helpers for the H3 pilot arms. source()d by
 # 03_h3_arms.R and 04_h3_compare.R; does not fit or write anything itself.
 #
