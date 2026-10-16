@@ -56,18 +56,6 @@ remains, so replicates are partly counted twice. Resolved sets overlap on 64 of 
 | Guild → Season Gamma (abundance) | not quotable (PSRF 1.46) | **quotable.** Dung sap +0.31 (support 0.99); dark, pathotroph, plant significantly below dung sap |
 | Spearman vs probit / GLLVM | 0.82 / 0.70 | 0.76 / 0.75 (0.82 / 0.72) |
 
-**Claims that survive:** dung saprotrophs are the most summer-shifted guild; dark taxa and
-pathotrophs lean winter; OTU1369 is the most winter-shifted OTU; the ranking agrees with the
-probit and the GLLVM.
-
-**Claims that must change:**
-- "Dung saprotroph is the ONLY positive guild" is false; "other" is +0.22.
-- "Every resolved OTU is at the winter end" and "a large but individually uncertain coprophile
-  effect" are false: the coprophiles are now the best-resolved OTUs.
-- "Season 11% ≈ PERMANOVA R² 0.11" must go. The 11% was an artefact of the absorption, and HMSC
-  VP partitions explained variance, not total variance, so it was never comparable to R².
-- The panel-A axis needs roughly ±6, not ±2.5.
-
 ## 4. Caveats to carry, whichever model is chosen
 
 - **Distribution misfit.** The Gaussian can't reproduce the skew of zero-heavy CLR data.
