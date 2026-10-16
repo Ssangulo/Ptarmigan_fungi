@@ -16,7 +16,7 @@ different answer. The cause was that the uncapped latent factors at the dropping
 absorb the Season contrast, which is constant within a dropping. Longer chains did not help.
 
 **What was decided.** The study compared several model structures. The model now in
-`Scripts/10_hmsc.R` (CLR averaged per dropping, two latent factors) passed every per-chain
+`Scripts/10_hmsc.R` (CLR averaged across the two PCR replicates, two latent factors) passed every per-chain
 check.
 
 **Cited in.** Appendix §9.1 (Table S-HMSCb2) and §10.3 (Figure 3).
