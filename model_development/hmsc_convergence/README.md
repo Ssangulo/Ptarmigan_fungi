@@ -4,7 +4,7 @@ Branch `exp/hmsc-converge`. Nothing on `main`, in `Supplementary/` or in the can
 `models/hmsc_*` caches was touched (md5s verified). Fits and tables are in `models/hmsc_v2/`,
 drafts in `plots/hmsc_v2/`.
 
-## 1. What was wrong with the published CLR model
+## 1. What was wrong with the first CLR model
 
 All four chains converged, but to **different answers**. The pooled posterior in Figure 5 and
 Table S-HMSCc is therefore a mixture of disagreeing chains (`diag_canonical_clr.log`):
