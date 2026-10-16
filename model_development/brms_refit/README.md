@@ -4,8 +4,6 @@ Branch `exp/brms-refit`, worktree `.worktrees/brms-refit`. Nothing on `main`, in
 the appendix or in the canonical `models/H2_*` / `H3_*` files was changed (md5 verified). All
 fits and tables are in `/home/daniel/Ptarmigan/models/_brms_refit/`.
 
-**Two picks are needed from Daniel: the H2 primary model and the H3 production model.**
-
 ---
 
 ## Starting point
