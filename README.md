@@ -8,8 +8,7 @@ Fungal ITS2 metabarcoding of willow ptarmigan droppings collected at Lifjellet (
 in winter (March) and summer (June) of 2022, 2023 and 2024 (52 droppings after quality
 filtering). The analyses test three preregistered hypotheses (seasonal turnover in composition
 (H1), seasonal and diet-linked alpha diversity (H2), and plant–fungus covariation on the
-diet-matched subset (H3)) and two exploratory aims: unidentified "dark" taxa (E1) and
-coprophilous taxa used as a palynological herbivore proxy (E2).
+diet-matched subset (H3)) and one exploratory aim: unidentified "dark" taxa (E1).
 
 ## Supplementary appendix
 

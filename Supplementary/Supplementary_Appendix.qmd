@@ -84,10 +84,9 @@ It tests three preregistered hypotheses about the fungal community of willow pta
 -   **H2** — Fungal alpha diversity is higher in summer than winter. On the diet-matched subset, per-sample fungal alpha diversity increases with per-sample dietary plant richness, consistent with diet acting as the dominant propagule source for the dung fungal community.
 -   **H3** — On the diet-matched subset, individual fungal OTUs differ in *how specifically* they covary with the diet-plant community. Fungi tightly covarying with particular plant taxa are interpreted as likely ingested dietary passengers; taxonomically recognised coprophilous taxa (e.g. Sordariales) are expected to show diffuse, non-specific associations, consistent with their non-host-specific spore dispersal. Tight single-plant covariation is treated as the strong, interpretable signal.
 
-Two exploratory aims accompany the preregistered hypotheses and are kept conceptually distinct from them:
+One exploratory aim accompanies the preregistered hypotheses and is kept conceptually distinct from them:
 
 -   **E1** — Identify fungal OTUs lacking a confident UNITE assignment that occur at non-trivial abundance ("dark taxa"); see Section 3.4.
--   **E2** — Document the occurrence and relative abundance of *Sporormiella*-type and other Sordariales taxa used in palynological reconstructions, to provide a modern avian reference point for a herbivore-presence proxy currently calibrated almost entirely on mammals; see Section 3.2. Note that E2 (a herbivore-presence proxy) is distinct from H3 (plant–fungus covariation) and from E1 (dark taxa).
 :::
 
 Computationally intensive steps (DADA2 denoising, LULU curation, iNEXT3D diversity estimation, GLLVM and Bayesian model fitting, phylogenetic community-structure null models) were executed on a remote Ubuntu-based computing environment. Their outputs (figures, tables, and selected model objects) are integrated here as static results, with the generating code shown in collapsible drop-downs in the HTML version.
@@ -442,13 +441,13 @@ Per-sample relative read abundance at four taxonomic ranks, with samples grouped
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
-### 3.2 Coprophilous (dung-specialist) genera (E2)
+### 3.2 Coprophilous (dung-specialist) genera
 
-This subsection addresses exploratory aim **E2**: documenting the occurrence and relative abundance of *Sporormiella*-type and other Sordariales taxa used in palynological herbivore-presence reconstructions, to provide a modern avian reference point for a proxy currently calibrated almost entirely on mammalian dung.
+This subsection screens the canonical taxonomy against a list of recognised coprophilous genera, used for Table S3 and (as a 14-genus subset, without *Sporormia*, *Psathyrella* and *Stropharia*) as the genus-only definition of the dung-saprotroph guild in Sections 7–8.
 
-The canonical tax table was screened against a list of coprophilous genera comprising the standard palynological set — *Sordaria, Podospora, Cercophora, Chaetomium, Schizothecium, Preussia, Sporormiella, Delitschia, Pilobolus, Ascobolus, Coprinopsis, Saccobolus, Sporormia* — extended with four further dung-associated genera recovered here: *Thelebolus, Coniochaeta, Psathyrella* and *Stropharia*. This is the list used throughout this subsection, for both Table S3 and the read-share test below.
+The canonical tax table was screened against seventeen recognised coprophilous genera: *Sordaria, Podospora, Cercophora, Chaetomium, Schizothecium, Preussia, Sporormiella, Delitschia, Pilobolus, Ascobolus, Coprinopsis, Saccobolus, Sporormia, Thelebolus, Coniochaeta, Psathyrella* and *Stropharia*. This is the list used throughout this subsection, for both Table S3 and the read-share test below.
 
-Six of the seventeen genera were detected, across 17 OTUs: ***Sporormiella*** (7 OTUs), ***Thelebolus*** (4), ***Psathyrella*** (2), ***Stropharia*** (2), and single OTUs of ***Coniochaeta*** and ***Coprinopsis***. The eleven remaining genera — including *Sordaria*, *Podospora* and *Cercophora*, the taxa most often counted in palynological work — do not appear in this dataset at all. Per-OTU winter/summer mean read shares and occurrences (number of samples per season, of 26 each) are shown below.
+Six of the seventeen genera were detected, across 17 OTUs: ***Sporormiella*** (7 OTUs), ***Thelebolus*** (4), ***Psathyrella*** (2), ***Stropharia*** (2), and single OTUs of ***Coniochaeta*** and ***Coprinopsis***. The remaining eleven genera (*Sordaria, Podospora, Cercophora, Chaetomium, Schizothecium, Preussia, Delitschia, Pilobolus, Ascobolus, Saccobolus* and *Sporormia*) were not detected. Per-OTU winter/summer mean read shares and occurrences (number of samples per season, of 26 each) are shown below.
 
 ```{r tab-copro}
 #| echo: false
@@ -1349,11 +1348,11 @@ top5_df <- dplyr::bind_rows(lapply(seasons, function(s) {
 write.csv(top5_df, file.path(tab_dir, "report_top5_otu_by_season.csv"), row.names = FALSE)
 
 # ===========================================================================
-# Table S3 (Section 3.2, E2) -- coprophilous-genus screen
+# Table S3 (Section 3.2) -- coprophilous-genus screen
 # ===========================================================================
-# ONE list, used for both Table S3 and the Season test below. It is the
-# standard palynological coprophilous set extended with the four dung-
-# associated genera that actually carry the seasonal signal in this dataset:
+# ONE list, used for both Table S3 and the Season test below: recognised
+# coprophilous genera, including the four dung-associated genera that
+# actually carry the seasonal signal in this dataset:
 # Thelebolus, Coniochaeta, Psathyrella and Stropharia (Sections 5.4, 6.2, 8.2).
 # Sections 8 and 9 apply a 14-genus variant of this list to the FUNGuild guild
 # rule (it omits Sporormia, Psathyrella and Stropharia); see 8_functional_guilds.R.
@@ -1721,7 +1720,7 @@ kable(data.frame(Part = sg$part, Comparison = sg$comparison,
 ::: {.content-visible when-profile="docs"}
 *Pre-refit interpretation (2026-07 joint negative-binomial model with six rank-3 genus predictors; superseded — kept for reference, its Thelebolus–Vaccinium result no longer holds):*
 
-**Interpretation.** H3, as preregistered, is **not supported**: taxonomically recognised coprophilous taxa do *not* show more diffuse plant associations than other taxa — if anything the reverse. The single interpretable plant signal is a *Vaccinium*–*Thelebolus* covariation, and its ecology is the opposite of the "ingested passenger" reading H3 was built to detect: *Thelebolus* is a dung specialist, and *Vaccinium* (with *Empetrum*) is the winter browse of ptarmigan at this site. Because Season is already a covariate this is a within-season-adjusted association, but the residual gradient is short; the most parsimonious reading is that the winter-browse plants and the persistent dung-fungal core co-vary as parallel seasonal signatures of the same samples, not that *Thelebolus* is carried into the gut on *Vaccinium* tissue. This dovetails with Section 6, where *Thelebolus* (OTU1) was the one coprophile *without* a clean seasonal differential-abundance signal, and with the E2 documentation in Section 3.2.
+**Interpretation.** H3, as preregistered, is **not supported**: taxonomically recognised coprophilous taxa do *not* show more diffuse plant associations than other taxa — if anything the reverse. The single interpretable plant signal is a *Vaccinium*–*Thelebolus* covariation, and its ecology is the opposite of the "ingested passenger" reading H3 was built to detect: *Thelebolus* is a dung specialist, and *Vaccinium* (with *Empetrum*) is the winter browse of ptarmigan at this site. Because Season is already a covariate this is a within-season-adjusted association, but the residual gradient is short; the most parsimonious reading is that the winter-browse plants and the persistent dung-fungal core co-vary as parallel seasonal signatures of the same samples, not that *Thelebolus* is carried into the gut on *Vaccinium* tissue. This dovetails with Section 6, where *Thelebolus* (OTU1) was the one coprophile *without* a clean seasonal differential-abundance signal, and with the coprophilous-genus screen in Section 3.2.
 :::
 
 **Limitation.** Even at n = 30 the diet is dominated by a few plants (*Betula* near-ubiquitous and near-pure in winter 2023–2024, then *Vaccinium* in summer and *Empetrum*), so specificity can be assessed over only four plant species, winter diet variation comes almost entirely from 2022, and the coprophilous group is small (6 OTUs). We therefore report H3 as a directional, exploratory result rather than a decisive test — and, consistent with the forward-directional inference rule, the absence of tight single-plant passenger signatures is **not** evidence that the dung mycobiome is gut-resident. A larger, more diet-even matched sample is the necessary next step.
