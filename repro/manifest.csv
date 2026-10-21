@@ -6,7 +6,7 @@ figures/phylum_barplot_ordered_season.png,Scripts/5_community_composition.R,Sect
 figures/class_barplot_ordered_season.png,Scripts/5_community_composition.R,Section 8 (taxonomic bar plots; its own 57-sample PCR-collapsed object),3.1,shown,
 figures/Order_barplot_ordered_season.png,Scripts/5_community_composition.R,Section 8 (taxonomic bar plots; its own 57-sample PCR-collapsed object),3.1,shown,
 figures/genus_barplot_ordered_season.png,Scripts/5_community_composition.R,Section 8 (taxonomic bar plots; its own 57-sample PCR-collapsed object),3.1,shown,
-tables/report_coprophilous_by_season_v2.csv,qmd:sec5-build,E2 coprophilous screen (Table S3),3.2,shown,
+tables/report_coprophilous_by_season_v2.csv,qmd:sec5-build,Coprophilous-genus screen (Table S3),3.2,shown,
 figures/E1_SH_similarity_hist.png,Scripts/9_dark_taxa_SH_matching.R,Section 6 (plots),3.4,shown,
 figures/E1_dark_taxa_novel_vs_placeable.png,Scripts/9_dark_taxa_SH_matching.R,Section 6 (plots),3.4,shown,
 tables/E1_SH_assignment_summary.csv,Scripts/9_dark_taxa_SH_matching.R,Section 5 (E1 summaries),3.4;10.5,shown,

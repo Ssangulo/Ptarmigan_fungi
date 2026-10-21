@@ -1348,11 +1348,11 @@ top5_df <- dplyr::bind_rows(lapply(seasons, function(s) {
 write.csv(top5_df, file.path(tab_dir, "report_top5_otu_by_season.csv"), row.names = FALSE)
 
 # ===========================================================================
-# Table S3 (Section 3.2, E2) -- coprophilous-genus screen
+# Table S3 (Section 3.2) -- coprophilous-genus screen
 # ===========================================================================
-# ONE list, used for both Table S3 and the Season test below. It is the
-# standard palynological coprophilous set extended with the four dung-
-# associated genera that actually carry the seasonal signal in this dataset:
+# ONE list, used for both Table S3 and the Season test below: recognised
+# coprophilous genera, including the four dung-associated genera that
+# actually carry the seasonal signal in this dataset:
 # Thelebolus, Coniochaeta, Psathyrella and Stropharia (Sections 5.4, 6.2, 8.2).
 # Sections 8 and 9 apply a 14-genus variant of this list to the FUNGuild guild
 # rule (it omits Sporormia, Psathyrella and Stropharia); see 8_functional_guilds.R.
