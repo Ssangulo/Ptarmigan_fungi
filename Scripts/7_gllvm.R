@@ -28,7 +28,7 @@
 # hardcoded Andean genus list in the original Section 5 (Acephala,
 # Hyaloscypha, ...) has no equivalent here and was replaced with a data-
 # driven top-N by effect size -- swap in taxa of interest (e.g. Sporormiella/
-# Sordariales, the E2 coprophilous screen) once you've inspected genus_table.
+# Sordariales, the Section 3.2 coprophilous screen) once you've inspected genus_table.
 #
 # SCOPE: this GLLVM is a Season-only model (formula = ~Season). It serves H1 at
 # OTU resolution -- which lineages drive the winter/summer turnover, with model
