@@ -443,11 +443,11 @@ Per-sample relative read abundance at four taxonomic ranks, with samples grouped
 
 ### 3.2 Coprophilous (dung-specialist) genera
 
-This subsection screens the canonical taxonomy against a list of recognised coprophilous genera, used for Table S3 and (as a 14-genus subset, without *Sporormia*, *Psathyrella* and *Stropharia*) as the genus-only definition of the dung-saprotroph guild in Sections 7–8.
+This subsection screens the canonical taxonomy against a list of recognised coprophilous genera, used for Table S3 and as the genus-only definition of the dung-saprotroph guild in Sections 7–8.
 
-The canonical tax table was screened against seventeen recognised coprophilous genera: *Sordaria, Podospora, Cercophora, Chaetomium, Schizothecium, Preussia, Sporormiella, Delitschia, Pilobolus, Ascobolus, Coprinopsis, Saccobolus, Sporormia, Thelebolus, Coniochaeta, Psathyrella* and *Stropharia*. This is the list used throughout this subsection, for both Table S3 and the read-share test below.
+The canonical tax table was screened against fourteen recognised coprophilous genera: *Sordaria, Podospora, Cercophora, Chaetomium, Schizothecium, Preussia, Delitschia, Pilobolus, Ascobolus, Saccobolus, Sporormiella, Coprinopsis, Thelebolus* and *Coniochaeta*. This is the list used throughout this subsection, for both Table S3 and the read-share test below.
 
-Six of the seventeen genera were detected, across 17 OTUs: ***Sporormiella*** (7 OTUs), ***Thelebolus*** (4), ***Psathyrella*** (2), ***Stropharia*** (2), and single OTUs of ***Coniochaeta*** and ***Coprinopsis***. The remaining eleven genera (*Sordaria, Podospora, Cercophora, Chaetomium, Schizothecium, Preussia, Delitschia, Pilobolus, Ascobolus, Saccobolus* and *Sporormia*) were not detected. Per-OTU winter/summer mean read shares and occurrences (number of samples per season, of 26 each) are shown below.
+Four of the fourteen genera were detected, across 13 OTUs: ***Sporormiella*** (7 OTUs), ***Thelebolus*** (4), and single OTUs of ***Coniochaeta*** and ***Coprinopsis***. The remaining ten genera (*Sordaria, Podospora, Cercophora, Chaetomium, Schizothecium, Preussia, Delitschia, Pilobolus, Ascobolus* and *Saccobolus*) were not detected. Per-OTU winter/summer mean read shares and occurrences (number of samples per season, of 26 each) are shown below.
 
 ```{r tab-copro}
 #| echo: false
@@ -457,7 +457,7 @@ kable(copro, digits = 3,
       caption = "Table S3. Coprophilous-genus OTUs: mean read share (%) and occurrence per Season (canonical object, 52 samples; 26 winter / 26 summer).")
 ```
 
-Total per-sample coprophilous read share is **markedly higher in summer** than winter — 45.7% versus 8.7% of reads on average (medians 47.5% and 0.02%; Wilcoxon rank-sum p = 0.0012). The contrast is carried by *Thelebolus*, *Coniochaeta* and *Sporormiella*, the three summer-dominant OTUs of Section 5.4; *Psathyrella*, *Stropharia* and *Coprinopsis* occur only at trace level. Code for this table is shared with the dominance analysis and shown in Section 5.
+Total per-sample coprophilous read share is **markedly higher in summer** than winter — 45.7% versus 8.5% of reads on average (medians 47.5% and 0.01%; Wilcoxon rank-sum p = 0.00094). The contrast is carried by *Thelebolus*, *Coniochaeta* and *Sporormiella*, the three summer-dominant OTUs of Section 5.4; *Coprinopsis* occurs only at trace level. Code for this table is shared with the dominance analysis and shown in Section 5.
 
 ### 3.3 Taxonomic assignment success by rank
 
@@ -1351,15 +1351,13 @@ write.csv(top5_df, file.path(tab_dir, "report_top5_otu_by_season.csv"), row.name
 # Table S3 (Section 3.2) -- coprophilous-genus screen
 # ===========================================================================
 # ONE list, used for both Table S3 and the Season test below: recognised
-# coprophilous genera, including the four dung-associated genera that
-# actually carry the seasonal signal in this dataset:
-# Thelebolus, Coniochaeta, Psathyrella and Stropharia (Sections 5.4, 6.2, 8.2).
-# Sections 8 and 9 apply a 14-genus variant of this list to the FUNGuild guild
-# rule (it omits Sporormia, Psathyrella and Stropharia); see 8_functional_guilds.R.
-COPRO_GENERA <- c("Sordaria", "Podospora", "Cercophora", "Chaetomium",
-                  "Schizothecium", "Preussia", "Sporormiella", "Delitschia",
-                  "Pilobolus", "Ascobolus", "Coprinopsis", "Saccobolus", "Sporormia",
-                  "Thelebolus", "Coniochaeta", "Psathyrella", "Stropharia")
+# coprophilous genera, including Thelebolus and Coniochaeta, which carry the
+# seasonal signal in this dataset (Sections 5.4, 6.2, 8.2). It is the
+# project's single canonical list -- identical to COPRO_GENERA in scripts 6, 7,
+# 8 and 10 and in the fig1-build / fig4-build chunks; change them together.
+COPRO_GENERA <- c("Sordaria","Podospora","Cercophora","Chaetomium","Schizothecium",
+                  "Preussia","Delitschia","Pilobolus","Ascobolus","Saccobolus",
+                  "Sporormiella","Coprinopsis","Thelebolus","Coniochaeta")
 
 # UNITE taxonomy carries rank prefixes ("g__Thelebolus"); strip them or the
 # %in% match silently fails. "unidentified" placeholders become NA.
@@ -1881,7 +1879,7 @@ Sections 3–6 characterise the seasonal shift *taxonomically* — which lineage
 
 Guild annotation uses **FUNGuild** (Nguyen et al. 2016), run through its command-line tool against each OTU's own taxonomy string, so that assignments are made at the finest rank available per OTU (species, genus, family or order) rather than by a single-rank lookup. **693 of the 1129 canonical OTUs (61.4%) receive a guild call** at a usable confidence ranking; the remaining 436 return no assignment — either because no matching taxonomy record exists in the FUNGuild database or because the match carries no ranked guild.
 
-FUNGuild returns compound guild strings rather than a single label — for example `|Dung Saprotroph|-Endophyte-Plant Saprotroph-Undefined Saprotroph`. OTUs are collapsed to a single class by a priority rule (first match wins): dung saprotroph → plant-associated → pathotroph, with anything else falling to *other assigned* or *unassigned* (no FUNGuild call at all). Coprophily takes precedence deliberately: it is the guild the study is about, and it would otherwise be absorbed into a generic saprotroph category. An OTU counts as a dung saprotroph if FUNGuild lists `Dung Saprotroph` **or** its genus is one of fourteen recognised coprophilous genera (the Section 3.2 list, omitting *Sporormia*, *Psathyrella* and *Stropharia*). That difference is immaterial here: *Sporormia* is absent from the dataset, both *Stropharia* OTUs are already assigned by their FUNGuild string, and the two *Psathyrella* OTUs carry 0.04% of reads, so no guild share below changes at the reported precision. This is the identical rule used for the Section 9 guild trait.
+FUNGuild returns compound guild strings rather than a single label — for example `|Dung Saprotroph|-Endophyte-Plant Saprotroph-Undefined Saprotroph`. OTUs are collapsed to a single class by a priority rule (first match wins): dung saprotroph → plant-associated → pathotroph, with anything else falling to *other assigned* or *unassigned* (no FUNGuild call at all). Coprophily takes precedence deliberately: it is the guild the study is about, and it would otherwise be absorbed into a generic saprotroph category. An OTU counts as a dung saprotroph if FUNGuild lists `Dung Saprotroph` **or** its genus is one of the fourteen recognised coprophilous genera of Section 3.2. This is the identical rule used for the Section 9 guild trait.
 
 ```{r tab-guild-crosswalk}
 #| echo: false

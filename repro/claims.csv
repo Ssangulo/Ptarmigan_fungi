@@ -1,14 +1,12 @@
 id,section,file,expr,digits,quoted,snippet
 S2_samples_pre_depth,2.2,tables/report_read_otu_tracking.csv,"d$n_samples[d$strategy == ""nopool"" & d$step == ""non_fungal_OTU_removal""]",0,57,before the depth filter (57 samples)
 S2_samples_final,2.2,tables/report_read_otu_tracking.csv,"d$n_samples[d$strategy == ""nopool"" & grepl(""^depth_filter"", d$step)]",0,52,analysis-ready dataset (52 samples)
-S3_copro_n_otus,3.2,tables/report_coprophilous_by_season_v2.csv,nrow(d),0,17,across 17 OTUs
-S3_copro_n_genera,3.2,tables/report_coprophilous_by_season_v2.csv,length(unique(d$Genus)),0,6,Six of the seventeen genera were detected
+S3_copro_n_otus,3.2,tables/report_coprophilous_by_season_v2.csv,nrow(d),0,13,across 13 OTUs
+S3_copro_n_genera,3.2,tables/report_coprophilous_by_season_v2.csv,length(unique(d$Genus)),0,4,Four of the fourteen genera were detected
 S3_copro_sporormiella,3.2,tables/report_coprophilous_by_season_v2.csv,"sum(d$Genus == ""Sporormiella"")",0,7,***Sporormiella*** (7 OTUs)
 S3_copro_thelebolus,3.2,tables/report_coprophilous_by_season_v2.csv,"sum(d$Genus == ""Thelebolus"")",0,4,***Thelebolus*** (4)
-S3_copro_psathyrella,3.2,tables/report_coprophilous_by_season_v2.csv,"sum(d$Genus == ""Psathyrella"")",0,2,***Psathyrella*** (2)
-S3_copro_stropharia,3.2,tables/report_coprophilous_by_season_v2.csv,"sum(d$Genus == ""Stropharia"")",0,2,***Stropharia*** (2)
-S3_copro_share_summer,3.2,tables/report_coprophilous_by_season_v2.csv,sum(d$summer_mean_pct),1,45.7,45.7% versus 8.7% of reads on average
-S3_copro_share_winter,3.2,tables/report_coprophilous_by_season_v2.csv,sum(d$winter_mean_pct),1,8.7,45.7% versus 8.7% of reads on average
+S3_copro_share_summer,3.2,tables/report_coprophilous_by_season_v2.csv,sum(d$summer_mean_pct),1,45.7,45.7% versus 8.5% of reads on average
+S3_copro_share_winter,3.2,tables/report_coprophilous_by_season_v2.csv,sum(d$winter_mean_pct),1,8.5,45.7% versus 8.5% of reads on average
 S3_E1_n_dark,3.4,tables/E1_SH_assignment_summary.csv,d$n_dark,0,493,493 of 1129 (43.7%)
 S3_E1_n_otus,3.4,tables/dark_taxa_SH_matching.csv,nrow(d),0,1129,493 of 1129 (43.7%)
 S3_E1_pct_dark,3.4,tables/dark_taxa_SH_matching.csv,100 * mean(d$is_dark),1,43.7,493 of 1129 (43.7%)
