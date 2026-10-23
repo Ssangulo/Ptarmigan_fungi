@@ -14,6 +14,7 @@ format:
     toc-title: "Contents"
     toc-location: left
     number-sections: false
+    format-links: false
   pdf:
     output-file: Appendix_PDF.pdf
     pdf-engine: xelatex
@@ -89,7 +90,7 @@ One exploratory aim accompanies the preregistered hypotheses and is kept concept
 -   **E1** — Identify fungal OTUs lacking a confident UNITE assignment that occur at non-trivial abundance ("dark taxa"); see Section 3.4.
 :::
 
-Computationally intensive steps (DADA2 denoising, LULU curation, iNEXT3D diversity estimation, GLLVM and Bayesian model fitting, phylogenetic community-structure null models) were executed on a remote Ubuntu-based computing environment. Their outputs (figures, tables, and selected model objects) are integrated here as static results, with the generating code shown in collapsible drop-downs in the HTML version.
+Computationally intensive steps (DADA2 denoising, LULU curation, iNEXT3D diversity estimation, GLLVM, HMSC and Bayesian model fitting) were executed on a remote Ubuntu-based computing environment. Their outputs (figures, tables, and selected model objects) are integrated here as static results, with the generating code shown in collapsible drop-downs in the HTML version.
 
 All figures (PNG) and result tables (CSV) are stored within the project repository under `Supplementary/figures/` and `Supplementary/tables/` using relative paths. Rendering this document therefore requires cloning the repository and opening the `.qmd` file from the `Supplementary/` directory.
 
@@ -109,7 +110,7 @@ The analyses in **Sections 2–5** are finalized: they were regenerated end-to-e
 
 Repository: [Ptarmigan_fungi](https://github.com/Ssangulo/Ptarmigan_fungi)\
 Sequence data: ENA accession number *(to be assigned)*\
-Metadata: `Data_S1_metadata.csv` *(field/season/year/individual keys)*
+Sample metadata (field/season/year/individual keys): *(to be deposited with the sequence data)*
 
 If viewing the PDF version of this Appendix, note that the HTML version exposes all code to reproduce these results through drop-downs.
 
@@ -121,6 +122,7 @@ If viewing the PDF version of this Appendix, note that the HTML version exposes 
 *Documentation build only; omitted from the submitted appendix. Move any paragraph, callout or table here that belongs in the full record rather than in the supplement.*
 :::
 
+:::: {.content-visible when-profile="docs"}
 ## Section 0: Setup {.unnumbered}
 
 Output directory paths and shared aesthetic constants used throughout this document. All packages are loaded locally within each code section.
@@ -146,6 +148,7 @@ lvl_order <- c("Winter", "Summer")
 # Shared base theme — main figures use a classic theme at base_size 12
 # base_theme <- theme_classic(base_size = 12) + theme(...)
 ```
+::::
 
 ------------------------------------------------------------------------
 
@@ -199,7 +202,7 @@ load("eco_analysis.RData")  # produced by 4_data_prep.R
 
 ### 2.1 Study site and sampling design
 
-Willow ptarmigan (*Lagopus lagopus*) faecal samples were collected at Lifjellet (Lierne municipality, Trøndelag, Norway) across a seasonal contrast: winter (March, snow-covered, browse-dominated diet) versus summer (June, green forage available) — replicated over three years (2022, 2023, 2024). The design is a Season × Year factorial, with repeated sampling of individually identifiable birds (microsatellite-confirmed where possible). Approximately 60 dung samples passed processing, of which \~31 have paired plant ITS2 diet data used for the H2 diet-richness mechanism (Section 7).
+Willow ptarmigan (*Lagopus lagopus*) faecal samples were collected at Lifjellet (Lierne municipality, Trøndelag, Norway) across a seasonal contrast: winter (March, snow-covered, browse-dominated diet) versus summer (June, green forage available) — replicated over three years (2022, 2023, 2024). The design is a Season × Year factorial of 60 selected droppings (10 per season and year), of which 52 passed all processing and depth filters (Table S1). Microsatellite genotyping identified only three birds sampled more than once. Paired plant ITS2 diet data are available for 30 of the droppings (27 after the 10,000-read depth filter), used in Section 7.
 
 Each biological dung sample was amplified in two independent PCR replicates. DNA extraction, ITS2 amplification, demultiplexing (sabre), primer trimming (cutadapt), denoising (DADA2, non-pooled inference), and post-clustering curation (LULU) followed the workflow in `Scripts/1_demultiplexing.R`–`Scripts/3_taxonomic_assignment.R`; taxonomy was assigned against the UNITE reference (naïve Bayes, `minBoot = 80`). Negative, no-template, and extraction-blank controls were sequenced alongside samples and used for contaminant removal in `Scripts/4_data_prep.R`.
 
@@ -461,7 +464,6 @@ Total per-sample coprophilous read share is **markedly higher in summer** than w
 
 ### 3.3 Taxonomic assignment success by rank
 
-<!-- CLAUDE DRAFT 2026-10-02 — numbers from tables/tax_assignment_by_rank.csv; prose for Daniel to rewrite -->
 
 Share of OTUs and reads given a confident name (UNITE naïve Bayes, `minBoot = 80`) at each rank on the canonical object. At genus rank this is the complement of the dark-taxa definition used in Section 3.4 (493 of 1129 OTUs without a confident genus). Assignment is near-complete to class and falls off from order downwards; species-level names are available for about a fifth of OTUs and reads. The per-OTU assignment rate is similar in the two seasons, but the per-sample *read* share assigned is consistently higher in summer from class to genus, because summer reads are concentrated in a few well-characterised coprophilous OTUs (Section 3.2) whereas winter reads fall disproportionately on unresolved lineages (Section 3.4).
 
@@ -592,10 +594,14 @@ e1_tab <- data.frame(
                   s$no_SH_match, s$excluded_nonITS),
   check.names = FALSE)
 kable(e1_tab,
-      caption = sprintf("Table S-E1a. UNITE Species Hypothesis placement of the dark-taxa OTUs (no confident genus in the canonical taxonomy). Median best-hit similarity to UNITE = %.2f%%; %d dark OTUs gained a finer lineage (family or deeper) from the SH consensus. The last three rows are all non-placements: rows 3 and 4 differ only in whether a UNITE relative exists at 80%% identity, and row 5 covers sequences dropped by quality control before the matching step ran (see the caveats below for what that QC actually is). Main-text Fig. 5A merges rows 4 and 5.", s$median_similarity, s$gained_finer_lineage))
+      caption = sprintf("Table S-E1a. UNITE Species Hypothesis placement of the dark-taxa OTUs (no confident genus in the canonical taxonomy). Median best-hit similarity to UNITE = %.2f%%; %d dark OTUs gained a finer lineage (family or deeper) from the SH consensus. The last three rows are all non-placements: rows 3 and 4 differ only in whether a UNITE relative exists at 80%% identity, and row 5 covers sequences removed by the pipeline's chimera, ITSx and length checks before the matching step ran. Main-text Fig. 5A merges rows 4 and 5.", s$median_similarity, s$gained_finer_lineage))
 ```
 
-**Most dark taxa are close to known references, and a live-database cross-check further shrinks the genuinely-novel fraction.** Against the local reference, of the 493 dark OTUs 143 were placeable to an existing named UNITE SH, 247 formed new (candidate) species hypotheses, and 90 had no reference within 80% identity; 13 were dropped by quality control before matching. The novel and no-match sequences were then re-run through the PlutoF web service, whose reference database is larger and more current: this reclassified 79 formerly-novel OTUs across the community — 19 of them dark — as matches to existing named SHs (21 of the 79 resolving to species, and 11 of the 19 dark ones gaining a genus). Table S-E1a reflects this combined result: 162 placeable, 228 candidate-novel, 90 with no reference within 80%. It is worth being explicit that the last two are the same kind of outcome — neither sits inside an existing named SH — and that the 90 are the *most* divergent candidates rather than sequences that failed to analyse. The pipeline is designed to cluster them de novo into their own new Species Hypotheses, but in v2.0.4 the no-hits branch of `run_pipeline.sh` invokes the hits parsers (`parse_matches_sh.pl`) rather than `parse_matches_1.pl`, so the de-novo table (`matches_1_out_*.csv`) is never written and these OTUs reach `9_dark_taxa_SH_matching.R` as an absence rather than a status. Taken together, 331 of the 493 dark OTUs (67%) are candidate-novel in one form or the other. Each placeable OTU resolves to a stable SH page (`https://unite.ut.ee/sh/<code>`) carrying the taxon name and its DOI. The best-hit similarity distribution (Figure S-E1a) shows the dark fraction is bimodal — a spike near 100% (OTUs essentially identical to a reference but withheld a genus by the conservative `minBoot = 80` threshold) plus a real tail of divergent, candidate-novel lineages.
+:::: {.content-visible when-profile="docs"}
+**Most dark taxa are close to known references, and a live-database cross-check further shrinks the genuinely-novel fraction.** Against the local reference, of the 493 dark OTUs 143 were placeable to an existing named UNITE SH, 247 formed new (candidate) species hypotheses, and 90 had no reference within 80% identity; 13 were dropped by quality control before matching. The novel and no-match sequences were then re-run through the PlutoF web service, whose reference database is larger and more current: this reclassified 79 formerly-novel OTUs across the community — 19 of them dark — as matches to existing named SHs (21 of the 79 resolving to species, and 11 of the 19 dark ones gaining a genus). Table S-E1a reflects this combined result: 162 placeable, 228 candidate-novel, 90 with no reference within 80%. The last two are the same kind of outcome — neither sits inside an existing named SH — and the 90 are the *most* divergent candidates, not sequences that failed to analyse (sh_matching v2.0.4 writes no status for sequences without any reference hit, so they are reported here by that absence). Taken together, 331 of the 493 dark OTUs (67%) are candidate-novel in one form or the other. Each placeable OTU resolves to a stable SH page (`https://unite.ut.ee/sh/<code>`) carrying the taxon name and its DOI. The best-hit similarity distribution (Figure S-E1a) shows the dark fraction is bimodal — a spike near 100% (OTUs essentially identical to a reference but withheld a genus by the conservative `minBoot = 80` threshold) plus a real tail of divergent, candidate-novel lineages.
+::::
+
+Table S-E1a combines two matching runs: the local UNITE reference, then the larger PlutoF live database for the sequences the first run left unplaced, which moved 19 dark OTUs from candidate-novel to an existing named SH. In all, 318 of the 493 dark OTUs (65%) fall within no existing named SH, and a further 13 were removed by quality control before matching. Placeable OTUs link to their SH pages (`https://unite.ut.ee/sh/<code>`). Best-hit similarity is bimodal (Figure S-E1a): a spike near 100% (OTUs withheld a genus only by the conservative `minBoot = 80` threshold) and a tail of divergent lineages.
 
 ![](figures/E1_SH_similarity_hist.png)
 
@@ -605,9 +611,9 @@ kable(e1_tab,
 
 **Figure S-E1b**: Dark-taxa OTUs by SH placement category (placeable to an existing SH, novel/new SH, no reference within 80% identity, or filtered before matching). All four categories are kept separate here; main-text Fig. 5A merges the last two. Category names in the underlying `SH_class` column are unchanged (`no_SH_match`, `excluded_nonITS`).
 
-SH matching directly addresses the "winter = dark taxa" caveat: 34.6% of the winter dark-read burden is placeable to an existing UNITE SH (mean of the per-sample ratio), while the remainder is candidate-novel. Expressed as shares of *all* winter reads rather than of the dark fraction — the form main-text Fig. 5B plots — the dark 51.3% divides into 15.8% placeable, 29.2% candidate-novel and 6.2% with no reference within 80% identity; the corresponding summer figures are 21.5%, 7.2% and 2.5% of a 31.2% dark fraction. Winter's dominant dark OTU, OTU1369, is genuinely novel: a candidate new SH only 85.4% similar to any reference, resolving no further than class Dothideomycetes.
+Most of the winter dark-read fraction is not placeable: on average 34.6% of it falls within an existing UNITE SH (mean of the per-sample ratio), and the remainder is candidate-novel. Expressed as shares of *all* winter reads rather than of the dark fraction — the form main-text Fig. 5B plots — the dark 51.3% divides into 15.8% placeable, 29.2% candidate-novel and 6.2% with no reference within 80% identity; the corresponding summer figures are 21.5%, 7.2% and 2.5% of a 31.2% dark fraction. Winter's dominant dark OTU, OTU1369, forms a candidate new SH only 85.4% similar to any reference and resolves no further than class Dothideomycetes.
 
-**Toward permanent, citable identifiers.** Placeable taxa already carry citable UNITE SH identifiers (resolvable SH pages with DOIs). The candidate novel taxa are being registered: their representative ITS2 sequences are being deposited in a public archive (ENA) and imprinted as new SHs via PlutoF, which mints permanent DOIs — converting short-lived study detections into citable candidate species hypotheses (*registration in progress*; sequences in `models/E1_novel_taxa_for_plutof.fasta`).
+**Toward permanent, citable identifiers.** Placeable taxa already carry citable UNITE SH identifiers (resolvable SH pages with DOIs). The candidate novel taxa are being registered: their representative ITS2 sequences are being deposited in a public archive (ENA) and imprinted as new SHs via PlutoF, which mints permanent DOIs (*registration in progress*).
 
 ```{r tab-e1-winter}
 #| echo: false
@@ -659,6 +665,8 @@ for section 3.1; Bars are seriated within each Season for readability. These pan
 
 section 3.4: Figure S-E1b is the same quantity as main-text **Fig. 5A** (Section 10.5), redrawn there with counts and percentages labelled — and, unlike here, with `no_SH_match` and the pre-matching exclusions merged into one "no reference within 80% id" bar. This section keeps all four categories; only the main figure bundles. Figure S-E1a (best-hit similarity, square-root axis normalised within each group so the divergent tail is legible beside the near-100% spike) was a main-text panel in an earlier version of Fig. 5 and is now supplementary only; Section 10.5 cites it for the bimodality claim. Main-text **Fig. 5C** plots Table S-E1b, which has no supplementary figure of its own, and **Fig. 5B** is the read-weighted seasonal view, built from `tables/E1_SH_readshare_by_sample.csv` (script 9 Section 4b) with no supplementary counterpart.
 
+section 3.4, no-hits OTUs: sh_matching is designed to cluster sequences with no reference hit de novo into their own new Species Hypotheses, but in v2.0.4 the no-hits branch of `run_pipeline.sh` invokes the hits parsers (`parse_matches_sh.pl`) rather than `parse_matches_1.pl`, so the de-novo table (`matches_1_out_*.csv`) is never written and these OTUs reach `9_dark_taxa_SH_matching.R` as an absence rather than a status (the `no_SH_match` class). Novel-taxa sequences for the PlutoF imprint step: `models/E1_novel_taxa_for_plutof.fasta`.
+
 ::: {.callout-note appearance="minimal"}
 **Caveats.** (i) "Excluded by ITSx" (`excluded_nonITS`, 21 OTUs across the dataset, 13 of them dark) is a misnomer inherited from the script's own comment. Reading `excluded_1.txt` by reason: **13 are vsearch coverage-chimera calls** (`CHIM`), 6 are ITSx chimeric/broken, 1 is under the 100 bp ITS2 length floor, and 1 is spurious. The 13 come from `exclude_chims.py`, whose rule is `perc_alignment_cov <= 85 AND perc_alignment_cov_target <= 85` — the *same* ≤85% coverage heuristic described in caveat (iii) below and treated there as unreliable, so it deserves the same scepticism here. **OTU320**, winter's third most abundant dark OTU, is one of these 13 — a `CHIM` call, not an ITSx one. (ii) The spurious exclusion is **OTU9**, which `matches_out_02.csv` places cleanly as `present_in SH0655188.10FU` (*Cladosporium herbarum*, with a resolvable SH page); it was flagged only by the "other eukaryotes" ITSx pass, which by construction finds no ITS in a fungal sequence. Because `excl_otus` is the first branch of the `case_when`, that flag wins. This is why the run log reports 554 `present_in` rows but 553 placeable OTUs. OTU9 is not a dark taxon, so no dark-taxa count and no panel of Fig. 5 is affected. (iii) On the PlutoF re-run, a reference-coverage heuristic flagged 248 of the resubmitted OTUs as putatively chimeric, but the *same* sequences passed cleanly in the local run and the flagged set is not the most-divergent one (median \~97% identity), so this flag is recorded (`plutof_chimera_flag`) but treated as unreliable and **not** used to exclude OTUs, pending scrutiny.
 :::
@@ -666,13 +674,13 @@ section 3.4: Figure S-E1b is the same quantity as main-text **Fig. 5A** (Section
 
 ## Section 4: Community composition — H1 {.page-break-before}
 
-H1 predicts seasonal compositional turnover of the dung mycobiome that is reproducible across years. Ordination and tests use **robust Aitchison distance** on the canonical depth-filtered object (`alldat$nopool`, 52 samples), as implemented in `vegan` 2.7.2, which completes the robust CLR matrix with a rank-3 OptSpace approximation before computing distances (Section 4.1); Table S7b repeats the tests on four full-rank distances. Four complementary analyses are reported: an unconstrained PCoA (visualization), a PERMANOVA with beta-dispersion check (Season × Year), a per-year breakdown of the seasonal contrast, and a distance-to-Season-centroid linear model (does within-season heterogeneity itself depend on year?).
+H1 predicts seasonal compositional turnover of the dung mycobiome that is reproducible across years. Ordination and tests use **robust Aitchison distance** on the canonical depth-filtered object (`alldat$nopool`, 52 samples), as implemented in `vegan` 2.7.2, which completes the robust CLR matrix with a rank-3 OptSpace approximation before computing distances; Table S7b repeats the tests on four full-rank distances. Four complementary analyses are reported: an unconstrained PCoA (visualization), a PERMANOVA with beta-dispersion check (Season × Year), a per-year breakdown of the seasonal contrast, and a distance-to-Season-centroid linear model (does within-season heterogeneity itself depend on year?).
 
 ### 4.1 Ordination
 
 ![](figures/PCoA_Aitchison_Season_canonical.png)
 
-**Figure S6**: PCoA on robust Aitchison distances (unconstrained), canonical object, coloured by Season and shaped by Year. Crosses mark Season centroids; thin segments connect each sample to its Season centroid. The axis percentages are shares of the rank-3 reconstruction from which `vegan` computes this distance, not of the full community variation, which is why the axis titles name that denominator; under a full-rank Aitchison distance (CLR after a pseudocount) the same two axes take **13.7% and 9.5%** (23.2% together), and those are the closer approximation to the variance actually explained. See Section 4.1.
+**Figure S6**: PCoA on robust Aitchison distances (unconstrained), canonical object, coloured by Season and shaped by Year. Crosses mark Season centroids; thin segments connect each sample to its Season centroid. The axis percentages are shares of the rank-3 reconstruction from which `vegan` computes this distance, not of the full community variation, which is why the axis titles name that denominator; under a full-rank Aitchison distance (CLR after a pseudocount) the same two axes take **13.7% and 9.5%** (23.2% together), and those are the closer approximation to the variance actually explained.
 
 This is the same ordination as main-text **Fig. 2A** (Section 10.2).
 
@@ -691,7 +699,7 @@ perm <- read.csv("tables/report_permanova.csv", check.names = FALSE)
 perm <- perm[, c("term", "Df", "SumOfSqs", "R2", "F", "Pr(>F)")]
 names(perm) <- c("Term", "Df", "SumOfSqs", "R2", "F", "Pr(>F)")
 kable(perm, digits = 3,
-      caption = "Table S5. PERMANOVA (adonis2) on robust Aitchison distances, Season x Year, by terms. Year is fitted as a FACTOR (2 df), so the interaction tests genuine year-to-year differences in the seasonal contrast rather than a linear trend across the three years.")
+      caption = "Table S5. PERMANOVA (adonis2) on robust Aitchison distances, Season x Year, by terms. Year is fitted as a factor (2 df), so the interaction tests year-to-year differences in the seasonal contrast rather than a linear trend.")
 ```
 
 Because the Season × Year term is significant, the seasonal contrast is also tested separately within each year:
@@ -739,6 +747,15 @@ kable(cen, digits = 3,
 Main-text **Fig. 2B** (Section 10.2) plots the distances behind this table, split by Season and Year; it reads its p-values from `tables/report_centroid_lm.csv`, so the figure and Table S7 are guaranteed to agree.
 
 ::: {.callout-note when-profile="docs" appearance="minimal"}
+**H1 — what Sections 4.2–4.3 add to the main text.** The main text reports the Season and Season × Year terms, the per-year contrasts, the dispersion difference and the centroid model. Three points rest on this section.
+
+(i\) **Power.** With 15–19 samples per year and at most 10 per season within a year, the per-year tests of Table S5b have little power, and a single atypical year moves the interaction substantially.
+
+(ii\) **Distance measure.** `vegan`'s robust Aitchison distance is computed from a rank-3 completion of the robust CLR matrix (Section 4 introduction), so Tables S5 and S5b test a three-dimensional reconstruction of the community. Refitting the same `Season * Year` model on four full-rank distances (Tables S7b, S7c) keeps Season significant under all of them (p ≤ 0.002) with smaller R² (0.055–0.11), leaves the interaction only marginal under the zeros-retained robust CLR (p = 0.061), and makes the Year main effect significant (p = 0.004–0.032, against 0.309 under the rank-3 distance).
+
+(iii\) **2022.** The near-zero 2022 contrast of Table S5b (R² = 0.02, p = 0.789) is an artefact of the rank-3 distance: under the full-rank measures it is R² = 0.07–0.10, significant under three of the four. What holds under every distance is the ordering of the years (2023 > 2024 > 2022), not the size of the gaps between them.
+
+:::: {.content-visible when-profile="docs"}
 **H1 interpretation — the two clauses separate.** Season is a significant predictor of community composition (PERMANOVA R² = 0.11, F = 6.92, p = 0.002), so the **first clause of H1 (seasonal turnover exists) is supported**. The **second clause (magnitude consistent across years) is not**: the Season × Year interaction is significant and substantial (R² = 0.10, F = 3.20, p = 0.011), meaning the size of the seasonal contrast differs between years. That interaction is significant under four of the five distance measures of Table S7b but only marginal under the zeros-retained robust CLR (p = 0.061; caveat iii), so the safe reading is that constancy of magnitude is *not established*, rather than that year-to-year differences are proven.
 
 Table S5b localises that interaction. The seasonal shift is strong in **2023** (R² = 0.24, p = 0.005; between-season centroid distance 35.7), much weaker in **2024** (R² = 0.14, p = 0.127; distance 10.3) and effectively absent in **2022** (R² = 0.02, p = 0.789; distance 6.9) — though this last figure is the one part of the breakdown that is sensitive to the distance measure, see caveat (iii) below. The *direction* of the shift is the same in all three years — it is the *magnitude* that varies, dominated by an unusually well-separated 2023. This is exactly the pattern the functional-guild analysis finds independently (Section 8.3: dung-saprotroph share summer versus winter is significant in 2023, marginal in 2024 and not significant in 2022).
@@ -747,7 +764,8 @@ The interaction is a difference in *location*, not merely in spread: the distanc
 
 **Caveats.** (i) Beta-dispersion is significantly higher for summer than winter samples (F = 15.3, p = 0.002; Table S6), so part of the PERMANOVA R² reflects this difference in within-group spread rather than a pure centroid shift (Anderson 2001); this previews Section 5's finding that summer communities are individually more dominance-skewed. (ii) With three years and 15–19 samples per year, a single atypical year moves the interaction substantially; the per-year tests in Table S5b are correspondingly low-powered (no year has more than 10 samples per season). The safe reading is *"seasonal turnover is real and directionally consistent, but its magnitude is not established as constant across years"* rather than a positive claim about year-specific ecology.
 
-(iii) The distance itself carries an assumption, and one specific claim above depends on it. As set out in Section 4.1, `vegan`'s robust Aitchison distance is computed from a rank-3 completion of the robust CLR matrix, so this PERMANOVA — like the ordination — is run on a three-dimensional reconstruction of the community rather than on its full dimensionality. Refitting the identical `Season * Year` model on full-rank distances gives the same qualitative verdict with smaller effect sizes:
+(iii\) The distance itself carries an assumption, and one specific claim above depends on it. As set out in Section 4.1, `vegan`'s robust Aitchison distance is computed from a rank-3 completion of the robust CLR matrix, so this PERMANOVA — like the ordination — is run on a three-dimensional reconstruction of the community rather than on its full dimensionality. Refitting the identical `Season * Year` model on full-rank distances gives the same qualitative verdict with smaller effect sizes:
+::::
 
 ```{r tab-permanova-sens}
 #| echo: false
@@ -778,12 +796,16 @@ sy$cell <- sprintf("%.3f (p = %.3f)", sy$R2, sy$p_value)
 wide <- pivot_wider(sy[, c("distance", "Year", "cell")], names_from = Year, values_from = cell)
 names(wide)[1] <- "Distance"
 kable(wide, row.names = FALSE,
-      caption = "Table S7c. Season effect within each year, under each distance measure (R² with permutation p). Same models as Table S5b, refitted on each distance. The robust-Aitchison row is the identical test to Table S5b; its p-values differ in the third decimal (0.775 / 0.009 / 0.116 here against 0.789 / 0.005 / 0.127 there) only because each cell here is seeded independently, so the two draw different permutation sets. R² values are exact and match.")
+      caption = "Table S7c. Season effect within each year, under each distance measure (R² with permutation p). Same models as Table S5b, refitted on each distance. The robust-Aitchison row repeats Table S5b with independently seeded permutations, so its p-values differ in the third decimal.")
 ```
 
+:::: {.content-visible when-profile="docs"}
 The seasonal effect is robust to the choice of distance — Season is significant at p ≤ 0.002 under all five measures — but its reported R² sits at the top of its range and is better read as 0.055–0.11 than as a precise variance share. The Season × Year interaction is less secure than Table S5 alone suggests: it is significant under four of the five distances (R² = 0.05–0.10, p = 0.002–0.011) but only marginal under the zeros-retained robust CLR (R² = 0.044, p = 0.061), the full-rank member of the same robust-CLR family as the primary distance. The Year main effect changes significance in the opposite direction (p = 0.309 under the rank-3 distance, p = 0.004–0.032 under the full-rank measures), which is a further reason not to lean on it.
+::::
 
+:::: {.content-visible when-profile="docs"}
 **One statement in this section needs qualifying.** The per-year breakdown's finding that 2022 shows essentially no seasonal shift (R² = 0.02, p = 0.789) is an artefact of the rank-3 distance. Under the three conventional full-rank measures (CLR with a pseudocount, Bray–Curtis, Jaccard) the 2022 contrast is modest but present (R² = 0.09–0.10, p ≤ 0.010); under the zeros-retained robust CLR it is of similar size but not resolved (R² = 0.07, p = 0.10), and the same holds for 2024 (R² = 0.09, p = 0.10), leaving only 2023 significant (R² = 0.14, p = 0.001; Table S7c). What survives every distance is the *ordering* — 2023 strongest (R² = 0.14–0.24), then 2024, then 2022 — and it is the size of the gap, not the ordering, that the rank-3 distance exaggerates. The defensible reading is that the seasonal shift was **largest in 2023** and smaller in 2022 and 2024, where it is detected under most but not all distances: the data show neither that it was absent in 2022 nor that its magnitude was constant across years. Section 8.3's independent guild result should be read the same way: it shares this ranking, but its non-significant 2022 cell is a question of power, not of a missing effect.
+::::
 
 ::: {.content-visible when-profile="docs"}
 <!-- records a correction to an earlier draft -->
@@ -817,11 +839,15 @@ kable(data.frame(
   caption = "Table S7d. Season occupancy of the twenty most seasonally-shifted OTUs, canonical object (alldat$nopool, 26 winter / 26 summer samples). Ranked by the difference in mean within-season relative read share; an OTU must be detected in at least 5 of the 26 samples of the season it is enriched in, so no single-sample bloom can enter the table. 'Detections' is the number of samples in which the OTU has a non-zero count; 'reads' is its mean share of a sample's reads within that season. Taxonomy is the finest confident UNITE rank, with the parent rank given in brackets where no genus was assigned.")
 ```
 
+:::: {.content-visible when-profile="docs"}
 The two blocks are close to mutually exclusive. The ten winter-enriched OTUs account for **40.6%** of the reads of an average winter sample but **3.1%** of an average summer one; the ten summer-enriched OTUs account for **54.7%** of summer but **6.1%** of winter. Their cross-season detections are correspondingly sparse — a median of 3.5 of 26 summer samples for the winter-enriched set, and 1 of 26 winter samples for the summer-enriched set — and six of the twenty are never recovered in the opposite season at all. Across the whole object the same pattern holds at the level of bare presence: of 1,129 OTUs, only **171 (15%)** are detected in both seasons, against 265 winter-only and 693 summer-only.
+::::
+
+Cross-season detections of the two blocks are sparse — a median of 3.5 of 26 summer samples for the winter-enriched OTUs and 1 of 26 winter samples for the summer-enriched ones — and six of the twenty are never recovered in the opposite season. (Their read shares and the whole-object occupancy counts are given in the main-text Results.)
 
 This is corroborated by the distance-based tests, which do not depend on the ranking above. Recomputing the identical `Season * Year` PERMANOVA on presence/absence alone — discarding every abundance — leaves the seasonal effect essentially intact (Jaccard R² = 0.074, p = 0.001; Sørensen R² = 0.113, p = 0.001) against R² = 0.086 for the full-rank abundance-based Aitchison distance. Season explains as much of *who is there* as of *how much of each there is*.
 
-Two qualifications. The blocks are defined by relative read share, so a taxon that is genuinely present but rare in the other season can still appear here as near-absent; the claim these numbers support is that the **dominant membership** of the two seasons is largely disjoint, not that the seasons share no taxa. And the winter-only/summer-only counts above are inflated by rare OTUs seen in a single sample: restricting to OTUs detected in at least five samples of a season leaves 9 winter-only, 51 summer-only and 11 shared, which preserves the asymmetry but on much smaller numbers.
+Two qualifications. The blocks are defined by relative read share, so a taxon that is genuinely present but rare in the other season can still appear here as near-absent; the claim these numbers support is that the **dominant membership** of the two seasons is largely disjoint, not that the seasons share no taxa. And the winter-only/summer-only counts of the main text (265 and 693) are inflated by rare OTUs seen in a single sample: restricting to OTUs detected in at least five samples of a season leaves 9 winter-only, 51 summer-only and 11 shared, which preserves the asymmetry but on much smaller numbers.
 
 
 ```{r sec4-build}
@@ -1096,9 +1122,13 @@ cat(sprintf("Sorensen (presence/absence): Season R2 = %.3f, p = %.3f\n",
 
 ## Section 5: Diversity — H2 {.page-break-before}
 
+:::: {.content-visible when-profile="docs"}
 H2 predicts higher summer alpha diversity, tracking the richer summer diet. Two levels of analysis are presented together deliberately, because they appear to disagree in an informative way: the **pooled-season** estimate of 5.1 (which pools samples within a Season and asks about the Season's total species pool) versus the **per-sample** estimate of 5.2 (which asks about diversity within a single dropping and rewards evenness). Both are computed with iNEXT3D, so the disagreement cannot be an artefact of using two different estimators — 5.1 standardises by coverage across the two pooled incidence sets, 5.2 standardises by size across the 52 individual samples. The disagreement is resolved by the dominance analysis in 5.3.
+::::
 
-Per-sample Hill numbers are size-standardised to a common depth of 12,615 reads — the minimum library size — using `iNEXT.3D::estimate3D(base = "size")` on the raw counts. This returns the analytic expectation of the Hill number at that depth, rather than the value observed in one random rarefaction draw, so the estimate is deterministic and uses the full read depth of every sample. Coverage-based standardisation is deliberately **not** used at the per-sample level: estimated sample coverage is ≥ 0.99999 in all 52 samples (exactly 1 in 46 of them, since 43 contain no singleton OTUs at all), which leaves coverage-based and asymptotic estimators either undefined or equal to the observed richness, and would reintroduce the dependence on sequencing depth that standardisation is there to remove.
+H2 predicts higher summer alpha diversity. It is assessed at two levels that give opposite answers: the diversity of each season's pooled droppings (Section 5.1) and the diversity within single droppings (Section 5.2). Both are estimated with iNEXT3D, so the difference is not an artefact of the estimator; Section 5.3 shows that it comes from dominance.
+
+Per-sample Hill numbers are size-standardised to a common depth of 12,615 reads — the minimum library size — using `iNEXT.3D::estimate3D(base = "size")` on the raw counts. This returns the analytic expectation of the Hill number at that depth, rather than the value observed in one random rarefaction draw, so the estimate is deterministic and uses the full read depth of every sample. Coverage-based standardisation is **not** used at the per-sample level: estimated sample coverage is ≥ 0.99999 in all 52 samples (exactly 1 in 46 of them, since 43 contain no singleton OTUs at all), which leaves coverage-based and asymptotic estimators either undefined or equal to the observed richness, and would reintroduce the dependence on sequencing depth that standardisation is there to remove.
 
 ### 5.1 iNEXT3D: coverage-based taxonomic diversity
 
@@ -1183,7 +1213,9 @@ kable(data.frame(
   caption = "Table S9b. Sensitivity of the Season test to the error family (Season p-value, same Season + Year model; Wilcoxon rank-sum without Year). AIC is on the response scale; the log-normal value includes the Jacobian term so it is comparable with the others.")
 ```
 
+:::: {.content-visible when-profile="docs"}
 The two abundance-weighted orders are unambiguous: a winter dropping holds about 2.2 times (q = 1) and 2.5 times (q = 2) the effective number of OTUs of a summer one, under every family (p ≤ 0.005) and in every year (no Season × Year interaction). Richness (q = 0) is not: summer's mean is higher (48.3 vs 31.3 OTUs at equal depth), but the difference is significant only under the gamma model (p = 0.026, the AIC-preferred family for q = 0) and not under the Gaussian (p = 0.063), log-normal (p = 0.29) or rank-based (p = 0.11) tests. It is carried by a minority of very rich summer samples (summer median 35.6 vs winter 25.8).
+::::
 
 :::: {.content-visible when-profile="docs"}
 **Replicate-level model (superseded as Table S9).** Earlier drafts tested Season with linear mixed models on PCR replicates (n = 98, each replicate size-standardised to 10,609 reads) with random intercepts for dung sample and, where estimable, Year and individual bird, dropping terms that went singular. That fitted a different unit and depth from the one plotted, and used a different random-effects structure at q = 0 (Year dropped after singular fits) than at q = 1–2. Retained for reference:
@@ -1199,7 +1231,7 @@ kable(lmm, digits = 3,
 
 ### 5.3 Why the two metrics disagree: dominance and evenness
 
-The crossover is not an artifact, and it is not a difference of estimator — both levels are iNEXT3D. Pooling a Season's samples rewards the total species list (summer's samples collectively contain more species, so summer wins at every q). Per-sample q1/q2 instead downweight rare taxa and reward *within-sample evenness* — and individual summer samples are far more dominance-skewed than winter ones, so a single summer sample's effective diversity is lower even where its species list is longer.
+Pooling a Season's samples rewards the total species list (summer's samples collectively contain more species, so summer wins at every q). Per-sample q1/q2 instead downweight rare taxa and reward *within-sample evenness* — and individual summer samples are far more dominance-skewed than winter ones, so a single summer sample's effective diversity is lower even where its species list is longer.
 
 ```{r tab-dominance}
 #| echo: false
@@ -1212,7 +1244,9 @@ kable(dom, digits = 3,
       caption = "Table S10. Per-sample richness, top-1-OTU dominance, and Pielou evenness by Season, with Wilcoxon tests (canonical object, 52 samples). Richness is size-standardised to 12,615 reads (the q0 of Figure S8), because summer libraries are about 2.6 times deeper; top-1 share is a proportion and does not depend on depth, and Pielou J agrees with a size-standardised evenness, ln(q1)/ln(q0), at r = 0.995.")
 ```
 
+:::: {.content-visible when-profile="docs"}
 Concretely: a summer sample's single most abundant OTU accounts for **56%** of its reads on average (vs **25%** in winter, p \< 0.001), and Pielou evenness is correspondingly much lower (J = 0.38 summer vs 0.72 winter, p \< 0.001). Summer's pooled species list is longer (the long tail iNEXT3D detects across droppings), while within a dropping one or two OTUs dominate the read count — evenness collapses, and q1/q2 track evenness more than richness.
+::::
 
 ### 5.4 Which OTUs dominate each Season?
 
@@ -1414,7 +1448,7 @@ Sections 4 and 5 establish that the community shifts between seasons (H1) and th
 :::
 
 ::: callout-warning
-**Read the per-OTU coefficients in this section as signs and ranks, not effect sizes.** Two limitations apply (added 2026-09-29; wording to be finalised). (i) The models were fitted on the pre-depth-filter-correction object (57 samples, 114 replicate rows, 327 OTUs), not the canonical 52-sample object used elsewhere. (ii) Many Season coefficients are not estimable as finite effects: OTUs absent or nearly absent from one season push an unpooled fixed coefficient toward ±∞. 134 of the 327 OTUs are flagged for this (`separation`), and 101 of the 209 OTUs counted as significant are among them (the largest reaching β ≈ 1,295 on the log scale). Among the 193 unflagged OTUs, 106 still have \|β\| \> 10, i.e. implausible fold changes (e¹⁰ ≈ 22,000), including the *Sporormiella* and *Coniochaeta* values quoted below (β ≈ 17). The OTU-level seasonal pattern is carried by HMSC in Section 9, which is fitted on the current data with shrinkage.
+**Read the per-OTU coefficients in this section as signs and ranks, not effect sizes.** Two limitations apply. (i) The models were fitted on the pre-depth-filter-correction object (57 samples, 114 replicate rows, 327 OTUs), not the canonical 52-sample object used elsewhere. (ii) Many Season coefficients are not estimable as finite effects: OTUs absent or nearly absent from one season push an unpooled fixed coefficient toward ±∞. 134 of the 327 OTUs are flagged for this (`separation`), and 101 of the 209 OTUs counted as significant are among them (the largest reaching β ≈ 1,295 on the log scale). Among the 193 unflagged OTUs, 106 still have \|β\| \> 10, i.e. implausible fold changes (e¹⁰ ≈ 22,000), including the *Sporormiella* and *Coniochaeta* values quoted below (β ≈ 17). The OTU-level seasonal pattern is carried by HMSC in Section 9, which is fitted on the current data with shrinkage.
 :::
 
 ### 6.1 Model choice
@@ -1512,7 +1546,7 @@ gt %>% transmute(Order, Genus, n_OTUs,
 
 ### 7.1 Diet richness and fungal diversity — Bayesian mechanism (H2)
 
-Section 5 established the coarse prediction of H2: summer communities are richer than winter ones, in step with the richer summer diet. Here we test the finer mechanism directly, on the samples that have paired plant ITS2 diet data and pass the 10,000-read depth filter of Sections 4–5 (**n = 27** dung samples): does an individual sample's fungal diversity track the richness of its own dietary plant community? Fungal Hill diversity is modelled as a function of standardised plant (diet) richness, adjusting for Season, in a Bayesian Gamma regression with a log link (brms). H2's mechanism is supported if the plant-richness slope is positive with posterior probability P(slope \> 0) \> 0.95. Three further diet-matched winter samples (2,975–7,167 reads) are excluded here because the outcome is a per-sample diversity estimate standardised to a common depth of 12,615 reads (Section 5), and including them would force that depth down for every sample; the count models of Sections 7.2–7.3 retain them (n = 30) because they account for depth with a per-library offset instead.
+Section 5 tested the seasonal part of H2. Here we test its mechanism directly, on the samples that have paired plant ITS2 diet data and pass the 10,000-read depth filter of Sections 4–5 (**n = 27** dung samples): does an individual sample's fungal diversity track the richness of its own dietary plant community? Fungal Hill diversity is modelled as a function of standardised plant (diet) richness, adjusting for Season, in a Bayesian Gamma regression with a log link (brms). H2's mechanism is supported if the plant-richness slope is positive with posterior probability P(slope \> 0) \> 0.95. Three further diet-matched winter samples (2,975–7,167 reads) are excluded here because the outcome is a per-sample diversity estimate standardised to a common depth of 12,615 reads (Section 5), and including them would force that depth down for every sample; the count models of Sections 7.2–7.3 retain them (n = 30) because they account for depth with a per-library offset instead.
 
 The preregistration specified Year and individual bird as random intercepts. At this matched sample size that structure is unidentifiable — the 27 samples come from 24 distinct birds, so an individual random effect cannot be separated from residual variation, and Year spans only three levels — and the random-effects model does not converge. We therefore report two complementary, cleanly-converged fixed-effect models that bracket the estimate: a **Season-adjusted** model (`plant_richness + Season + Year`, Year as a fixed effect) and a more parsimonious **drop-Year** model (`plant_richness + Season`). Both model the raw Hill number with a Gamma likelihood and log link, the same family as the per-sample Season test of Table S9, with a weakly-informative prior on the slope (Normal(0, 1) per standard deviation of plant richness, on the log scale).
 
@@ -1556,7 +1590,7 @@ kable(data.frame(
 ```
 ::::
 
-Both models place the diet-richness slope firmly positive (medians +0.22 and +0.34 on the log scale, i.e. fungal Hill q1 multiplied by 1.24 and 1.40 per standard deviation of plant richness), with posterior support of **P(slope \> 0) = 0.91** (Season-adjusted) and **0.99** (drop-Year). The drop-Year model clears the preregistered 0.95 threshold; the Season-adjusted model sits just below it. The direction of the effect is therefore consistent, and the weight of posterior evidence favours the predicted positive diet-richness → fungal-diversity relationship.
+Both models place the diet-richness slope on the positive side (medians +0.22 and +0.34 on the log scale, i.e. fungal Hill q1 multiplied by 1.24 and 1.40 per standard deviation of plant richness), with posterior support of **P(slope \> 0) = 0.91** (Season-adjusted) and **0.99** (drop-Year). The drop-Year model clears the preregistered 0.95 threshold; the Season-adjusted model, whose 95% credible interval includes zero, sits just below it. The direction of the effect is consistent between the two models, but only the drop-Year model meets the preregistered criterion.
 
 ![](figures/H2_mechanism_slope_posterior.png)
 
@@ -1591,7 +1625,7 @@ removing S_1_7_P1_8E takes P(slope > 0) to ~0.5 (Table S14 most-influential samp
 Consistent with a modest, gradient-limited signal at this sample size, the estimate is carried by the samples at the extremes of the diet-richness range: a single leave-one-out omission moves the slope within the ranges in Table S14, and rank (Spearman) correlations within each Season are close to zero — the parametric slope reflects the between-season spread of the gradient more than fine within-season covariation. The honest reading is therefore a **weak, directionally-consistent signal**: fungal diversity does tend to rise with dietary plant richness, primarily at the seasonal scale, but the per-sample effect is not resolved decisively at n = 27 and is a clear target for a larger diet-matched sample.
 :::
 
-The honest reading is a directionally-consistent signal: fungal diversity does tend to rise with dietary plant richness, primarily at the seasonal scale, but the per-sample effect is not resolved decisively at n = 27 and is a clear target for a larger diet-matched sample.
+The result is a directionally consistent but unresolved signal: fungal diversity tends to rise with dietary plant richness, but the slope is not resolved at n = 27 and depends largely on a single dropping (Table S14); testing it properly needs a larger diet-matched sample.
 
 ```{r tab-h2mech-robust}
 #| echo: false
@@ -1623,7 +1657,7 @@ kable(rb,
 # Checked: repro/logs/2026-10-02_1250_cached/summary.md
 ```
 
-### 7.2 OTU–plant covariation (H3) - H3 not supported - still working 
+### 7.2 OTU–plant covariation — Bayesian hurdle model (H3)
 
 Section 7.1 asked whether overall fungal diversity tracks overall diet richness. H3 is finer-grained and taxon-resolved: does each fungal OTU covary with particular diet-plant taxa, and — the preregistered contrast — do recognised coprophilous taxa show the diffuse, non-specific plant associations expected of dung specialists dispersed independently of any host plant, while other taxa may show the tight, single-plant covariation that would flag a likely ingested endophyte passenger? Inference is strictly forward-directional: a tight single-plant association is read as evidence of a likely ingested passenger; a diffuse or absent association is not read as evidence of gut/dung residency.
 
@@ -1668,7 +1702,11 @@ kable(w[order(w$Part, w$Plant), ], row.names = FALSE,
       caption = "Table S15b. Community-wide plant slopes and the spread of OTU-specific deviations around them, per model part. Occurrence slopes are on the detection scale. A large deviation SD is where OTUs differ from one another in their association with that plant.")
 ```
 
+:::: {.content-visible when-profile="docs"}
 **Result.** No OTU differs resolvably from the others in how its abundance (given presence) tracks any diet plant: all 184 abundance-part deviations have credible intervals spanning zero, and the spread of OTU deviations is small for every plant (Table S15b). The plant signal lies in occurrence. There, OTUs differ most in their association with *Betula* (SD of OTU deviations 0.91) and *Empetrum nigrum* (0.46), and least with the two *Vaccinium* species (0.25 and 0.13). Ten occurrence associations are resolved (Table S15). Eight involve *Betula*: the coprophilous OTU636 (*Sporormiella*), OTU1225 (*Coniochaeta*) and OTU1305, the plant-associated OTU758 (*Meristemomyces*), OTU483 and OTU554 (*Exobasidium*), and OTU97 are detected less often the more *Betula* dominates the diet, while the dark Dothideomycete OTU1369 is detected more often. Two involve *Empetrum*: OTU45 (*Coleophoma*, plant-associated) and OTU2 (Myriangiales) are detected more often when *Empetrum* is in the diet. At the community level, a higher share of *V. myrtillus* in the diet goes with fewer OTUs being detected (−0.58 \[−0.89, −0.29\]), and *Empetrum* with more (+0.32 \[0.11, 0.53\]). The preregistered contrast is not supported in either part: the coprophilous group is not more diffuse than the plant-associated group (abundance: median HHI 0.35 vs 0.36, one-sided Wilcoxon p = 0.45, P(coprophilous more diffuse) = 0.48; occurrence: 0.35 vs 0.33, p = 0.72, P = 0.37; Table S16). Fitting the same model with the three plant genera instead of four species gives the same *Betula* and *Empetrum* slopes (r = 0.98–0.996 across OTUs) and the same two *Empetrum* associations.
+::::
+
+**Result.** All 184 abundance-part deviations have credible intervals spanning zero; the ten resolved associations are all in the occurrence part (Table S15). There, OTUs differ most in their association with *Betula* (SD of OTU deviations 0.91) and *Empetrum nigrum* (0.46), and least with the two *Vaccinium* species (0.25 and 0.13). At the community level, a higher share of *V. myrtillus* in the diet goes with fewer OTUs being detected (−0.58 \[−0.89, −0.29\]) and *Empetrum* with more (+0.32 \[0.11, 0.53\]) (Table S15b). The preregistered contrast is null in both parts (abundance: median HHI 0.35 vs 0.36, one-sided Wilcoxon p = 0.45, P(coprophilous more diffuse) = 0.48; occurrence: 0.35 vs 0.33, p = 0.72, P = 0.37; Table S16). Fitting the same model with the three plant genera instead of four species gives the same *Betula* and *Empetrum* slopes (r = 0.98–0.996 across OTUs) and the same two *Empetrum* associations.
 
 ![](figures/H3_specificity_contrast.png)
 
@@ -1713,7 +1751,9 @@ kable(data.frame(Part = sg$part, Comparison = sg$comparison,
 ```
 ::::
 
+:::: {.content-visible when-profile="docs"}
 **Interpretation.** *\[To be written for the 2026-10 refit — Daniel.\]*
+::::
 
 ::: {.content-visible when-profile="docs"}
 *Pre-refit interpretation (2026-07 joint negative-binomial model with six rank-3 genus predictors; superseded — kept for reference, its Thelebolus–Vaccinium result no longer holds):*
@@ -1748,12 +1788,12 @@ kable(data.frame(Part = sg$part, Comparison = sg$comparison,
 
 ### 7.3 OTU–plant covariation — GLLVM cross-check (H3)
 
-To check that the H3 verdict of Section 7.2 is not an artefact of one modelling framework, we repeat the analysis with a generalised linear latent-variable model (GLLVM) — the same model-based framework used for the OTU-resolved H1 in Section 6, now with the diet-plant predictors added. Everything about the data is held identical to the Bayesian model: the same PCR-replicate-level matched subset (**n = 30 biological samples, 60 libraries; 46 OTUs present in ≥5 samples**), the same four standardised diet-plant predictors (Section 7.2), the same per-library log-size offset, and the same specificity index and preregistered coprophilous-vs-plant-associated contrast. Only the estimator differs, which is the point: agreement across two very different fitting machineries is stronger evidence than either alone.
+To check that the H3 verdict of Section 7.2 is not an artefact of one modelling framework, we repeat the analysis with a generalised linear latent-variable model (GLLVM) — the same model-based framework used for the OTU-resolved H1 in Section 6, now with the diet-plant predictors added. Everything about the data is held identical to the Bayesian model: the same PCR-replicate-level matched subset (**n = 30 biological samples, 60 libraries; 46 OTUs present in ≥5 samples**), the same four standardised diet-plant predictors (Section 7.2), the same per-library log-size offset, and the same specificity index and preregistered coprophilous-vs-plant-associated contrast. Only the estimator differs.
 
 **Model.** Each OTU's counts are modelled with a negative-binomial GLLVM (`gllvm`), with per-OTU (species-specific) *fixed* coefficients for Season, Year and each diet plant, a biological-sample random row effect (so the two PCR replicates of a sample count as replication, not independent samples), and the log-library-size offset. `gllvm` has no hurdle family, so each slope here mixes occurrence and abundance. We fit 0, 1 and 2 residual latent variables and select by AIC; here **num.lv = 0** is preferred — beyond the sample random effect the latent variables capture no further residual co-occurrence (so, unlike Section 6, there is no residual ordination to show). One difference from the Bayesian model is forced by the software: the natural partial-pooling analog (`gllvm`'s `randomX` species-specific *random* slopes) is silently dropped on this dataset, returning no plant-slope parameters at all. We therefore estimate the plant slopes as *fixed* per-OTU coefficients with Wald standard errors — an **unpooled** frequentist estimate that brackets the Bayesian *pooled* one from the other side. Rare on/off OTUs push their fixed coefficients toward ±∞ (near-separation); as in Section 6 these are flagged (15 of 46 OTUs) and excluded from the specificity ranking, contrast and plots, leaving **31 well-estimated OTUs**. Specificity is the same Herfindahl index of the \|plant slopes\|; a *resolved single-plant association* here means the 90 % Wald interval of an OTU's strongest plant slope excludes zero.
 
 ::: callout-warning
-**Caveat on the per-OTU slopes.** Even among the 31 retained OTUs the unpooled slopes are very large for a per-SD predictor (median \|slope\| 3.7, 90th percentile 14.0, maximum 28.8 on the log scale) — larger than with the six-genus predictors used until 2026-09, because each OTU now carries its own Season and Year coefficients on 30 samples. The count of Wald-resolved associations in this section therefore overstates what is estimable; the pooled Bayesian model of Section 7.2 resolves 10 OTU-specific associations, all in occurrence. What this section can support is the model-level verdict and the direction of the associations (Table S20b), not the individual slope sizes.
+**Caveat on the per-OTU slopes.** Even among the 31 retained OTUs the unpooled slopes are very large for a per-SD predictor (median \|slope\| 3.7, 90th percentile 14.0, maximum 28.8 on the log scale), because each OTU carries its own unpooled Season, Year and plant coefficients estimated from 30 samples. The count of Wald-resolved associations in this section therefore overstates what is estimable; the pooled Bayesian model of Section 7.2 resolves 10 OTU-specific associations, all in occurrence. What this section can support is the model-level verdict and the direction of the associations (Table S20b), not the individual slope sizes.
 :::
 
 ```{r tab-h3g-aic}
@@ -1834,7 +1874,9 @@ kable(data.frame(
   caption = "Table S20. GLLVM coprophilous-vs-plant-associated specificity contrast (FUNGuild primary; COPRO_GENERA genus list as sensitivity), the frequentist counterpart of Table S16. Neither grouping supports the predicted 'coprophilous more diffuse' direction. The full per-OTU × plant coefficient table (with Wald z, p and BH-q) is provided as tables/gllvm_H3_perOTU_plant_coef.csv.")
 ```
 
+:::: {.content-visible when-profile="docs"}
 **Interpretation.** *\[To be written for the 2026-10 refit — Daniel.\]*
+::::
 
 ::: {.content-visible when-profile="docs"}
 *Pre-refit interpretation (2026-07 models with six rank-3 genus predictors; superseded — kept for reference, its coprophile–Vaccinium result no longer holds):*
@@ -1873,13 +1915,17 @@ kable(data.frame(
 
 ## Section 8: Functional guilds — FUNGuild {.page-break-before}
 
+:::: {.content-visible when-profile="docs"}
 Sections 3–6 characterise the seasonal shift *taxonomically* — which lineages turn over between winter and summer. This section asks what that community **does**: each OTU is assigned to a functional guild, and the guild composition of the dung mycobiome is compared across seasons. It is the descriptive counterpart to Section 9, which puts the same trait → season link inside a joint species distribution model. The two are deliberately built on the **same classification rule** so their results are directly comparable, but they differ in scope: Section 8 works on read shares across **all 1129 OTUs** of the canonical 52-sample object (no prevalence filter, because this is a description of where the reads go), whereas Section 9 models the 226 OTUs that pass its prevalence threshold. All results here are produced by `Scripts/8_functional_guilds.R`.
+::::
+
+Each OTU is assigned to a functional guild, and guild read shares are compared between seasons on all 1129 OTUs of the canonical object (no prevalence filter, since this describes where the reads go). Section 9 uses the same classification rule as a trait in the HMSC model, on the 226 OTUs that pass its prevalence filter. All results here come from `Scripts/8_functional_guilds.R`.
 
 ### 8.1 Guild assignment and the classification rule
 
 Guild annotation uses **FUNGuild** (Nguyen et al. 2016), run through its command-line tool against each OTU's own taxonomy string, so that assignments are made at the finest rank available per OTU (species, genus, family or order) rather than by a single-rank lookup. **693 of the 1129 canonical OTUs (61.4%) receive a guild call** at a usable confidence ranking; the remaining 436 return no assignment — either because no matching taxonomy record exists in the FUNGuild database or because the match carries no ranked guild.
 
-FUNGuild returns compound guild strings rather than a single label — for example `|Dung Saprotroph|-Endophyte-Plant Saprotroph-Undefined Saprotroph`. OTUs are collapsed to a single class by a priority rule (first match wins): dung saprotroph → plant-associated → pathotroph, with anything else falling to *other assigned* or *unassigned* (no FUNGuild call at all). Coprophily takes precedence deliberately: it is the guild the study is about, and it would otherwise be absorbed into a generic saprotroph category. An OTU counts as a dung saprotroph if FUNGuild lists `Dung Saprotroph` **or** its genus is one of the fourteen recognised coprophilous genera of Section 3.2. This is the identical rule used for the Section 9 guild trait.
+FUNGuild returns compound guild strings rather than a single label — for example `|Dung Saprotroph|-Endophyte-Plant Saprotroph-Undefined Saprotroph`. OTUs are collapsed to a single class by a priority rule (first match wins): dung saprotroph → plant-associated → pathotroph, with anything else falling to *other assigned* or *unassigned* (no FUNGuild call at all). Coprophily takes precedence: it is the guild the study is about, and it would otherwise be absorbed into a generic saprotroph category. An OTU counts as a dung saprotroph if FUNGuild lists `Dung Saprotroph` **or** its genus is one of the fourteen recognised coprophilous genera of Section 3.2. This is the identical rule used for the Section 9 guild trait.
 
 ```{r tab-guild-crosswalk}
 #| echo: false
@@ -1906,7 +1952,9 @@ kable(data.frame(
 
 Panels **(A)** and **(B)** here are the same object, rule and test as main-text **Fig. 1B–C** (Section 10.1) — the same result, not a second analysis. This figure is retained because panel **(C)**, the Season × Year consistency check of Section 8.3, has no main-text counterpart.
 
+:::: {.content-visible when-profile="docs"}
 The seasonal contrast is large and concerns primarily two of the five guilds. **Dung saprotrophs rise from 13.6% of winter reads to 51.5% in summer**, while the **unassigned/dark fraction falls from 51.1% to 21.0%** — that is, roughly half of a typical winter sample consists of reads that FUNGuild cannot place at all, whereas a typical summer sample is dominated by recognised coprophilous fungi. Equivalently, the proportion of reads landing on a guild-annotated OTU rises from **49% in winter to 79% in summer**.
+::::
 
 ```{r tab-guild-season}
 #| echo: false
@@ -1927,7 +1975,7 @@ kable(data.frame(
   caption = "Table S-GUILDb. Per-sample guild read shares by season (26 samples per season), with Wilcoxon rank-sum tests and Benjamini–Hochberg adjustment across the five guilds. 'Detected' gives the number of samples in which the guild occurs at all. The final row is a robustness check, not part of the BH family: it restricts the dung-saprotroph guild to OTUs matching a recognised coprophilous genus, discarding those assigned on the FUNGuild string alone.")
 ```
 
-**The dung-saprotroph result does not depend on how generously that guild is defined.** The rule counts an OTU as coprophilous if FUNGuild lists `Dung Saprotroph` *or* its genus is a recognised coprophilous genus. Restricting it to the genus criterion alone drops 24 of the 37 OTUs (37 across all 1129 canonical OTUs; the 14 dung saprotrophs of the Section 9 model are those of the 37 that pass its ≥ 5-replicate prevalence filter) and still gives **45.7% summer versus 8.5% winter** (p = 0.00094; final row of Table S-GUILDb). The signal is concentrated in a few abundant taxa — OTU1 (*Thelebolus*), OTU636 (*Sporormiella*) and OTU1225 (*Coniochaeta*) are the three largest contributors — which is consistent with the dominance analysis of Section 5.4 and with the differential-abundance results of Section 6, where *Sporormiella* OTU636 and *Coniochaeta* OTU1225 are both significantly summer-elevated.
+**The dung-saprotroph result does not depend on how generously that guild is defined.** The rule counts an OTU as coprophilous if FUNGuild lists `Dung Saprotroph` *or* its genus is a recognised coprophilous genus. Restricting it to the genus criterion alone drops 24 of the 37 OTUs (37 across all 1129 canonical OTUs; the 14 dung saprotrophs of the Section 9 model are those of the 37 that pass its ≥ 5-replicate prevalence filter) and still gives **45.7% summer versus 8.5% winter** (p = 0.00094; final row of Table S-GUILDb). The signal is concentrated in a few abundant taxa — OTU1 (*Thelebolus*), OTU636 (*Sporormiella*) and OTU1225 (*Coniochaeta*) are the three largest contributors — which is consistent with the dominance analysis of Section 5.4 and with Section 9.4, where they are the three most summer-shifted OTUs of the HMSC model.
 
 ### 8.3 The guild shift recurs in all three years
 
@@ -1946,18 +1994,22 @@ kable(cbind(Guild = lv, as.data.frame(round(100 * mat, 1), check.names = FALSE))
       caption = "Table S-GUILDc. Mean per-sample guild read share (%) by season and year. Cell sizes: winter 10/9/7 and summer 9/9/8 samples for 2022/2023/2024.")
 ```
 
-Panel C of Figure S-GUILDa and Table S-GUILDc show the same ordering in every year: **the dung-saprotroph share is higher in summer than in winter in 2022, 2023 and 2024** (41.3% vs 24.5%, 68.3% vs 10.9%, and 44.0% vs 1.7% respectively). Within-year tests are significant for 2023 (q = 0.027) and marginal for 2024 (q = 0.053) but not for 2022 (q = 0.74), where two unusually coprophile-rich winter samples raise the winter mean and its variance. The direction is therefore consistent across all three years while the magnitude varies. This is the functional-guild analogue of the H1 result in Section 4.2, and the two agree closely: the compositional Season × Year interaction is significant there (p = 0.011; four of five distance measures, marginal under the fifth, Table S7b), and the per-year breakdown ranks the years in the same order as the guild data — 2023 strongest, 2024 intermediate, 2022 weakest (Table S5b). Given three years and modest per-cell sample sizes, the safe reading is that the seasonal shift is directionally reproducible but of year-varying magnitude, not that it has a constant effect size.
+Panel C of Figure S-GUILDa and Table S-GUILDc show the same ordering in every year: **the dung-saprotroph share is higher in summer than in winter in 2022, 2023 and 2024** (41.3% vs 24.5%, 68.3% vs 10.9%, and 44.0% vs 1.7% respectively). Within-year tests are significant for 2023 (q = 0.027) and marginal for 2024 (q = 0.053) but not for 2022 (q = 0.74), where two unusually coprophile-rich winter samples raise the winter mean and its variance. The direction is therefore consistent across all three years while the magnitude varies.
+
+:::: {.content-visible when-profile="docs"}
+This is the functional-guild analogue of the H1 result in Section 4.2, and the two agree closely: the compositional Season × Year interaction is significant there (p = 0.011; four of five distance measures, marginal under the fifth, Table S7b), and the per-year breakdown ranks the years in the same order as the guild data — 2023 strongest, 2024 intermediate, 2022 weakest (Table S5b). Given three years and modest per-cell sample sizes, the safe reading is that the seasonal shift is directionally reproducible but of year-varying magnitude, not that it has a constant effect size.
+::::
 
 ::: {.callout-note when-profile="docs"}
 **Interpretation and caveats.**
 
+:::: {.content-visible when-profile="docs"}
 **What this adds.** The guild layer reproduces the seasonal signal independently of taxonomy and gives it a functional reading: summer dung supports an actively coprophilous community, winter dung does not. Section 9 tests the same link within a joint model and reaches a concordant conclusion — guild predicts seasonal *occurrence*, with dung saprotrophs more likely to occur in summer (posterior support 0.96) — so the descriptive and model-based views agree.
+::::
 
-**Relation to the dark taxa (E1).** The winter unassigned share here (51.1%) closely tracks the dark-taxa share reported in Section 3.4 (51.3% of winter reads), but the two are **not the same set**: "unassigned" here means no FUNGuild annotation (436 OTUs), while "dark" in Section 3.4 means no confident genus in the canonical taxonomy (493 OTUs). They share 390 OTUs, and 103 OTUs lack a genus yet still receive a FUNGuild call at family or order level. The definitions coincide in winter but diverge in summer (21.0% unassigned versus 31.2% dark), so the two figures should not be used interchangeably. Section 3.4 establishes that a substantial part of this winter fraction is genuinely novel rather than merely absent from reference databases; the functional consequence is that **winter guild composition is the least well characterised part of this dataset**, and its apparent depletion of coprophiles is partly a statement about annotation coverage.
+**Relation to the dark taxa (E1).** The winter unassigned share here (51.1%) closely tracks the dark-taxa share reported in Section 3.4 (51.3% of winter reads), but the two are **not the same set**: "unassigned" here means no FUNGuild annotation (436 OTUs), while "dark" in Section 3.4 means no confident genus in the canonical taxonomy (493 OTUs). They share 390 OTUs, and 103 OTUs lack a genus yet still receive a FUNGuild call at family or order level. The definitions coincide in winter but diverge in summer (21.0% unassigned versus 31.2% dark), so the two figures should not be used interchangeably. Section 3.4 shows that much of this winter fraction is candidate-novel rather than merely unnamed; the functional consequence is that **winter guild composition is the least well characterised part of this dataset**, and its apparent depletion of coprophiles is partly a statement about annotation coverage.
 
 **Limitations.** (i) Read share is not biomass: PCR and copy-number biases mean these proportions describe sequence abundance, not fungal abundance. (ii) FUNGuild assignments are database-derived and inherit its taxonomic and geographic biases; assignments made at family or order level are necessarily coarser than species-level ones, and confidence rankings (Table S-GUILDb does not stratify by them) are `Probable` for the majority of assigned OTUs. (iii) The compositional constraint discussed above means that a guild's decline in relative terms need not imply any absolute decline. (iv) A guild label describes an ecological capability inferred from relatives, not a verified activity in this substrate.
-
-**Supersedes.** The preliminary guild percentages previously recorded in this section were an interim workspace check that predated the finalized script; they were not reproducible from any committed code. The values above are produced by `Scripts/8_functional_guilds.R` and are reproducible from the staged CSVs in `tables/`.
 :::
 
 ```{r sec8-source}
@@ -1988,6 +2040,8 @@ Panel C of Figure S-GUILDa and Table S-GUILDc show the same ordering in every ye
 
 Section 9's residual `other` class mixes OTUs that *do* carry a FUNGuild call with 46 that have a taxonomic genus but **no** guild annotation at all; the latter carry roughly a tenth of winter reads. That conflation is harmless for a model trait but misleading in a read-share figure, so the two are separated here into **Other assigned** and folded into **Unassigned / dark** respectively. Table S-GUILDa reconciles the two schemes.
 
+**Supersedes.** The preliminary guild percentages previously recorded in this section were an interim workspace check that predated the finalized script; they were not reproducible from any committed code. The values above are produced by `Scripts/8_functional_guilds.R` and are reproducible from the staged CSVs in `tables/`.
+
 **Why FUNGuild and not FungalTraits.** Both annotation sources were built and compared. `fungaltraits_otu` (genus-level lookup via the `fungaltraits` package) covers 195 of 1129 OTUs (17%) and is a **strict subset** of the FUNGuild annotation (693 of the 1129 canonical OTUs, 61%) — it contributes no unique coverage. On the 195 OTUs both annotate they agree on the exact `Guild` string only 37% of the time (49% on trophic mode), because collapsing to one record per genus discards the species-level resolution FUNGuild's per-OTU run retains. FUNGuild is therefore used as the sole guild source; FungalTraits is retained only as a coarse sensitivity check, and guild calls are never merged between the two for the same OTU.
 
 **Means and medians tell different parts of this story, and both are reported.** For the plant-associated and pathotroph guilds the seasonal *means* are nearly identical (18.0% vs 23.4%, and 4.7% vs 5.8%) while the *medians* differ several-fold (2.1% vs 18.4%, and 0.1% vs 3.8%). The rank-based tests follow the medians and are significant for both. The reason is compositional rather than ecological: because dung saprotrophs occupy so much of a typical summer sample, every other guild is compressed toward zero in most summer samples, while a small number of summer samples in which coprophiles are absent carry large plant-associated or pathotroph fractions and pull the summer means back up. These guilds are better described as **relatively displaced in summer** than as absolute winter specialists — a limitation inherent to read shares, which are constrained to sum to one.
@@ -1995,11 +2049,14 @@ Section 9's residual `other` class mixes OTUs that *do* carry a FUNGuild call wi
 
 ## Section 9: Joint species distribution model — HMSC (H1 synthesis) {.page-break-before}
 
+:::: {.content-visible when-profile="docs"}
 Sections 4–6 treat the seasonal signal one lens at a time: community dissimilarity (H1), per-sample diversity (H2), and per-OTU differential abundance (GLLVM). This section brings them into a single hierarchical model. We fit a joint species distribution model (HMSC — Hierarchical Modelling of Species Communities; `Scripts/10_hmsc.R`) that simultaneously (i) partitions each OTU's variance among Season, Year, and the nested sampling structure; (ii) asks whether an OTU's functional guild predicts how it responds to Season (the trait → environment link); (iii) recovers each OTU's seasonal niche for a like-for-like cross-check against the Section-6 GLLVM; (iv) estimates the residual co-occurrence left once Season, Year and traits are accounted for; and (v) tests for phylogenetic signal in seasonal niches. It is the model-based synthesis of the H1 story, fitted directly on the corrected canonical data (unlike the Section-6 GLLVM, which predates the depth-filter fix).
+::::
 
-### 9.1 Model, design, and what is (and isn't) trustworthy
+This section fits a joint species distribution model (HMSC; `Scripts/10_hmsc.R`) to the corrected canonical data. It partitions each OTU's variance among Season, Year and droppings (9.2), tests whether functional guild predicts the seasonal response (9.3), estimates each OTU's seasonal niche (9.4), residual co-occurrence (9.5) and phylogenetic signal (9.6), and reports predictive performance (9.7).
 
-<!-- CLAUDE DRAFT 2026-09-29 (model revision): rewrite freely -->
+### 9.1 Model design and convergence
+
 The models use the one-row-per-PCR-replicate object (`alldat_full$nopool`; 109 replicate rows from 55 biological dung samples), retaining the **226 OTUs present in ≥ 5 replicates** — the same prevalence rule used for the GLLVM/H3 analyses. Fixed effects are **Season** (winter as reference) **+ Year**; the species trait is the five-level functional **guild** class derived from FUNGuild (dung saprotroph, plant-associated, pathotroph, dark/unassigned, other — assigned by the priority rule in `Scripts/10_hmsc.R`, counts below). Three models are fitted:
 
 - **Headline — CLR abundance, replicates averaged.** Each PCR replicate is CLR-transformed (the compositional normalisation that stands in for a library-size offset), and the two replicates of a dropping are then averaged, giving one row per dropping (55 rows). The random level is the **biological sample** (the dropping), with two latent factors. This model carries the abundance results of this section and both panels of Figure 3.
@@ -2046,24 +2103,21 @@ library(knitr)
 v1 <- read.csv("tables/hmsc_v1_chain_disagreement.csv", check.names = FALSE)
 kable(v1, row.names = FALSE,
       col.names = c("Quantity", "Chain 1", "Chain 2", "Chain 3", "Chain 4", "PSRF"),
-      caption = "Table S-HMSCb2. The superseded CLR model (replicate level, uncapped latent factors: 7 at the sample level, 5 at the PCR level), fitted 2026-07-20. Each of its four chains converged to a different answer for the quantities the previous version of Figure 3 reported; pooling them produced the previously quoted values (e.g. dung-saprotroph mean +0.39, Season 11%).")
+      caption = "Table S-HMSCb2. An uncapped CLR model (replicate level; 7 latent factors at the sample level, 5 at the PCR level), shown for comparison. Each of its four chains converged to a different answer for the quantities Figure 3 reports, so pooling the chains gives a mixture of modes rather than an estimate.")
 ```
 
-<!-- CLAUDE DRAFT 2026-09-29 (why the headline model wins): rewrite freely -->
 ::: callout-note
-**Why the replicate-averaged model is the headline.** An earlier version of this section used a single CLR model at the replicate level with an uncapped number of latent factors (seven at the sample level, five at the PCR level). Its four chains converged to four different answers (Table S-HMSCb2): the *Thelebolus* Season coefficient was 0.36, 3.03, 0.69 and −0.03 in the four chains, and the Season share of variance between 5% and 28%. The PSRF understated the problem because each chain mixed well within its own solution. The cause is structural. Season is constant within a dropping, so enough sample-level latent factors can reproduce the Season contrast themselves, and each chain divided the seasonal signal differently between the Season coefficients and the latent factors. Longer chains do not cure this; capping the number of latent factors does, and both CLR models reported here are capped.
+**Why the latent factors are capped, and why the replicate-averaged model is the headline.** A CLR model at the replicate level with an uncapped number of latent factors (seven at the sample level, five at the PCR level) does not converge to one answer: its four chains settle in four different solutions (Table S-HMSCb2): the *Thelebolus* Season coefficient was 0.36, 3.03, 0.69 and −0.03 in the four chains, and the Season share of variance between 5% and 28%. The PSRF understated the problem because each chain mixed well within its own solution. The cause is structural. Season is constant within a dropping, so enough sample-level latent factors can reproduce the Season contrast themselves, and each chain divided the seasonal signal differently between the Season coefficients and the latent factors. Longer chains do not cure this; capping the number of latent factors does, and both CLR models reported here are capped.
 
 With the cap, both CLR models converge on the Season effects (Table S-HMSCb). They differ in how they treat the two PCR replicates of each dropping. The replicate-level model estimates PCR replicate as its own random level, but the split of variance between dropping and replicate rests on only 54 replicate pairs and is weakly identified: in an earlier independent fit with the identical specification, its chains settled in two different splits (dropping/PCR 0.52/0.14 in two chains, 0.43/0.27 in the other two), whereas in the fit reported here the chains agree (Table S-HMSCc3). The replicate-level model also counts the two replicates as partly independent observations, which narrows its credible intervals (median width 0.84 of the headline model's; Table S-HMSCc4). Averaging the replicates removes both issues by construction — one row per dropping, no replicate-level split to identify — and its chains agree to within 0.003 on every reported guild mean and variance component.
 
 The two models agree on what the figures report: per-OTU Season coefficients correlate at Pearson r = 0.97 (Spearman ρ = 0.89), and 56 OTUs have a 95% credible interval excluding zero in both (Table S-HMSCc4). The replicate-level model is therefore kept as the complement that carries an explicit PCR-replicate level, and the PCR-replicate variance the headline model averages away is measured directly in Section 9.2 (Table S-HMSCc2).
 
-<!-- CLAUDE DRAFT 2026-10-05 (softened after the 2026-10-04 refit tests; rewrite freely) -->
-The **probit (occurrence)** model was not refitted. Its PSRFs are low (Beta median 1.01, 99.6% below 1.1), but compared chain by chain its guild means differ by up to 0.24 on the probit scale — the same qualitative answer in every chain, with looser agreement than the CLR models. That agreement is also partly a property of this particular fit: refitted from scratch, and again with its latent factors capped as in the CLR models, the same model mixes less well, with chains up to about 0.6 apart on a guild mean, chiefly for the common, strongly seasonal OTUs. Every refit returns the same answers — per-OTU Season coefficients correlate at r ≥ 0.99 with the fit reported here, and every guild-level direction is unchanged — so the probit results below should be read for their direction and ranking, not their exact size.
+The **probit (occurrence)** model has low PSRFs (Beta median 1.01, 99.6% below 1.1), but compared chain by chain its guild means differ by up to 0.24 on the probit scale — the same qualitative answer in every chain, with looser agreement than the CLR models. That agreement is also partly a property of this particular fit: refitted from scratch, and again with its latent factors capped as in the CLR models, the same model mixes less well, with chains up to about 0.6 apart on a guild mean, chiefly for the common, strongly seasonal OTUs. Every refit returns the same answers — per-OTU Season coefficients correlate at r ≥ 0.99 with the fit reported here, and every guild-level direction is unchanged — so the probit results below should be read for their direction and ranking, not their exact size.
 :::
 
-### 9.2 Variance partitioning: a reproducible seasonal axis within large individual heterogeneity
+### 9.2 Variance partitioning
 
-<!-- CLAUDE DRAFT 2026-09-29 (numbers updated to the revised model): rewrite freely -->
 For every OTU the headline model decomposes the variance it explains in CLR abundance into contributions from Season, Year, and the biological-sample (dropping) random level. Averaged across OTUs, **Season accounts for 31.5% and Year for 18.5%**, with the remaining 49.9% carried by differences among droppings. These are shares of the variance the model explains, not of total variance, so they are not comparable with a PERMANOVA R².
 
 ![](figures/hmsc_variance_partition.png)
@@ -2123,16 +2177,17 @@ kable(data.frame(
   caption = "Table S-HMSCc4. Agreement between the headline and the replicate-level model on each OTU's Season coefficient (CLR units).")
 ```
 
-<!-- CLAUDE DRAFT 2026-09-29: rewrite freely -->
+:::: {.content-visible when-profile="docs"}
 The ecological reading is two-sided but coherent. The **seasonal axis is real and reproducible**, yet at the level of an individual OTU the largest single component is still *how much dung communities differ from one dropping to the next*. HMSC formalises what the ordination and dominance analyses already suggested: season shifts the community in a consistent direction, on top of large individual-level variability. This decomposition, broken down by guild exactly as in Table S-HMSCc, is Figure 3B of the main text (Section 10.3).
+::::
 
 **PCR-replicate variance.** Because the headline model averages the two PCR replicates of each dropping, it has no PCR level to partition. The replicate-to-replicate variance is measured instead, outside the model, from the 54 droppings with two replicates (Table S-HMSCc2). Both replicates come from the same DNA extract, so any difference between them is measurement noise. For each OTU, half the mean squared difference between the two replicates' CLR values estimates the replicate variance; divided by the OTU's total CLR variance and averaged over OTUs, **replicate noise accounts for 32% of CLR variance** (bootstrap 95% CI 28–40%; median over OTUs 25%). The estimate does not depend on the method: dividing instead by the variance left after Season and Year gives 36%, and a per-OTU mixed model with a dropping random intercept gives 34% (per-OTU correlation with the former 0.998). Nor is it driven by unequal sequencing depth: the two replicates differ in depth by a median factor of 1.31, and the size of that difference does not predict how different the replicates look (Spearman ρ = 0.21, p = 0.13, n = 54). It is not spread evenly, however. Coprophilous dung saprotrophs are the most repeatable guild (17%, CI 11–25%) and pathotrophs the least (50%, CI 36–62%).
 
 The replicate noise is almost entirely **detection**, not abundance. Where both replicates detect an OTU, their CLR values agree closely: replicate noise is then a median 3% of variance. But in 46% of the droppings in which an OTU is found, only one of the two replicates detects it — the signature of low-abundance taxa near the detection limit, where PCR and sequencing sampling decide whether a few reads appear. Coprophiles are detected in both replicates more consistently (only one replicate detects them in 32% of cases) and, when both detect them, differ by a median 1% of variance: where *Thelebolus* or *Sporormiella* is present, both replicates see it at similar levels. The complementary replicate-level model, which fits PCR replicate as a random level, gives a comparable picture: 27% of its explained variance at the PCR level, 43% at the dropping level, and a Season share of 17.5% (Table S-HMSCc3). Its Season share is lower than the headline model's because replicate noise, which the headline model averages away, enters its denominator.
 
-### 9.3 Guild predicts seasonal occurrence — the coprophilous summer signature, formalised
+### 9.3 Guild as a predictor of the seasonal response (trait model)
 
-The trait → environment matrix (Gamma) asks whether an OTU's guild predicts its seasonal response. Read from the well-converged probit model, it does. Relative to the winter reference, **dung saprotrophs are markedly more likely to occur in summer** (the reference-guild Season effect is positive with posterior support 0.96), and the yeast-rich "other" group shows the same direction (support 0.83); **pathotrophs lean the opposite way**, toward winter (support 0.85 in the negative direction). Plant-associated and dark/unassigned taxa show no clear guild-level seasonal preference.
+The trait → environment matrix (Gamma) asks whether an OTU's guild predicts its seasonal response. Read from the probit occurrence model, it does. Relative to the winter reference, **dung saprotrophs are markedly more likely to occur in summer** (the reference-guild Season effect is positive with posterior support 0.96), and the yeast-rich "other" group shows the same direction (support 0.83); **pathotrophs lean the opposite way**, toward winter (support 0.85 in the negative direction). Plant-associated and dark/unassigned taxa show no clear guild-level seasonal preference.
 
 ![](figures/hmsc_probit_gamma.png)
 
@@ -2172,18 +2227,23 @@ kable(data.frame(
   caption = "Table S-HMSCd2. Abundance Gamma — guild trait → Season effect on CLR abundance, from the headline model, on the standardised scale (each OTU's response scaled to unit variance before fitting). Read as for Table S-HMSCd.")
 ```
 
-<!-- CLAUDE DRAFT 2026-09-29: rewrite freely -->
-On the abundance scale the same link can now be read from the headline model, whose Gamma converges (Table S-HMSCb), and it is sharper (Table S-HMSCd2). The dung-saprotroph guild's own Season effect is positive (+0.31 in standardised units, 95% CrI \[0.07, 0.54\], support 0.994). Plant-associated, pathotroph and dark/unassigned OTUs all respond clearly less summer-ward than dung saprotrophs (differences −0.37, −0.52 and −0.46; support ≤ 0.004), while the "other" group does not differ clearly from them (−0.16, support 0.12).
+On the abundance scale the same link can also be read from the headline model, whose Gamma converges (Table S-HMSCb), and it is sharper (Table S-HMSCd2). The dung-saprotroph guild's own Season effect is positive (+0.31 in standardised units, 95% CrI \[0.07, 0.54\], support 0.994). Plant-associated, pathotroph and dark/unassigned OTUs all respond clearly less summer-ward than dung saprotrophs (differences −0.37, −0.52 and −0.46; support ≤ 0.004), while the "other" group does not differ clearly from them (−0.16, support 0.12).
 
+:::: {.content-visible when-profile="docs"}
 This is the guild-level counterpart to the taxonomic and dominance results (Sections 3.2, 5.4): the recognised coprophilous fungi — *Sporormiella*, *Thelebolus*, *Coniochaeta* — are not a fixed cold-adapted core but a **summer-occurring dung guild**, consistent with the richer, more fungal-propagule-laden summer diet. HMSC states that pattern as a trait effect estimated across all 226 OTUs at once, rather than genus by genus.
+::::
 
 ### 9.4 Per-OTU seasonal niches, and agreement with the GLLVM
 
+:::: {.content-visible when-profile="docs"}
 Extracting each OTU's Season coefficient (Beta) from the headline CLR model recovers the same lineages at the individual level. The **three most strongly summer-shifted OTUs are the coprophilous dung saprotrophs** *Thelebolus* (OTU1), *Sporormiella* (OTU636) and *Coniochaeta* (OTU1225), each with a 95% credible interval well clear of zero — while the **most strongly winter-shifted OTUs are dark/unassigned taxa**, led by OTU1369, the same taxonomically unresolved Dothideomycete that anchors winter dominance in Sections 5.4 and the E1 dark-taxa analysis (Section 3.4).
+::::
+
+Per-OTU Season coefficients from the headline model are ranked in Figure S-HMSCc and Tables S-HMSCe(i)–(ii); main-text Fig. 3A shows the 22 most abundant OTUs.
 
 ![](figures/hmsc_beta_season.png)
 
-**Figure S-HMSCc**: Per-OTU seasonal niche (HMSC CLR Beta on Season; positive = summer), for the 25 most summer- and 25 most winter-shifted OTUs, coloured by guild, with 95% credible intervals. The summer extreme is dominated by dung saprotrophs (warm) and yeasts; the winter extreme by dark/unassigned taxa. This is the same model and the same quantity as Figure 3A of the main text (Section 10.3), but selected differently and deliberately kept alongside it: here all 226 OTUs are ranked by effect size, so the panel shows the community's extremes regardless of how rare they are, whereas Figure 3A restricts to the 22 OTUs holding at least 1% of modelled read share each and adds a guild-mean block. Rare OTUs with large coefficients therefore appear here and not there.
+**Figure S-HMSCc**: Per-OTU seasonal niche (HMSC CLR Beta on Season; positive = summer), for the 25 most summer- and 25 most winter-shifted OTUs, coloured by guild, with 95% credible intervals. The summer extreme is dominated by dung saprotrophs (warm) and yeasts; the winter extreme by dark/unassigned taxa. This is the same model and the same quantity as Figure 3A of the main text (Section 10.3), but selected differently and kept alongside it: here all 226 OTUs are ranked by effect size, so the panel shows the community's extremes regardless of how rare they are, whereas Figure 3A restricts to the 22 OTUs holding at least 1% of modelled read share each and adds a guild-mean block. Rare OTUs with large coefficients therefore appear here and not there.
 
 ```{r tab-hmsc-beta}
 #| echo: false
@@ -2200,8 +2260,11 @@ kable(b %>% arrange(beta_season_mean) %>% slice_head(n = 6) %>% fmt(), row.names
       caption = "Table S-HMSCe(ii). Most strongly winter-shifted OTUs. Beta is in CLR units (the model's standardised coefficient multiplied by the OTU's CLR standard deviation). Full table: tables/hmsc_beta_season.csv.")
 ```
 
-<!-- CLAUDE DRAFT 2026-09-29 (numbers updated to the revised model): rewrite freely -->
-The same per-OTU niche can be estimated on the **occurrence** scale, with the probit model. There, 55 of the 226 OTUs have a Season coefficient whose 95% credible interval excludes zero, against 74 in the headline abundance model. The two formulations rank the community's seasonal responses consistently (Spearman ρ = 0.76), and the probit per-OTU estimates aggregate to the guild-level Gamma of Section 9.3 to within 0.04, so nothing here contradicts the results above. What the occurrence scale does change is *which* taxa sit at the summer extreme. In abundance the coprophiles lead outright; in occurrence the shift is community-wide (157 of 226 OTUs point towards summer, median +0.70) and the extreme is occupied by cold-adapted basidiomycete yeasts — *Vishniacozyma*, *Mrakia*, *Piskurozyma*, *Phenoliferia* — with *Sporormiella* (OTU636) the only dung saprotroph in the top 25 and the mean dung-saprotroph rank falling to 125 of 226 (from 59 in abundance). The distinction is ecologically substantive rather than a modelling artefact: coprophilous fungi are what summer dung is largely *made of* in read share, but they are not the taxa that most reliably *appear* in summer. The winter extreme is unchanged and, if anything, more strongly resolved — dark/unassigned taxa and pathotrophs, with OTU1369 the most winter-shifted OTU in the community (β = −2.25, 95% CrI \[−3.53, −1.08\]). Both scales are carried forward, but they are not given equal weight in the main text. Figure 3 in Section 10.3 is built entirely on the abundance formulation — the scale on which the coprophilous shift is the community's largest seasonal effect, and the scale that Figures 1 and 2 also work on — while the occurrence-scale result reported here stays supplementary, alongside Tables S-HMSCe(iii) and S-HMSCe(iv). The abundance-scale table above also remains the one comparable with the GLLVM below.
+The same per-OTU niche can be estimated on the **occurrence** scale, with the probit model. There, 55 of the 226 OTUs have a Season coefficient whose 95% credible interval excludes zero, against 74 in the headline abundance model. The two formulations rank the community's seasonal responses consistently (Spearman ρ = 0.76), and the probit per-OTU estimates aggregate to the guild-level Gamma of Section 9.3 to within 0.04, so nothing here contradicts the results above. What the occurrence scale does change is *which* taxa sit at the summer extreme. In abundance the coprophiles lead outright; in occurrence the shift is community-wide (157 of 226 OTUs point towards summer, median +0.70) and the extreme is occupied by cold-adapted basidiomycete yeasts — *Vishniacozyma*, *Mrakia*, *Piskurozyma*, *Phenoliferia* — with *Sporormiella* (OTU636) the only dung saprotroph in the top 25 and the mean dung-saprotroph rank falling to 125 of 226 (from 59 in abundance). The distinction is ecologically substantive rather than a modelling artefact: coprophilous fungi are what summer dung is largely *made of* in read share, but they are not the taxa that most reliably *appear* in summer. The winter extreme is unchanged and, if anything, more strongly resolved — dark/unassigned taxa and pathotrophs, with OTU1369 the most winter-shifted OTU in the community (β = −2.25, 95% CrI \[−3.53, −1.08\]).
+
+:::: {.content-visible when-profile="docs"}
+Both scales are carried forward, but they are not given equal weight in the main text. Figure 3 in Section 10.3 is built entirely on the abundance formulation — the scale on which the coprophilous shift is the community's largest seasonal effect, and the scale that Figures 1 and 2 also work on — while the occurrence-scale result reported here stays supplementary, alongside Tables S-HMSCe(iii) and S-HMSCe(iv). The abundance-scale table above also remains the one comparable with the GLLVM below.
+::::
 
 ```{r tab-hmsc-beta-probit}
 #| echo: false
@@ -2218,11 +2281,11 @@ kable(bp %>% arrange(beta_season_mean) %>% slice_head(n = 6) %>% fmtp(), row.nam
       caption = "Table S-HMSCe(iv). Most strongly winter-shifted OTUs, occurrence scale. Support is the posterior probability that the coefficient exceeds zero.")
 ```
 
-Because the GLLVM (Section 6) is an independent model — negative-binomial counts rather than CLR abundance, a different random-effect structure, and fitted on a different OTU snapshot — the two provide a genuine cross-method check. Their per-OTU Season coefficients agree well.
+Because the GLLVM (Section 6) is an independent model — negative-binomial counts rather than CLR abundance, a different random-effect structure, and fitted on a different OTU snapshot — the two provide a cross-method check. Their per-OTU Season coefficients agree well.
 
 ![](figures/hmsc_vs_gllvm_season.png)
 
-**Figure S-HMSCd**: HMSC (CLR Beta) versus GLLVM Season coefficient, one point per shared OTU (n = 139 after excluding the GLLVM's on/off near-separation OTUs, whose ±10³ coefficients are not comparable), coloured by guild. The two independent joint models rank the OTUs' seasonal responses consistently (**Spearman ρ = 0.75**), a strong convergent-validity result for H1 at OTU resolution.
+**Figure S-HMSCd**: HMSC (CLR Beta) versus GLLVM Season coefficient, one point per shared OTU (n = 139 after excluding the GLLVM's on/off near-separation OTUs, whose ±10³ coefficients are not comparable), coloured by guild. The two independent joint models rank the OTUs' seasonal responses consistently (**Spearman ρ = 0.75**).
 
 ### 9.5 Residual co-occurrence beyond Season
 
@@ -2234,7 +2297,6 @@ The biological-sample latent factors capture the co-occurrence structure that re
 
 ### 9.6 Phylogenetic signal in seasonal niches
 
-<!-- CLAUDE DRAFT 2026-09-30 (phylogeny re-run on the headline model): rewrite freely -->
 Adding the OTU phylogeny (the maximum-likelihood ITS2 tree of `Scripts/6_diversity_analyses.R`, pruned to the 226 modelled OTUs) to the headline model estimates ρ: the share of the OTU-to-OTU variation in responses, left after the guild trait, that follows the phylogeny under a Brownian-motion model. The chains converge and agree on ρ (Table S-HMSCb, Table S-HMSCf), and adding the phylogeny leaves the per-OTU niches and the guild link essentially unchanged.
 
 ```{r tab-hmsc-rho}
@@ -2252,8 +2314,7 @@ kable(data.frame(
                     rh$beta_season_cor_vs_main, rh$gamma_cor_vs_main))
 ```
 
-<!-- CLAUDE DRAFT 2026-09-30: rewrite freely -->
-**ρ is effectively 1.** Its posterior median is 0.985 (95% CrI \[0.950, 0.995\]), and the posterior rises steadily toward the top of the grid, with a quarter of all draws on its highest point. That upper limit is set by the grid, not the data: ρ = 1 itself cannot be fitted, because OTUs with near-identical sequences have near-zero branch lengths and the phylogenetic covariance becomes singular. Under the model, essentially all of the variation in responses left after guild is phylogenetically structured. This replaces the ρ ≈ 0.72 reported from the earlier, non-converged model structure (Section 9.1), whose uncapped latent factors absorbed part of the same variation. Note that ρ applies to an OTU's responses jointly — baseline abundance, Season and Year together.
+**ρ is effectively 1.** Its posterior median is 0.985 (95% CrI \[0.950, 0.995\]), and the posterior rises steadily toward the top of the grid, with a quarter of all draws on its highest point. That upper limit is set by the grid, not the data: ρ = 1 itself cannot be fitted, because OTUs with near-identical sequences have near-zero branch lengths and the phylogenetic covariance becomes singular. Under the model, essentially all of the variation in responses left after guild is phylogenetically structured. Note that ρ applies to an OTU's responses jointly — baseline abundance, Season and Year together.
 
 A single ρ does not say at which scale relatives resemble each other, and it does not isolate Season. Table S-HMSCf2 therefore correlates the Season responses of every pair of OTUs, binned by their distance in the tree. It uses the headline model's coefficients, which contain no phylogeny, so the comparison is not circular.
 
@@ -2275,7 +2336,6 @@ kable(data.frame(
 
 Close relatives respond alike, and the resemblance reaches well beyond near-identical sequences. The 27 pairs within 0.005 substitutions per site correlate at 0.82, pairs up to 0.1 at 0.63–0.65, and the 1,283 pairs at 0.1–0.5 — roughly genus-to-family distance — still at 0.40, each far above the range expected by chance. The resemblance fades by 0.5–1 (0.08) and reverses at the deepest splits (−0.10): the most distant lineages tend to respond to season in opposite directions. Near-identical sequences therefore do not drive the signal — they are 27 of about 25,000 pairs — and they are retained: they survived LULU curation, which merges a sequence into a close relative only when the two co-occur, so they are distinct units rather than sequencing duplicates.
 
-<!-- CLAUDE DRAFT 2026-10-01: rewrite freely -->
 The deep end of the correlogram needs a separate check. A tree built from ITS2 alone resolves recent splits well but places classes and phyla poorly, so the negative correlation at the largest distances rests on weak branches. Grouping the same Season responses by taxonomy instead, with no tree involved, shows the contrast directly (Table S-HMSCf3). Basidiomycota lean summer (72% of OTUs summer-positive), driven by the yeast classes Tremellomycetes and Microbotryomycetes. Ascomycota lean winter (43% summer-positive), driven by Dothideomycetes, Eurotiomycetes and Lecanoromycetes, the last two with only about one OTU in six summer-positive. Sordariomycetes, which include *Coniochaeta*, are the summer-leaning exception among Ascomycota.
 
 ```{r tab-hmsc-lineage}
@@ -2292,9 +2352,13 @@ kable(data.frame(
   caption = "Table S-HMSCf3. Seasonal response by phylum and class, from taxonomy rather than the tree. For each lineage with at least four modelled OTUs: the mean standardised Season coefficient of the headline model (positive = summer), the percentage of its OTUs with a positive coefficient, and a permutation p (2000 random groups of the same size: is the lineage's mean further from the community mean than chance?). 'unassigned' = OTUs with a phylum but no class.")
 ```
 
-Seasonal niches are **phylogenetically conserved**, most clearly at the genus-to-family scale, with the deepest lineages contrasting. This dovetails with the guild result — because guild is itself partly phylogenetically structured, the coprophilous summer signature is echoed as a broader phylogenetic pattern. It is reported as a secondary, exploratory result: the phylogeny-augmented model is a supplementary variant, and ρ at the upper edge of its range is better read as "strongly structured" than as a precise value.
+Seasonal niches are **phylogenetically conserved**, most clearly at the genus-to-family scale, with the deepest lineages contrasting. It is reported as a secondary, exploratory result: the phylogeny-augmented model is a supplementary variant, and ρ at the upper edge of its range is better read as "strongly structured" than as a precise value.
 
-### 9.7 What the model predicts — and its honest limit
+:::: {.content-visible when-profile="docs"}
+This dovetails with the guild result — because guild is itself partly phylogenetically structured, the coprophilous summer signature is echoed as a broader phylogenetic pattern.
+::::
+
+### 9.7 Predictive performance
 
 Finally, HMSC quantifies how much of the community it actually explains, in-sample versus out-of-sample (two-fold cross-validation, with folds split by biological sample so PCR replicates never leak across folds).
 
@@ -2316,9 +2380,15 @@ kable(data.frame(
   caption = "Table S-HMSCg. Community-mean explanatory vs cross-validated fit. Explanatory R² is moderate; cross-validated R² is near zero.")
 ```
 
-The explanatory fit is moderate (community-mean R² ≈ 0.29 for the headline abundance model) but **cross-validated R² is near zero** (≈ 0.03) — the model does not predict the fungal community of a dropping it has not seen. Far from undercutting the story, this is the quantitative statement of it: the seasonal and guild effects documented above are **real and directional but small against the dominant, idiosyncratic variation among individual droppings**. A ptarmigan's dung mycobiome is shaped by season in a reproducible way, yet remains largely individual — which is exactly what a transient, diet- and propagule-sourced community should look like, and a useful caution for anyone hoping to read season directly off a single sample.
+The explanatory fit is moderate (community-mean R² ≈ 0.29 for the headline abundance model) but **cross-validated R² is near zero** (≈ 0.03) — the model does not predict the fungal community of a dropping it has not seen. The seasonal and guild effects documented above are **real and directional but small against the dominant, idiosyncratic variation among individual droppings**.
 
+:::: {.content-visible when-profile="docs"}
+A ptarmigan's dung mycobiome is shaped by season in a reproducible way, yet remains largely individual — which is exactly what a transient, diet- and propagule-sourced community should look like, and a useful caution for anyone hoping to read season directly off a single sample.
+::::
+
+:::: {.content-visible when-profile="docs"}
 **In summary**, HMSC does not overturn any earlier result; it unifies them and adds two things the single-lens analyses could not: a variance decomposition that sizes the seasonal signal against individual heterogeneity, and a formal trait- and phylogeny-level account of *why* the seasonal turnover looks the way it does — a summer-occurring coprophilous dung guild, phylogenetically conserved, riding on top of large among-individual variability.
+::::
 
 ```{r sec9-source}
 #| eval: false
@@ -2414,9 +2484,13 @@ conda run -n r_env Rscript build_main_figure.R fig1-build
 
 ![](figures/main/Fig1_composition_function.png)
 
+**Figure 1**: Composition and function of the willow ptarmigan dung mycobiome across seasons. **(A)** Per-sample genus-level read share — the nine most abundant genera, all remaining named genera pooled as *Other genera*, and reads on OTUs with no confident genus assignment as *Unassigned*. **(B)** Per-sample functional-guild read share for the same 52 samples, so each column is the same dropping in both panels. **(C)** Per-sample guild read share by season; boxes show the median and interquartile range, points are individual samples, and marks give the Benjamini–Hochberg-adjusted Wilcoxon rank-sum result across the five guilds (\* q \< 0.05, \*\* q \< 0.01, ns = not significant).
+
+:::: {.content-visible when-profile="docs"}
 **Figure 1**: Composition and function of the willow ptarmigan dung mycobiome across seasons. **(A)** Per-sample genus-level read share — the nine most abundant genera, all remaining named genera pooled as *Other genera*, and reads on OTUs with no confident genus assignment as *Unassigned*. **(B)** Per-sample functional-guild read share for the **same 52 samples in the same order**, so each column is the same dropping in both panels; samples are ordered within each season by descending dung-saprotroph share. **(C)** Per-sample guild read share by season; boxes show the median and interquartile range, points are individual samples, and marks give the Benjamini–Hochberg-adjusted Wilcoxon rank-sum result across the five guilds (\* q \< 0.05, \*\* q \< 0.01, ns = not significant). *Thelebolus* in (A) and the dung-saprotroph guild in (B) intentionally share one colour — *Thelebolus* is that guild's dominant member — as do the two grey "no assignment" bands.
 
 Read down a column and the two descriptions line up: the summer samples that are almost entirely dung saprotrophs in (B) are the samples dominated end-to-end by *Thelebolus*, *Sporormiella* and *Coniochaeta* in (A), while winter samples are a patchwork of many low-abundance genera sitting under a large unassigned fraction. The seasonal contrast is therefore the same result seen taxonomically and functionally: dung saprotrophs rise from 13.6% of winter reads to 51.5% in summer, and the unassigned fraction falls from 51.1% to 21.0% (panel C; Section 8.2). Panel A also makes the interpretive limit visible — roughly half of a typical winter sample is reads that carry no genus at all, which is the subject of the dark-taxa analysis in Section 3.4.
+::::
 
 ```{r fig1-build}
 #| eval: false
@@ -2624,9 +2698,13 @@ print(data.frame(Guild  = GUILD_LEVELS,
 
 ![](figures/main/Fig2_seasonal_turnover.png)
 
+**Figure 2**: Winter and summer dung mycobiomes differ in composition, and the size of that difference varies among years. **(A)** PCoA of robust Aitchison distances among the 52 dung samples, coloured by season and shaped by year. Thin lines join each sample to its season centroid (×). The axis percentages are shares of the rank-3 reconstruction from which vegan computes robust Aitchison distances; under a full-rank Aitchison distance (CLR after a pseudocount) the same two axes take 13.7% and 9.5%, which is the closer approximation to the variance actually explained (Section 4.1). **(B)** Distance of each sample to its own season centroid in robust-CLR space, split by season and year; boxes show the median and interquartile range and points are individual samples. Subtitles give the PERMANOVA terms (A) and the ANOVA terms of the distance \~ Season × Year model of within-season spread (B).
+
+:::: {.content-visible when-profile="docs"}
 **Figure 2**: Winter and summer dung mycobiomes differ in composition, and the size of that difference varies among years. **(A)** Unconstrained principal coordinates analysis of robust Aitchison distances among the 52 canonical samples, coloured by season and shaped by year. Thin lines join each sample to its season centroid (×). The axis percentages are shares of the rank-3 reconstruction from which `vegan` computes robust Aitchison distances, not of the full community variation, and the axis titles name that denominator accordingly; under a full-rank Aitchison distance (CLR after a pseudocount) the same two axes take **13.7% and 9.5%**, which is the closer approximation to the variance actually explained (Appendix Section 4.1). **(B)** Distance of each sample to its own season centroid in robust-CLR space, split by season and year; boxes show the median and interquartile range and points are individual samples. Subtitles give the PERMANOVA terms (A) and the ANOVA terms of the `distance ~ Season × Year` model of within-season spread (B).
 
 Winter and summer communities separate along the first ordination axis: Season explains 11% of compositional variance (PERMANOVA p = 0.002; Table S5). The seasonal contrast is not, however, demonstrably of constant size — the Season × Year interaction is significant (R² = 0.10, p = 0.011), as it is under three of the four alternative distances, though only marginal under the zeros-retained robust CLR (p = 0.061; Table S7b). The per-year tests make the shift much the largest in 2023 (R² = 0.14–0.24, p ≤ 0.009 under every distance), with smaller contrasts in 2024 (R² = 0.09–0.14) and 2022 (R² = 0.07–0.10), each significant under three of the five distances (Tables S5b, S7c). What survives every distance measure is the *ordering* of the three years rather than the size of the gap between them: under the rank-3 robust Aitchison distance of panel A the 2022 contrast alone collapses to R² = 0.02 (p = 0.789), an artefact of the truncated distance rather than a year without a seasonal shift (Section 4.2, caveat iii). Panel B shows that this is a difference in *where* the seasons sit rather than in how tightly each clusters: summer samples are consistently further from their own centroid than winter samples in every year (Season p \< 0.001), with no Season × Year interaction in that spread (p = 0.79). Two caveats belong with this figure and are treated in Section 4.2: summer samples are significantly more dispersed than winter ones, so part of the PERMANOVA R² reflects spread rather than location alone (Anderson 2001), and the axis percentages are shares of a rank-3 completion of the robust CLR matrix — panel A plots two of only three available dimensions, which is why its axis titles name that space rather than reporting a bare percentage (Section 4.1).
+::::
 
 ```{r fig2-build}
 #| eval: false
@@ -2773,7 +2851,7 @@ cat("Mean distance to season centroid:\n")
 print(round(tapply(dcent$dist, list(dcent$Season, dcent$Year), mean), 1))
 ```
 
-### 10.3 Figure 3 — A reproducible seasonal axis inside large among-individual variation (HMSC synthesis)
+### 10.3 Figure 3 — Seasonal shift at OTU and guild level (HMSC)
 
 :::: {.content-visible when-profile="docs"}
 *Provenance: both panels of Fig. 3 come from the same abundance (CLR) HMSC model of Section 9. Fig. 3A is the per-OTU seasonal niche of Section 9.4 (Tables S-HMSCe(i) and S-HMSCe(ii)), restricted to the 22 OTUs that each hold at least 1% of modelled read share and augmented with a guild-mean block; Figure S-HMSCc is the same quantity for all 226 OTUs ranked by effect size rather than by abundance. Fig. 3B is the variance partition of Section 9.2 (Table S-HMSCc); its right-hand column is the model-free PCR-replicate share of Table S-HMSCc2 (`tables/hmsc_pcr_replicate_variance.csv`). The read shares behind the selection rule come from `tables/dark_taxa_SH_matching.csv` (Section 3.4), which is also the source of the finest-rank labels for OTUs with no genus. Both panels read committed `tables/*.csv` written by `10_hmsc.R` and `9_dark_taxa_SH_matching.R`, so the figure cannot drift from Sections 9 and 3.4.*
@@ -2781,11 +2859,14 @@ print(round(tapply(dcent$dist, list(dcent$Season, dcent$Year), mean), 1))
 
 ![](figures/main/Fig3_hmsc_synthesis.png)
 
-<!-- CLAUDE DRAFT 2026-09-29 (caption rewritten for the revised model): rewrite freely -->
+**Figure 3**: The seasonal shift at OTU and guild level. Abundance (CLR) HMSC model of 226 OTUs in 55 droppings (PCR replicates averaged), with Season and Year as fixed effects and dropping as random level. **(A)** Season coefficient with 95% credible interval for the 22 OTUs holding ≥ 1% of modelled reads, coloured by functional guild. Filled points have intervals excluding zero, and OTU1369's interval is clipped at −6. The lower block gives the mean (diamond) and interquartile range of per-OTU posterior means for each guild across all 226 OTUs. **(B)** Mean share of per-OTU explained variance attributed to Season, Year and dropping, for all OTUs and by guild. The italic column is the share of total CLR variance lying between PCR replicates, estimated outside the model.
+
+:::: {.content-visible when-profile="docs"}
 **Figure 3**: A joint species distribution model places the seasonal axis at OTU level and sizes it against the variation among individual droppings. Both panels come from one abundance (CLR) HMSC model fitted to 226 OTUs in 55 droppings, with each dropping's two PCR replicates averaged, Season and Year as fixed effects, and the dropping as random level (Section 9.1). **(A)** Per-OTU Season coefficient in CLR units — positive = higher relative abundance in summer — for the 22 OTUs that each account for at least 1% of modelled-OTU read share, 73% of all modelled reads between them, ordered by coefficient and coloured by functional guild, with 95% credible intervals. One interval, OTU1369's, extends beyond the axis and is clipped at −6 with an arrowhead (it reaches −6.48). Filled points are the 16 resolved at HMSC's 0.95 posterior-support convention; community-wide, 74 of 226 OTUs have a 95% credible interval excluding zero. The lower block gives each guild's arithmetic mean of the per-OTU posterior means (diamond) with their interquartile range, taken over all OTUs in that guild rather than only the 22 plotted; it is a descriptive summary of the points above, not a credible interval. The model's own guild-level estimate is the trait-level Gamma (Section 9.3, Table S-HMSCd2). The four MCMC chains agree on every plotted estimate (Beta PSRF ≤ 1.01; Table S-HMSCb). **(B)** Mean share of per-OTU explained variance attributed to Season, Year and the dropping, for all 226 OTUs and then within each guild (Table S-HMSCc). The italic right-hand column is not part of that partition. It is the share of each OTU's total CLR variance that lies between the two PCR replicates of a dropping, measured outside the model (Table S-HMSCc2), and it mostly reflects rare taxa detected by one replicate but not the other. The three highlighted rows are drawn larger because they are the groups this study is about. The five guild classes are the model's trait and differ slightly from the display split used in Figure 1: 46 OTUs carrying a genus but no FUNGuild call sit in "Other assigned" here and in "Unassigned / dark" there (`tables/guild_scheme_crosswalk.csv`, Section 8.1).
 
-Panel A makes the seasonal signal concrete at the level of individual lineages, and it does so among the taxa that actually constitute the community: the 22 OTUs plotted are every OTU holding at least 1% of modelled read share, and they carry 73% of the modelled reads between them. <!-- CLAUDE DRAFT 2026-09-29 (numbers and claims updated to the revised model): rewrite freely -->
+Panel A makes the seasonal signal concrete at the level of individual lineages, and it does so among the taxa that actually constitute the community: the 22 OTUs plotted are every OTU holding at least 1% of modelled read share, and they carry 73% of the modelled reads between them.
 Read from the top, the panel is the study's taxonomic result in one column. The summer end is an unbroken block of coprophilous dung saprotrophs — *Thelebolus* (OTU1, β = +4.17), *Sporormiella* (OTU636, +3.52), *Coniochaeta* (OTU1225, +3.44) and two further Sporormiaceae and Coniochaetaceae lineages — every one of them resolved. The winter end is a block dominated by dark, taxonomically unresolved taxa, ending at OTU1369 (−5.00), the unclassified Dothideomycete that dominates winter read share in Figure 5. Plant-associated taxa straddle zero between them. The guild means below make the same statement over all 226 OTUs rather than the 22 shown. Dung saprotrophs (+1.32) have by far the most summer-shifted mean; dark/unassigned taxa (−0.31) and pathotrophs (−0.33) lean winter; and the yeast-rich "other" group is weakly positive (+0.22). The model's trait-level estimate agrees: the dung-saprotroph guild's Season effect is positive with posterior support 0.994, and dark/unassigned, pathotroph and plant-associated OTUs respond clearly less summer-ward (Section 9.3). Panel B sizes these effects. Season accounts for 31.5% of the variance the model explains and Year for 18.5%, while half (49.9%) sits among droppings — one dropping to the next. The Season share is largest for dung saprotrophs (49.8%): coprophiles are the taxa whose abundance season determines most. Measured separately, a further 32% of total CLR variance is replicate-to-replicate noise within a dropping, most of it whether rare taxa are detected at all; coprophiles are the most repeatable guild (17%). Taken together the panels state the central quantitative claim in one place: seasonal turnover is real, directional and consistent across methods, yet it sits beside large idiosyncrasy among individual droppings — which is why the model explains the samples it has seen (R² ≈ 0.29) but predicts held-out droppings far less well (cross-validated R² ≈ 0.03; Section 9.7).
+::::
 
 ```{r fig3-build}
 #| eval: false
@@ -3239,7 +3320,7 @@ print(data.frame(group = sprintf("%s (n = %d)", vpm$grp, vpm$n),
       row.names = FALSE)
 ```
 
-### 10.4 Figure 4 — Richness rises, evenness collapses (H2)
+### 10.4 Figure 4 — Pooled versus per-dropping diversity (H2)
 
 :::: {.content-visible when-profile="docs"}
 *Provenance: Fig. 4A is the coverage-based pooled-season iNEXT3D analysis of Section 5.1 (Table S8); Fig. 4B the size-standardised per-sample iNEXT3D Hill numbers of Section 5.2 (Figure S8), annotated with the per-sample gamma-GLM contrasts of Table S9; Fig. 4C the dominance and evenness metrics of Section 5.3 (Table S10); Fig. 4D the top-5 dominant OTUs of Section 5.4 (Table S11), coloured by the guild rule of Section 8.1. Panels B–D are computed on the canonical 52-sample object (`alldat$nopool`); panel B standardises it to 12,615 reads through `hill_size_helper.R`, a verbatim copy of the estimator `Scripts/6_diversity_analyses.R` uses for Section 5.2, and the build checks that the two agree. Panel A's estimates and every test statistic are read from the committed `tables/` CSVs, so the figure cannot drift from Section 5.*
@@ -3247,9 +3328,13 @@ print(data.frame(group = sprintf("%s (n = %d)", vpm$grp, vpm$n),
 
 ![](figures/main/Fig4_richness_evenness_crossover.png)
 
+**Figure 4**: The summer dung mycobiome holds more fungal OTUs than winter ones, yet each individual dropping is far less even. **(A)** Taxonomic diversity of each season's pooled sample set (iNEXT3D, incidence data) at Hill orders q = 0, 1 and 2 at equal sequencing depth. Points are the median estimate over 50 rarefaction draws, and bars the median 95% CI. **(B)** Per-sample Hill numbers for the same 52 samples, size-standardised to 12,615 reads. Boxes show the median and interquartile range, points are individual samples, white diamonds are season means, and the grey segment joins those means. Annotations give the year-adjusted summer/winter ratio with its p-value from the GLMs of Table S9. **(C)** Per-sample top-1-OTU read share and Pielou evenness J, both on a 0–1 scale, with symbols as in (B) and brackets giving the Wilcoxon rank-sum result (Table S10). **(D)** The identity of the dominants: the five OTUs with the highest mean within-season read share in each season, coloured by functional guild. Bar labels give that mean share and, in parentheses, the number of the season's 26 samples in which the OTU was detected at all. Taxa are named at the finest confidently assigned rank.
+
+:::: {.content-visible when-profile="docs"}
 **Figure 4**: The summer dung mycobiome is the richer assemblage when droppings are pooled, yet each individual dropping is far less even. **(A)** Taxonomic diversity of each season's pooled sample set at Hill orders q = 0, 1 and 2, at equal sequencing depth (every sample rarefied to 12,615 reads) and equal sample coverage (0.65) (iNEXT3D, incidence data); points are the median estimate over 50 rarefaction draws, bars the median 95% confidence interval, and the grey segment joins the two seasons within an order. Summer exceeds winter at every order (Table S8). **(B)** Per-sample Hill numbers for the same 52 samples, size-standardised with iNEXT3D to a common depth of 12,615 reads, drawn in the same three columns against the same season axis so that the two rows can be read against one another; boxes show the median and interquartile range, points are individual samples, white diamonds are season means, and the grey segment joins those means. The slope that rises in all three columns of (A) rises only at q = 0 here and falls at q = 1 and q = 2 — that reversal is the crossover. Annotations give the year-adjusted summer/winter ratio and its p-value from a gamma GLM fitted to the plotted per-sample values (Table S9); the q = 0 contrast depends on the model family (p = 0.026–0.29; Table S9b), the q = 1 and q = 2 contrasts do not. Both rows scale y freely within each column, because the three Hill orders differ by an order of magnitude. **(C)** The mechanism: per-sample top-1-OTU read share and Pielou evenness *J*, both on a 0–1 scale, with symbols as in (B) and brackets giving the Wilcoxon rank-sum result (Table S10). **(D)** The identity of the dominants — the five OTUs with the highest mean within-season read share in each season, coloured by functional guild under the rule of Section 8.1. Bar labels give that mean share and, in parentheses, the number of the season's 26 samples in which the OTU was detected at all. Taxa are named at the finest confidently assigned rank, so an OTU with no genus appears under its family, or as *unclassified* plus its order or class. *Candida parapsilosis* is coloured plant-associated because its compound FUNGuild string contains `Epiphyte`; the rule is applied unchanged rather than special-cased, so that Figures 1 and 4 and Sections 8–9 classify every OTU identically.
 
 Panels A and B put the same question to two scales and get opposite answers, and that disagreement is the result rather than a problem with it. Pooled across a season and with sequencing depth held equal, summer is the richer assemblage at every Hill order — 548 against winter's 383 OTUs at q = 0, and the gap widens under abundance weighting (412 vs 261 at q = 1; 287 vs 162 at q = 2). Within a single dropping the ordering reverses as soon as abundance enters: winter droppings are significantly more diverse at q = 1 (14.9 vs 7.4 effective OTUs; summer/winter 0.46, p = 0.001) and q = 2 (10.1 vs 4.6; 0.40, p < 0.001), whereas at q = 0 summer's higher mean (48.3 vs 31.3) is a weak, family-dependent difference carried by a few very rich summer samples (Tables S9, S9b). Panel C locates the reversal in dominance rather than in the species lists: an average summer sample gives 56% of its reads to a single OTU against 25% in winter, and Pielou evenness falls from 0.72 to 0.38 (both p \< 0.001). Summer droppings are far more top-heavy, which is precisely what depresses q = 1 and q = 2 even where a dropping's species list is as long as, or longer than, a winter one. Panel D names the taxa responsible, and they are the ones a coprophilous account predicts: *Thelebolus*, *Coniochaeta* and *Sporormiella intermedia* together take 44% of summer reads and are all dung saprotrophs, whereas winter's leading OTUs are mostly unclassified below class and carry no guild call at all — among them OTU1369, an unclassified Dothideomycete that is winter's most abundant OTU and is present in 20 of 26 winter samples, and which is taken up as a dark taxon in Section 3.4. Two caveats travel with the figure. The per-sample richness contrast in (B) is not robust to the choice of model family (Table S9b), so the crossover is firm at q = 1 and q = 2 and in the pooled estimates of (A), but not as a per-dropping richness gain. And the shares in (D) are seasonal averages, not universals — *Thelebolus* reaches its 24.9% mean while being detected in only 15 of the 26 summer droppings.
+::::
 
 ```{r fig4-build}
 #| eval: false
@@ -3664,9 +3749,13 @@ print(data.frame(Season = chk$Season, OTU = chk$OTU, share_pct = round(chk$share
 
 ![](figures/main/Fig5_dark_taxa_SH.png)
 
+**Figure 5**: Winter dung is dominated by fungal lineages missing from reference databases. **(A)** Placement of all dark OTUs against the UNITE species hypotheses (SH): within an existing named SH, forming a candidate new SH, or with no UNITE relative within 80% identity (this last bar also holds 13 OTUs removed by quality control before matching). **(B)** Mean per-sample read share of each category by season (26 droppings each), with OTUs assigned a genus shown in grey. **(C)** The 30 dark OTUs with the highest mean winter read share, plotted as the number of winter droppings in which each was detected against that mean share.
+
+:::: {.content-visible when-profile="docs"}
 **Figure 5**: Winter dung is dominated by fungal lineages that carry no confident genus, and most of that fraction is not merely unnamed but absent from the reference database. **(A)** UNITE Species Hypothesis placement of all 493 dark OTUs — those the naïve-Bayes classifier leaves without a confident genus. The second and third categories are the same kind of outcome: neither falls inside an existing named Species Hypothesis, and they differ only in whether the sequence has any UNITE relative at all. "Candidate novel SH" has one (median best hit 92.0% identity across these 228 OTUs) and so inherits a partial lineage from its neighbours; "no reference within 80% id" has none, and additionally absorbs 13 OTUs that the pipeline filtered before the matching step. Together they are 331 of the 493 dark OTUs (67%). **(B)** Mean per-sample read share of the same categories, by season, with the named fraction added to reach 100% of reads (52 droppings, 26 per season; segments below 5% are unlabelled). This is the read-weighted counterpart to (A): counting OTUs says nothing about how much of a dropping they are. Candidate-novel lineages hold 29% of winter reads against 7% of summer reads (Wilcoxon *p* = 1.9 × 10⁻⁵), and the dark fraction as a whole is 51% of winter against 31% of summer reads. **(C)** The 30 dark OTUs with the highest mean winter read share (Table S-E1b), plotted as prevalence — the number of the 26 winter samples with any detection — against that mean share, coloured as in (A). OTU1369 is labelled: it is winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings, yet its best UNITE hit is only 85% similar, so it forms a candidate new Species Hypothesis rather than matching anything named.
 
 Roughly half of a typical winter dropping is reads that the canonical taxonomy cannot name (Section 3.4), and that single label covers two different problems. A little over a third of dark OTUs are near-identical to a UNITE reference and are dark only because `minBoot = 80` declines to commit to a genus at that bootstrap — a cost of conservatism, and one that Species Hypothesis matching largely recovers (of the 390 dark OTUs with a best hit at all, 37% sit at ≥ 99% identity; Figure S-E1a). But a comparable fraction of them (38%) sits below 95% identity, where no threshold adjustment would help, and panel A shows where that leads: 228 of the 493 dark OTUs (46%) form candidate new Species Hypotheses rather than matching an existing one, and a further 103 (21%) have no UNITE reference within 80% identity at all. Two thirds of the unnamed community is therefore unnamed because the reference lacks it, not because the classifier was cautious. Panel B supplies the weight behind that count, and it is strongly seasonal: candidate-novel lineages account for 29% of winter reads but only 7% of summer reads, so winter dung is not merely more dark than summer dung, it is dark in a different way — dominated by lineages with no named counterpart rather than by unnamed relatives of known ones. Panel C locates that signal in individual taxa: the dark OTUs carrying real winter read share are predominantly candidate-novel, and the most extreme of them, OTU1369, is simultaneously the most abundant and among the most prevalent OTUs in winter dung while being only 85% similar to its nearest named relative. One caveat travels with the figure throughout. "Candidate novel" is a statement about the reference database rather than a taxonomic claim: these are unimprinted clusters awaiting public sequence deposition and PlutoF registration (Section 3.4), so none of them yet carries a permanent identifier.
+::::
 
 ```{r fig5-build}
 #| eval: false
