@@ -401,9 +401,6 @@ S3_E1_cand_any_pct,3.4,tables/E1_SH_assignment_summary.csv,100 * (d$novel_new_SH
 S3_E1_dark_w_split,3.4,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_share[d$Season == ""winter"" & d$stratum == ""Named""]))",1,51.3,the dark 51.3% divides into 15.8% placeable
 S3_E1_excl_all,3.4,tables/dark_taxa_SH_matching.csv,"sum(d$SH_class == ""excluded_nonITS"")",0,21,"(`excluded_nonITS`, 21 OTUs across the dataset, 13 of them dark)"
 S3_E1_excl_dark,3.4,tables/dark_taxa_SH_matching.csv,"sum(d$SH_class == ""excluded_nonITS"" & d$is_dark)",0,13,"(`excluded_nonITS`, 21 OTUs across the dataset, 13 of them dark)"
-S4_sy_rank3_p2022,4.3,tables/report_permanova_sensitivity_by_year.csv,"d$p_value[d$Year == 2022 & d$distance == ""robust Aitchison (rank-3)""]",3,0.775,(0.775 / 0.009 / 0.116 here against 0.789 / 0.005 / 0.127 there)
-S4_sy_rank3_p2023,4.3,tables/report_permanova_sensitivity_by_year.csv,"d$p_value[d$Year == 2023 & d$distance == ""robust Aitchison (rank-3)""]",3,0.009,(0.775 / 0.009 / 0.116 here against 0.789 / 0.005 / 0.127 there)
-S4_sy_rank3_p2024,4.3,tables/report_permanova_sensitivity_by_year.csv,"d$p_value[d$Year == 2024 & d$distance == ""robust Aitchison (rank-3)""]",3,0.116,(0.775 / 0.009 / 0.116 here against 0.789 / 0.005 / 0.127 there)
 S6_dAIC_caption,6.1,tables/gllvm_model_comparison.csv,"d$dAIC[d$object == ""fit_nb_2""]",0,723,two latent variables are preferred over one (ΔAIC ≈ 723)
 S6_n_rows_caption,6.1,tables/gllvm_perOTU_season_coef.csv,nrow(d),0,327,on the same 327-OTU / 114-row response matrix
 S71_gauss_elpd,7.1,tables/H2_mechanism_family_choice.csv,"-d$elpd_diff_vs_primary[d$family == ""Gaussian on z-score"" & d$model == ""Season-adjusted""]",0,13,is outperformed by ≈ 13 ELPD
