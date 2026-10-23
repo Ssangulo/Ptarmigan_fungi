@@ -238,8 +238,8 @@ S9_clr_chain_agree,9.1,tables/hmsc_convergence_psrf.csv,"max(d$guild_mean_chain_
 S9_rep_pearson,9.1,tables/hmsc_rep_vs_main.csv,d$pearson,2,0.97,"correlate at Pearson r = 0.97 (Spearman ρ = 0.89), and 56 OTUs"
 S9_rep_spearman,9.1,tables/hmsc_rep_vs_main.csv,d$spearman,2,0.89,"correlate at Pearson r = 0.97 (Spearman ρ = 0.89), and 56 OTUs"
 S9_rep_both,9.1,tables/hmsc_rep_vs_main.csv,d$resolved95_both,0,56,"correlate at Pearson r = 0.97 (Spearman ρ = 0.89), and 56 OTUs"
-S9_pa_psrf_med,9.1,tables/hmsc_convergence_psrf.csv,"d$beta_psrf_med[d$model == ""pa""]",2,1.01,"Its PSRFs are low (Beta median 1.01, 99.6% below 1.1)"
-S9_pa_psrf_pct,9.1,tables/hmsc_convergence_psrf.csv,"d$beta_pct_below_1.1[d$model == ""pa""]",1,99.6,"Its PSRFs are low (Beta median 1.01, 99.6% below 1.1)"
+S9_pa_psrf_med,9.1,tables/hmsc_convergence_psrf.csv,"d$beta_psrf_med[d$model == ""pa""]",2,1.01,"has low PSRFs (Beta median 1.01, 99.6% below 1.1)"
+S9_pa_psrf_pct,9.1,tables/hmsc_convergence_psrf.csv,"d$beta_pct_below_1.1[d$model == ""pa""]",1,99.6,"has low PSRFs (Beta median 1.01, 99.6% below 1.1)"
 S9_pa_chain_guild,9.1,tables/hmsc_convergence_psrf.csv,"d$guild_mean_chain_range_max[d$model == ""pa""]",2,0.24,its guild means differ by up to 0.24 on the probit scale
 S9_vp_season,9.2,tables/hmsc_variance_partition.csv,100 * mean(d$Season),1,31.5,"**Season accounts for 31.5% and Year for 18.5%**, with the remaining 49.9%"
 S9_vp_year,9.2,tables/hmsc_variance_partition.csv,100 * mean(d$Year),1,18.5,"**Season accounts for 31.5% and Year for 18.5%**, with the remaining 49.9%"
