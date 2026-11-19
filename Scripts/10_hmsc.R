@@ -317,26 +317,51 @@ m_pa  <- mk_hmsc(Ypa,      ~Season + Year, XData,      "probit")
 
 # Phylo variant (secondary, off by default): prune the tree to the retained
 # OTUs, root it, and attach it to the HEADLINE structure.
+# ROOTING (revised 2026-11-18). The ML tree from 6_diversity_analyses.R is
+# unrooted, and HMSC's phylogenetic covariance (vcv(tree, corr = TRUE)) depends
+# on where the root is. The earlier code called multi2di() first, which marks
+# the tree as rooted at an arbitrary node, so its root() fallback never ran
+# (the root then split 12 Helotiales OTUs from the other 214, Basidiomycota
+# nested inside Ascomycota). The tree is now rooted on the Ascomycota stem --
+# the Ascomycota / Basidiomycota split, which the ITS2 tree recovers as a
+# clean clade -- with the root at the midpoint of that branch. The few
+# non-Dikarya OTUs (Chytridiomycota, Mucoromycota, phylum-unassigned) fall on
+# the Basidiomycota side. Any failure stops the script rather than silently
+# skipping the variant.
 RUN_PHYLO <- Sys.getenv("HMSC_RUN_PHYLO", "0") == "1"
 m_phy <- NULL
 if (RUN_PHYLO) {
   tree_obj <- readRDS("/home/daniel/Ptarmigan/trimmed/mergedPlates/tree.rds")
   tr <- if (inherits(tree_obj, "phyloseq")) phy_tree(tree_obj) else tree_obj
-  tr_p <- tryCatch({
-    t2 <- ape::keep.tip(tr, intersect(tr$tip.label, otu_ids))
-    t2 <- ape::multi2di(t2)                                    # resolve polytomies
-    if (!ape::is.rooted(t2)) t2 <- ape::root(t2, outgroup = t2$tip.label[1], resolve.root = TRUE)
-    t2$edge.length[t2$edge.length <= 0] <- 1e-8                # vcv needs positive branches
-    t2
-  }, error = function(e) { message("Phylo prune/root failed: ", conditionMessage(e)); NULL })
-  m_phy <- if (!is.null(tr_p) && setequal(tr_p$tip.label, otu_ids)) {
+  t2 <- ape::unroot(ape::keep.tip(tr, intersect(tr$tip.label, otu_ids)))
+  asco <- otu_ids[strip_rank(tax_all$Phylum[match(otu_ids, rownames(tax_all))]) %in% "Ascomycota"]
+  stopifnot(length(asco) > 0, ape::is.monophyletic(t2, asco, reroot = TRUE))
+  # root(outgroup = <many tips>) uses their MRCA under the tree's current
+  # (arbitrary) orientation, which can straddle the clade; so first orient the
+  # tree on one non-Ascomycota tip, where Ascomycota is a proper clade, then
+  # root on that clade's stem.
+  t2 <- ape::root(t2, outgroup = setdiff(t2$tip.label, asco)[1], resolve.root = TRUE)
+  t2 <- ape::root(t2, node = ape::getMRCA(t2, asco), resolve.root = TRUE)
+  re <- which(t2$edge[, 1] == ape::Ntip(t2) + 1)               # the two root edges
+  stopifnot(length(re) == 2)
+  t2$edge.length[re] <- sum(t2$edge.length[re]) / 2            # root at mid-stem
+  t2 <- ape::multi2di(t2)                                      # resolve polytomies
+  t2$edge.length[t2$edge.length <= 0] <- 1e-8                  # vcv needs positive branches
+  root_kids <- lapply(t2$edge[t2$edge[, 1] == ape::Ntip(t2) + 1, 2], function(k)
+    if (k <= ape::Ntip(t2)) t2$tip.label[k] else ape::extract.clade(t2, k)$tip.label)
+  stopifnot(ape::is.rooted(t2), ape::is.binary(t2), setequal(t2$tip.label, otu_ids),
+            any(vapply(root_kids, function(s) setequal(s, asco), logical(1))))
+  cat(sprintf("Phylo tree rooted on the Ascomycota stem: %s tips at the root split\n",
+              paste(lengths(root_kids), collapse = " | ")))
+  tr_p <- t2
+  m_phy <- {
     mm <- mk_hmsc(Yclr, ~Season + Year, XData_drop, "normal", sD = studyDesign_drop,
                   rL = ranLevels_drop, YScale = TRUE, phyloTree = tr_p)
     # rho grid. The per-iteration cost scales with the number of grid points,
     # so the grid is coarse where the posterior is not (0.05 steps below 0.9)
     # and fine where it is (0.005 steps from 0.905 to 0.995): on the headline
-    # structure the conditional posterior sits at ~0.96, and a 0.04-step grid
-    # put every draw on one point (pilot, 2026-09-30). rho = 1 is excluded (the
+    # structure (with the pre-2026-11-18 rooting) the conditional posterior sat
+    # at ~0.96, and a 0.04-step grid put every draw on one point (pilot, 2026-09-30). rho = 1 is excluded (the
     # phylogenetic covariance is singular there: near-identical OTU sequences
     # have ~zero branch lengths). Prior: Hmsc's usual 0.5 point mass at 0, the
     # rest spread in proportion to grid spacing (uniform density on (0, 1)), so
@@ -344,7 +369,7 @@ if (RUN_PHYLO) {
     rv <- c(seq(0, 0.9, by = 0.05), seq(0.905, 0.995, by = 0.005))
     sp <- diff(c(rv, 1))[-1]
     setPriors(mm, rhopw = cbind(rv, c(0.5, 0.5 * sp / sum(sp))))
-  } else { message("Phylo variant skipped (tree/OTU tip mismatch)."); NULL }
+  }
 }
 
 # =============================================================================
@@ -356,7 +381,10 @@ spec_ok <- function(fit, spec) {
   nf <- function(m) vapply(m$rL, function(r) as.numeric(r$nfMax), numeric(1))
   identical(dim(fit$Y), dim(spec$Y)) && isTRUE(all.equal(unname(fit$Y), unname(spec$Y))) &&
     identical(colnames(fit$Y), colnames(spec$Y)) && isTRUE(all.equal(fit$X, spec$X)) &&
-    identical(nf(fit), nf(spec)) && identical(is.null(fit$YScalePar), is.null(spec$YScalePar))
+    identical(nf(fit), nf(spec)) && identical(is.null(fit$YScalePar), is.null(spec$YScalePar)) &&
+    # phylo variant: the cached fit must carry the same phylogenetic covariance
+    # (i.e. the same tree and rooting); C is NULL for the non-phylo models
+    identical(is.null(fit$C), is.null(spec$C)) && (is.null(spec$C) || isTRUE(all.equal(fit$C, spec$C)))
 }
 # `reuse`: a read-only cache elsewhere, loaded when `path` is absent, so a
 # worktree run does not refit models main already holds. A cache (either one)
