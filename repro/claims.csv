@@ -292,9 +292,9 @@ S9_pa_otu1369_lo,9.4,tables/hmsc_probit_beta_season.csv,"d$beta_season_CrI2.5[d$
 S9_pa_otu1369_hi,9.4,tables/hmsc_probit_beta_season.csv,"d$beta_season_CrI97.5[d$OTU_ID == ""OTU1369""]",2,-1.08,"(β = −2.25, 95% CrI \[−3.53, −1.08\])"
 S9_gllvm_n,9.4,tables/hmsc_vs_gllvm_season.csv,nrow(d),0,139,(n = 139 after excluding the GLLVM's on/off near-separation OTUs
 S9_gllvm_rho,9.4,tables/hmsc_vs_gllvm_season.csv,"cor(d$beta_season_mean, d$gllvm_season, method = ""spearman"")",2,0.75,(**Spearman ρ = 0.75**)
-S9_rho_med,9.6,tables/hmsc_rho_phylo.csv,d$median,3,0.985,"Its posterior median is 0.985 (95% CrI \[0.950, 0.995\])"
-S9_rho_lo,9.6,tables/hmsc_rho_phylo.csv,d$CrI_2.5,3,0.950,"Its posterior median is 0.985 (95% CrI \[0.950, 0.995\])"
-S9_rho_hi,9.6,tables/hmsc_rho_phylo.csv,d$CrI_97.5,3,0.995,"Its posterior median is 0.985 (95% CrI \[0.950, 0.995\])"
+S9_rho_med,9.6,tables/hmsc_rho_phylo.csv,d$median,3,0.990,"Its posterior median is 0.990 (95% CrI \[0.955, 0.995\])"
+S9_rho_lo,9.6,tables/hmsc_rho_phylo.csv,d$CrI_2.5,3,0.955,"Its posterior median is 0.990 (95% CrI \[0.955, 0.995\])"
+S9_rho_hi,9.6,tables/hmsc_rho_phylo.csv,d$CrI_97.5,3,0.995,"Its posterior median is 0.990 (95% CrI \[0.955, 0.995\])"
 S9_cg_n1,9.6,tables/hmsc_phylo_season_correlogram.csv,"d$n_pairs[d$distance_class == ""[0,0.005]""]",0,27,The 27 pairs within 0.005 substitutions per site correlate at 0.82
 S9_cg_r1,9.6,tables/hmsc_phylo_season_correlogram.csv,"d$r[d$distance_class == ""[0,0.005]""]",2,0.82,The 27 pairs within 0.005 substitutions per site correlate at 0.82
 S9_cg_r23_min,9.6,tables/hmsc_phylo_season_correlogram.csv,"min(d$r[d$distance_class %in% c(""(0.005,0.02]"", ""(0.02,0.1]"")])",2,0.63,pairs up to 0.1 at 0.63–0.65
