@@ -306,6 +306,17 @@ S9_cg_r7,9.6,tables/hmsc_phylo_season_correlogram.csv,"d$r[d$distance_class == "
 S9_cg_total_pairs,9.6,tables/hmsc_phylo_season_correlogram.csv,"signif(sum(d$n_pairs), 2)",0,25000,"they are 27 of about 25,000 pairs"
 S9_lin_basidio,9.6,tables/hmsc_season_by_lineage.csv,"d$pct_summer_positive[d$lineage == ""Basidiomycota""]",0,72,Basidiomycota lean summer (72% of OTUs summer-positive)
 S9_lin_asco,9.6,tables/hmsc_season_by_lineage.csv,"d$pct_summer_positive[d$lineage == ""Ascomycota""]",0,43,Ascomycota lean winter (43% summer-positive)
+S9_dep_r_lm,9.6,tables/hmsc_season_by_lineage_depth.csv,"d$r_lm_vs_hmsc[1]",3,0.985,"reproduce the HMSC coefficients (r = 0.985)"
+S9_dep_ndrop,9.6,tables/hmsc_season_by_lineage_depth.csv,"d$n_drop_rarefied[1]",0,47,"20,000 reads (47 droppings)"
+S9_dep_basidio_ld,9.6,tables/hmsc_season_by_lineage_depth.csv,"d$pct_pos_lm_logdepth[d$lineage == ""Basidiomycota""]",0,83,"summer lean (83% and 79% summer-positive)"
+S9_dep_basidio_rar,9.6,tables/hmsc_season_by_lineage_depth.csv,"d$pct_pos_rarefied[d$lineage == ""Basidiomycota""]",0,79,"summer lean (83% and 79% summer-positive)"
+S9_dep_asco_ld,9.6,tables/hmsc_season_by_lineage_depth.csv,"d$pct_pos_lm_logdepth[d$lineage == ""Ascomycota""]",0,54,"lean at phylum level (54% and 53%)"
+S9_dep_asco_rar,9.6,tables/hmsc_season_by_lineage_depth.csv,"d$pct_pos_rarefied[d$lineage == ""Ascomycota""]",0,53,"lean at phylum level (54% and 53%)"
+S9_dep_lecan,9.6,tables/hmsc_season_by_lineage_depth.csv,"d$pct_pos_lm_logdepth[d$lineage == ""Lecanoromycetes""]",0,17,"Lecanoromycetes (17% summer-positive under every analysis)"
+S9_dep_euro_lo,9.6,tables/hmsc_season_by_lineage_depth.csv,"d$pct_pos_lm_logdepth[d$lineage == ""Eurotiomycetes""]",0,17,"Eurotiomycetes (17–25%)"
+S9_dep_euro_hi,9.6,tables/hmsc_season_by_lineage_depth.csv,"d$pct_pos_rarefied[d$lineage == ""Eurotiomycetes""]",0,25,"Eurotiomycetes (17–25%)"
+S9_dep_doth_lo,9.6,tables/hmsc_season_by_lineage_depth.csv,"d$pct_pos_rarefied[d$lineage == ""Dothideomycetes""]",0,45,"Dothideomycetes (45–47%)"
+S9_dep_doth_hi,9.6,tables/hmsc_season_by_lineage_depth.csv,"d$pct_pos_lm_logdepth[d$lineage == ""Dothideomycetes""]",0,47,"Dothideomycetes (45–47%)"
 S9_r2_expl,9.7,tables/hmsc_predictive_R2_summary.csv,"d$mean_expl_R2[d$model == ""clr""]",2,0.29,(community-mean R² ≈ 0.29 for the headline abundance model)
 S9_r2_cv,9.7,tables/hmsc_predictive_R2_summary.csv,"d$mean_cv_R2[d$model == ""clr""]",2,0.03,cross-validated R² is near zero** (≈ 0.03)
 S10_1_dung_w,10.1,tables/guild_season_readshare.csv,"100 * d$mean_winter[d$Guild == ""Dung saprotroph""]",1,13.6,"dung saprotrophs rise from 13.6% of winter reads to 51.5% in summer, and the unassigned fraction falls from 51.1% to 21.0%"

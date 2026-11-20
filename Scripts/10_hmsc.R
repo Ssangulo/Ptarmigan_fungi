@@ -70,7 +70,8 @@
 #            hmsc_omega_sample.csv, hmsc_predictive_R2.csv,
 #            hmsc_predictive_R2_summary.csv, hmsc_pcr_replicate_variance.csv,
 #            hmsc_pcr_replicate_variance_perOTU.csv, hmsc_rho_phylo.csv,
-#            hmsc_phylo_season_correlogram.csv, hmsc_season_by_lineage.csv
+#            hmsc_phylo_season_correlogram.csv, hmsc_season_by_lineage.csv,
+#            hmsc_season_by_lineage_depth.csv
 #   plots/   hmsc_variance_partition.png, hmsc_gamma.png, hmsc_probit_gamma.png,
 #            hmsc_beta_season.png, hmsc_vs_gllvm_season.png,
 #            hmsc_omega_sample.png, hmsc_R2_explanatory_vs_cv.png,
@@ -874,6 +875,51 @@ lineage_tab <- lineage_tab[order(lineage_tab$rank != "Phylum", -lineage_tab$mean
 write_tab(lineage_tab, "hmsc_season_by_lineage.csv")
 cat("Season response by lineage (standardised Beta):\n"); print(lineage_tab, row.names = FALSE)
 
+# Depth check on the lineage leans. Summer libraries are deeper than winter ones,
+# and a CLR value depends on depth through its zeros. Simple per-OTU linear models
+# on the same response (standardised, dropping-averaged CLR) give each lineage's
+# share of summer-positive OTUs (i) with Season + Year, which reproduces the HMSC
+# Beta; (ii) adding the dropping's log mean library depth; (iii) after rarefying
+# every PCR replicate to 20,000 reads (replicates below that dropped; mean of 10
+# draws), then CLR and averaging per dropping as for the headline response.
+depth_rep <- rowSums(Ymat)
+Xd <- XData_drop
+Xd$ldepth <- as.numeric(log(tapply(depth_rep, drop_id, mean))[rownames(Yclr)])
+std_season <- function(Yc, X, form) vapply(colnames(Yc), function(o) {
+  y <- Yc[, o]; if (sd(y) == 0) return(NA_real_)
+  X$y_ <- as.numeric(scale(y))
+  unname(coef(lm(update(form, y_ ~ .), data = X))["Seasonsummer"])
+}, numeric(1))
+clr_drop <- function(M) {
+  C <- vegan::decostand(M, method = "clr", pseudocount = 1); dimnames(C) <- dimnames(M)
+  g <- droplevels(drop_id[match(rownames(M), rownames(Yk))])
+  rowsum(C, g) / as.vector(table(g))
+}
+b_lm  <- std_season(Yclr, Xd, ~ Season + Year)
+b_dep <- std_season(Yclr, Xd, ~ Season + Year + ldepth)
+RARE_D <- 20000
+ok_rep <- rownames(Ymat)[depth_rep >= RARE_D]
+set.seed(20261120)
+b_rar <- rowMeans(replicate(10, {
+  Yr <- clr_drop(vegan::rrarefy(Ymat[ok_rep, ], RARE_D)[, colnames(Yk)])
+  std_season(Yr, Xd[rownames(Yr), ], ~ Season + Year)
+}), na.rm = TRUE)
+pct_pos <- function(b, ids) round(100 * mean(b[ids] > 0, na.rm = TRUE), 2)
+depth_tab <- do.call(rbind, lapply(seq_len(nrow(lineage_tab)), function(i) {
+  ids <- lin$OTU_ID[lin[[lineage_tab$rank[i]]] == lineage_tab$lineage[i]]
+  data.frame(rank = lineage_tab$rank[i], lineage = lineage_tab$lineage[i], n_otu = length(ids),
+             pct_pos_hmsc = lineage_tab$pct_summer_positive[i],
+             pct_pos_lm = pct_pos(b_lm, ids), pct_pos_lm_logdepth = pct_pos(b_dep, ids),
+             pct_pos_rarefied = pct_pos(b_rar, ids), stringsAsFactors = FALSE)
+}))
+depth_tab$n_drop_rarefied <- length(unique(drop_id[match(ok_rep, rownames(Yk))]))
+depth_tab$r_lm_vs_hmsc       <- round(cor(b_lm[lin$OTU_ID],  lin$b), 3)
+depth_tab$r_logdepth_vs_hmsc <- round(cor(b_dep[lin$OTU_ID], lin$b), 3)
+depth_tab$r_rarefied_vs_hmsc <- round(cor(b_rar[lin$OTU_ID], lin$b, use = "complete.obs"), 3)
+depth_tab$logdepth_summer_minus_winter <- round(unname(coef(lm(ldepth ~ Season + Year, Xd))["Seasonsummer"]), 2)
+write_tab(depth_tab, "hmsc_season_by_lineage_depth.csv")
+cat("Depth check, % summer-positive by lineage:\n"); print(depth_tab, row.names = FALSE)
+
 # =============================================================================
 # SECTION 6.7 -- PCR-REPLICATE VARIANCE, model-free
 # =============================================================================
@@ -969,7 +1015,7 @@ if (dir.exists(SUPP_DIR)) {
             "hmsc_predictive_R2.csv","hmsc_predictive_R2_summary.csv",
             "hmsc_pcr_replicate_variance.csv","hmsc_pcr_replicate_variance_perOTU.csv",
             "hmsc_rho_phylo.csv","hmsc_phylo_season_correlogram.csv",
-            "hmsc_season_by_lineage.csv")
+            "hmsc_season_by_lineage.csv", "hmsc_season_by_lineage_depth.csv")
   figs <- figs[file.exists(file.path(plot_dir, figs))]
   tabs <- tabs[file.exists(file.path(out_dir,  tabs))]
   invisible(file.copy(file.path(plot_dir, figs), supp_fig, overwrite = TRUE))

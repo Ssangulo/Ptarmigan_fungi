@@ -2356,6 +2356,23 @@ kable(data.frame(
   caption = "Table S-HMSCf3. Seasonal response by phylum and class, from taxonomy rather than the tree. For each lineage with at least four modelled OTUs: the mean standardised Season coefficient of the headline model (positive = summer), the percentage of its OTUs with a positive coefficient, and a permutation p (2000 random groups of the same size: is the lineage's mean further from the community mean than chance?). 'unassigned' = OTUs with a phylum but no class.")
 ```
 
+Summer libraries are deeper than winter ones (Section 5.1), and a CLR value depends on read depth through its zeros, so the lineage pattern was re-estimated with depth controlled (Table S-HMSCf4). Simple per-OTU regressions on the same response reproduce the HMSC coefficients (r = 0.985). Adding each dropping's log library depth as a covariate, or first rarefying every PCR replicate to 20,000 reads (47 droppings), strengthens the basidiomycete summer lean (83% and 79% summer-positive) but removes the ascomycete lean at phylum level (54% and 53%). The winter lean holds only within particular ascomycete classes: Lecanoromycetes (17% summer-positive under every analysis), Eurotiomycetes (17–25%) and, more weakly, Dothideomycetes (45–47%).
+
+```{r tab-hmsc-lineage-depth}
+#| echo: false
+library(knitr)
+ld <- read.csv("tables/hmsc_season_by_lineage_depth.csv", stringsAsFactors = FALSE)
+pc <- function(x) sprintf("%.0f%%", x)
+kable(data.frame(
+  Rank = ld$rank, Lineage = ld$lineage, OTUs = ld$n_otu,
+  HMSC = pc(ld$pct_pos_hmsc), `Linear model` = pc(ld$pct_pos_lm),
+  `+ log depth` = pc(ld$pct_pos_lm_logdepth), `Rarefied (20,000 reads)` = pc(ld$pct_pos_rarefied),
+  check.names = FALSE),
+  row.names = FALSE,
+  caption = sprintf("Table S-HMSCf4. Depth check on Table S-HMSCf3: percentage of each lineage's OTUs with a summer-positive Season response. HMSC = headline model (as in Table S-HMSCf3). The other columns are per-OTU linear models of the same standardised, dropping-averaged CLR response on Season + Year (correlation with the HMSC coefficients across OTUs r = %.3f); the same with the dropping's log mean library depth added (r = %.2f); and Season + Year after rarefying each PCR replicate to 20,000 reads, dropping replicates below that (%d droppings kept), recomputing CLR and averaging per dropping, mean of 10 draws (r = %.2f).",
+                    ld$r_lm_vs_hmsc[1], ld$r_logdepth_vs_hmsc[1], ld$n_drop_rarefied[1], ld$r_rarefied_vs_hmsc[1]))
+```
+
 Seasonal niches are **phylogenetically conserved**, most clearly at the genus-to-family scale, with the deepest lineages contrasting. It is reported as a secondary, exploratory result: the phylogeny-augmented model is a supplementary variant, and ρ at the upper edge of its range is better read as "strongly structured" than as a precise value.
 
 :::: {.content-visible when-profile="docs"}
@@ -2429,6 +2446,7 @@ A ptarmigan's dung mycobiome is shaped by season in a reproducible way, yet rema
 #          tables/hmsc_rep_vs_main.csv
 #          tables/hmsc_rho_phylo.csv
 #          tables/hmsc_season_by_lineage.csv
+#          tables/hmsc_season_by_lineage_depth.csv
 #          tables/hmsc_variance_partition.csv
 #          tables/hmsc_vs_gllvm_season.csv
 # Run    : (from the repository root) OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 HMSC_BLAS_THREADS=4 HMSC_NPARALLEL=4 \
