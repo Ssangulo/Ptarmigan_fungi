@@ -1,0 +1,12 @@
+"rank","lineage","n_otu","pct_pos_hmsc","pct_pos_lm","pct_pos_lm_logdepth","pct_pos_rarefied","n_drop_rarefied","r_lm_vs_hmsc","r_logdepth_vs_hmsc","r_rarefied_vs_hmsc","logdepth_summer_minus_winter"
+"Phylum","Basidiomycota",78,71.8,73.08,83.33,79.49,47,0.985,0.951,0.956,1.29
+"Phylum","Ascomycota",144,43.1,47.92,54.17,53.47,47,0.985,0.951,0.956,1.29
+"Class","Microbotryomycetes",19,73.7,73.68,94.74,89.47,47,0.985,0.951,0.956,1.29
+"Class","Sordariomycetes",6,83.3,83.33,83.33,83.33,47,0.985,0.951,0.956,1.29
+"Class","Tremellomycetes",44,81.8,81.82,88.64,84.09,47,0.985,0.951,0.956,1.29
+"Class","Leotiomycetes",44,63.6,75,86.36,81.82,47,0.985,0.951,0.956,1.29
+"Class","Agaricomycetes",8,62.5,62.5,62.5,75,47,0.985,0.951,0.956,1.29
+"Class","Dothideomycetes",53,39.6,41.51,47.17,45.28,47,0.985,0.951,0.956,1.29
+"Class","Eurotiomycetes",12,16.7,25,16.67,25,47,0.985,0.951,0.956,1.29
+"Class","unassigned",14,14.3,21.43,35.71,42.86,47,0.985,0.951,0.956,1.29
+"Class","Lecanoromycetes",12,16.7,16.67,16.67,16.67,47,0.985,0.951,0.956,1.29
