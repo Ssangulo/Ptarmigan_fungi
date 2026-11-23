@@ -3850,7 +3850,7 @@ print(data.frame(group = vpm$grp, n = vpm$n, round(100 * vpm[, VP_LEVELS], 1),
 
 ![](figures/main/Fig3_dark_taxa_SH.png)
 
-**Figure 3**: Winter dung is dominated by fungal lineages missing from reference databases. **(A)** Per-dropping read share of OTUs with a genus assignment (grey) and of dark OTUs, those with no confident genus, split by their placement against UNITE Species Hypotheses (SH): inside an existing named SH, forming a candidate new SH, or with no UNITE relative within 80% identity (this last category also holds 13 OTUs removed by quality control before matching). Droppings are in the order of Figure 1, and the right-hand bar of each season is the mean over its droppings, labelled in % for segments of at least 5%. The subtitle gives the Wilcoxon rank-sum test of the candidate-new-SH share between seasons, and the key the number of OTUs in each category. **(B)** The 30 dark OTUs with the highest mean winter read share (Table S-E1b): the number of winter droppings in which each was detected against its mean read share per winter dropping (filled points), joined to the same OTU's mean share per summer dropping (open points). The four most abundant are labelled with their finest resolved rank and their identity to the nearest UNITE reference.
+**Figure 3**: Winter dung is dominated by fungal lineages missing from reference databases. **(A)** Per-dropping read share of OTUs with a genus assignment (grey) and of dark OTUs, those with no confident genus, split by their placement against UNITE Species Hypotheses (SH): inside an existing named SH, forming a candidate new SH, or with no UNITE relative within 80% identity (this last category also holds 13 OTUs removed by quality control before matching). Droppings are in the order of Figure 1, and the right-hand bar of each season is the mean over its droppings, labelled in % for segments of at least 5%. The subtitle gives the Wilcoxon rank-sum test of the candidate-new-SH share between seasons, and the key the number of OTUs in each category. **(B)** The 30 dark OTUs with the highest mean winter read share (Table S-E1b): the number of winter droppings in which each was detected against its mean read share per winter dropping (filled points), joined to the same OTU's mean share per summer dropping (open points). The most abundant, OTU1369, is labelled with its finest resolved rank and its identity to the nearest UNITE reference.
 
 :::: {.content-visible when-profile="docs"}
 *Narrative carried over from the former Figure 5 (A = OTU counts per placement, now Figure S-E1b and the key; B = season means, now the mean bars of panel A; C = panel B); to be rewritten for the new figure.*
@@ -4012,8 +4012,8 @@ stopifnot(round(nov_m[["Winter"]], 1) == 29.2, round(nov_m[["Summer"]], 1) == 7.
 
 lab_mean <- bars[bars$sample == "mean" & bars$share >= 0.05, ]
 lab_mean$txt <- sprintf("%.0f", 100 * lab_mean$share)
-season_strip <- function(s) sprintf("<span style='color:%s'>**%s**</span> (n = %d droppings)",
-                                    c(Winter = COL_W, Summer = COL_S)[s], s, sum(gc$Season == s))
+season_strip <- function(s) sprintf("<span style='color:%s'>**%s**</span>",
+                                    c(Winter = COL_W, Summer = COL_S)[s], s)
 strip_lab <- setNames(vapply(c("Winter", "Summer"), season_strip, ""), c("Winter", "Summer"))
 p_txt <- sub("e-0?(\\d+)$", " × 10<sup>−\\1</sup>", format(signif(nov_p, 2), scientific = TRUE))
 
@@ -4055,14 +4055,14 @@ lead <- wd[wd$OTU_ID == "OTU1369", ]
 stopifnot(lead$winter_occ == 20L, round(lead$w_pct, 1) == 11.2,
           lead$similarity_percentage == 85.4, lead$cat == STRATA[3])
 
-# Labels: the four most abundant, by their finest resolved rank (UNITE SH
+# Label: only the most abundant (OTU1369), by its finest resolved rank (UNITE SH
 # consensus where it goes deeper than the classifier).
 finest <- function(tx) {
   r <- strsplit(tx, ";", fixed = TRUE)[[1]]
   r <- r[!grepl("__$|unidentified|Incertae", r)]
   sub("^[a-z]__", "", r[length(r)])
 }
-lab <- wd[order(-wd$w_pct), ][1:4, ]
+lab <- wd[order(-wd$w_pct), ][1, ]
 lab$taxon <- vapply(seq_len(nrow(lab)), function(i)
   if (!is.na(lab$SH_common_taxonomy[i])) finest(lab$SH_common_taxonomy[i])
   else sub("^c__", "", lab$Class[i]), "")
@@ -4071,10 +4071,8 @@ lab$txt <- sprintf("**%s** %s<br><span style='color:#606060'>%s</span>", lab$OTU
                           sprintf("%s, %.0f%% id", c("in a named SH", "candidate new SH",
                                                        "no relative")[match(as.character(lab$cat),
                                                        STRATA[2:4])], lab$similarity_percentage)))
-# hand-placed in the empty space; order = OTU1369, OTU252, OTU320, OTU1320
-stopifnot(identical(lab$OTU_ID, c("OTU1369", "OTU252", "OTU320", "OTU1320")))
-lab$tx <- c(19.2, 16, 16, 10.2); lab$ty <- c(11.24, 5.7, 3.0, 6.3)
-lab$hj <- c(1, 0, 0, 1)
+stopifnot(identical(lab$OTU_ID, "OTU1369"))
+lab$tx <- 19.2; lab$ty <- 11.24; lab$hj <- 1             # hand-placed, left of the point
 
 pB <- ggplot(wd, aes(winter_occ)) +
   geom_segment(aes(xend = winter_occ, y = w_pct, yend = s_pct), colour = "grey70",
