@@ -386,26 +386,26 @@ S10_4_copro3_share,10.4,tables/report_coprophilous_by_season_v2.csv,"sum(d$summe
 S10_4_otu1369_prev,10.4,tables/report_season_occupancy.csv,"d$prev_winter[d$OTU_ID == ""OTU1369""]",0,20,is present in 20 of 26 winter samples
 S10_4_otu1_share,10.4,tables/report_top5_otu_by_season.csv,"d$mean_pct_share[d$Season == ""summer"" & d$OTU == ""OTU1""]",1,24.9,*Thelebolus* reaches its 24.9% mean while being detected in only 15 of the 26
 S10_4_otu1_prev,10.4,tables/report_coprophilous_by_season_v2.csv,"d$occ_summer[d$OTU == ""OTU1""]",0,15,*Thelebolus* reaches its 24.9% mean while being detected in only 15 of the 26
-S10_5_n_dark,10.5,tables/E1_SH_assignment_summary.csv,d$n_dark,0,493,placement of all 493 dark OTUs
-S10_5_novel_med_sim,10.5,tables/dark_taxa_SH_matching.csv,"median(d$similarity_percentage[d$is_dark & d$SH_class == ""novel_new_SH""], na.rm = TRUE)",1,92.0,(median best hit 92.0% identity across these 228 OTUs)
-S10_5_n_novel,10.5,tables/E1_SH_assignment_summary.csv,d$novel_new_SH,0,228,(median best hit 92.0% identity across these 228 OTUs)
-S10_5_n_excl,10.5,tables/E1_SH_assignment_summary.csv,d$excluded_nonITS,0,13,additionally absorbs 13 OTUs that the pipeline filtered
-S10_5_n_cand_any,10.5,tables/E1_SH_assignment_summary.csv,d$novel_new_SH + d$no_SH_match + d$excluded_nonITS,0,331,Together they are 331 of the 493 dark OTUs (67%)
-S10_5_pct_cand_any,10.5,tables/E1_SH_assignment_summary.csv,100 * (d$novel_new_SH + d$no_SH_match + d$excluded_nonITS) / d$n_dark,0,67,Together they are 331 of the 493 dark OTUs (67%)
-S10_5_novel_w,10.5,tables/E1_SH_readshare_by_sample.csv,"100 * mean(d$read_share[d$Season == ""winter"" & d$stratum == ""Dark: candidate novel""])",0,29,Candidate-novel lineages hold 29% of winter reads against 7% of summer reads
-S10_5_novel_s,10.5,tables/E1_SH_readshare_by_sample.csv,"100 * mean(d$read_share[d$Season == ""summer"" & d$stratum == ""Dark: candidate novel""])",0,7,Candidate-novel lineages hold 29% of winter reads against 7% of summer reads
-S10_5_dark_w,10.5,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_share[d$Season == ""winter"" & d$stratum == ""Named""]))",0,51,the dark fraction as a whole is 51% of winter against 31% of summer reads
-S10_5_dark_s,10.5,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_share[d$Season == ""summer"" & d$stratum == ""Named""]))",0,31,the dark fraction as a whole is 51% of winter against 31% of summer reads
-S10_5_n_wd,10.5,tables/E1_winter_dominant_dark_taxa_SH.csv,nrow(d),0,30,The 30 dark OTUs with the highest mean winter read share
-S10_5_otu1369_share,10.5,tables/E1_winter_dominant_dark_taxa_SH.csv,"100 * d$winter_mean_share[d$OTU_ID == ""OTU1369""]",1,11.2,winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings
-S10_5_otu1369_occ,10.5,tables/E1_winter_dominant_dark_taxa_SH.csv,"d$winter_occ[d$OTU_ID == ""OTU1369""]",0,20,winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings
-S10_5_otu1369_sim,10.5,tables/E1_winter_dominant_dark_taxa_SH.csv,"d$similarity_percentage[d$OTU_ID == ""OTU1369""]",0,85,yet its best UNITE hit is only 85% similar
-S10_5_n_besthit,10.5,tables/dark_taxa_SH_matching.csv,sum(d$is_dark & !is.na(d$similarity_percentage)),0,390,"(of the 390 dark OTUs with a best hit at all, 37% sit at ≥ 99% identity"
-S10_5_pct_99,10.5,tables/dark_taxa_SH_matching.csv,100 * mean(d$similarity_percentage[d$is_dark & !is.na(d$similarity_percentage)] >= 99),0,37,"(of the 390 dark OTUs with a best hit at all, 37% sit at ≥ 99% identity"
-S10_5_pct_lt95,10.5,tables/dark_taxa_SH_matching.csv,100 * mean(d$similarity_percentage[d$is_dark & !is.na(d$similarity_percentage)] < 95),0,38,But a comparable fraction of them (38%) sits below 95% identity
-S10_5_pct_novel,10.5,tables/E1_SH_assignment_summary.csv,100 * d$novel_new_SH / d$n_dark,0,46,228 of the 493 dark OTUs (46%) form candidate new Species Hypotheses
-S10_5_n_noref,10.5,tables/E1_SH_assignment_summary.csv,d$no_SH_match + d$excluded_nonITS,0,103,a further 103 (21%) have no UNITE reference within 80% identity
-S10_5_pct_noref,10.5,tables/E1_SH_assignment_summary.csv,100 * (d$no_SH_match + d$excluded_nonITS) / d$n_dark,0,21,a further 103 (21%) have no UNITE reference within 80% identity
+S10_5_n_dark,10.3,tables/E1_SH_assignment_summary.csv,d$n_dark,0,493,placement of all 493 dark OTUs
+S10_5_novel_med_sim,10.3,tables/dark_taxa_SH_matching.csv,"median(d$similarity_percentage[d$is_dark & d$SH_class == ""novel_new_SH""], na.rm = TRUE)",1,92.0,(median best hit 92.0% identity across these 228 OTUs)
+S10_5_n_novel,10.3,tables/E1_SH_assignment_summary.csv,d$novel_new_SH,0,228,(median best hit 92.0% identity across these 228 OTUs)
+S10_5_n_excl,10.3,tables/E1_SH_assignment_summary.csv,d$excluded_nonITS,0,13,additionally absorbs 13 OTUs that the pipeline filtered
+S10_5_n_cand_any,10.3,tables/E1_SH_assignment_summary.csv,d$novel_new_SH + d$no_SH_match + d$excluded_nonITS,0,331,Together they are 331 of the 493 dark OTUs (67%)
+S10_5_pct_cand_any,10.3,tables/E1_SH_assignment_summary.csv,100 * (d$novel_new_SH + d$no_SH_match + d$excluded_nonITS) / d$n_dark,0,67,Together they are 331 of the 493 dark OTUs (67%)
+S10_5_novel_w,10.3,tables/E1_SH_readshare_by_sample.csv,"100 * mean(d$read_share[d$Season == ""winter"" & d$stratum == ""Dark: candidate novel""])",0,29,Candidate-novel lineages hold 29% of winter reads against 7% of summer reads
+S10_5_novel_s,10.3,tables/E1_SH_readshare_by_sample.csv,"100 * mean(d$read_share[d$Season == ""summer"" & d$stratum == ""Dark: candidate novel""])",0,7,Candidate-novel lineages hold 29% of winter reads against 7% of summer reads
+S10_5_dark_w,10.3,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_share[d$Season == ""winter"" & d$stratum == ""Named""]))",0,51,the dark fraction as a whole is 51% of winter against 31% of summer reads
+S10_5_dark_s,10.3,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_share[d$Season == ""summer"" & d$stratum == ""Named""]))",0,31,the dark fraction as a whole is 51% of winter against 31% of summer reads
+S10_5_n_wd,10.3,tables/E1_winter_dominant_dark_taxa_SH.csv,nrow(d),0,30,The 30 dark OTUs with the highest mean winter read share
+S10_5_otu1369_share,10.3,tables/E1_winter_dominant_dark_taxa_SH.csv,"100 * d$winter_mean_share[d$OTU_ID == ""OTU1369""]",1,11.2,winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings
+S10_5_otu1369_occ,10.3,tables/E1_winter_dominant_dark_taxa_SH.csv,"d$winter_occ[d$OTU_ID == ""OTU1369""]",0,20,winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings
+S10_5_otu1369_sim,10.3,tables/E1_winter_dominant_dark_taxa_SH.csv,"d$similarity_percentage[d$OTU_ID == ""OTU1369""]",0,85,yet its best UNITE hit is only 85% similar
+S10_5_n_besthit,10.3,tables/dark_taxa_SH_matching.csv,sum(d$is_dark & !is.na(d$similarity_percentage)),0,390,"(of the 390 dark OTUs with a best hit at all, 37% sit at ≥ 99% identity"
+S10_5_pct_99,10.3,tables/dark_taxa_SH_matching.csv,100 * mean(d$similarity_percentage[d$is_dark & !is.na(d$similarity_percentage)] >= 99),0,37,"(of the 390 dark OTUs with a best hit at all, 37% sit at ≥ 99% identity"
+S10_5_pct_lt95,10.3,tables/dark_taxa_SH_matching.csv,100 * mean(d$similarity_percentage[d$is_dark & !is.na(d$similarity_percentage)] < 95),0,38,But a comparable fraction of them (38%) sits below 95% identity
+S10_5_pct_novel,10.3,tables/E1_SH_assignment_summary.csv,100 * d$novel_new_SH / d$n_dark,0,46,228 of the 493 dark OTUs (46%) form candidate new Species Hypotheses
+S10_5_n_noref,10.3,tables/E1_SH_assignment_summary.csv,d$no_SH_match + d$excluded_nonITS,0,103,a further 103 (21%) have no UNITE reference within 80% identity
+S10_5_pct_noref,10.3,tables/E1_SH_assignment_summary.csv,100 * (d$no_SH_match + d$excluded_nonITS) / d$n_dark,0,21,a further 103 (21%) have no UNITE reference within 80% identity
 S3_E1_local_novel,3.4,tables/dark_taxa_SH_matching.csv,"sum(d$is_dark & (d$SH_class == ""novel_new_SH"" | d$SH_source == ""PlutoF_live""))",0,247,247 formed new (candidate) species hypotheses
 S3_E1_cand_any,3.4,tables/E1_SH_assignment_summary.csv,d$novel_new_SH + d$no_SH_match + d$excluded_nonITS,0,331,"Taken together, 331 of the 493 dark OTUs (67%) are candidate-novel"
 S3_E1_cand_any_pct,3.4,tables/E1_SH_assignment_summary.csv,100 * (d$novel_new_SH + d$no_SH_match + d$excluded_nonITS) / d$n_dark,0,67,"Taken together, 331 of the 493 dark OTUs (67%) are candidate-novel"

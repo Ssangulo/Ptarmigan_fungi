@@ -33,7 +33,7 @@ Run from this folder, so the chunk's relative paths resolve the same way they do
 time:
 
 ```bash
-Rscript build_main_figure.R fig1-build      # fig1-build ... fig5-build
+Rscript build_main_figure.R fig1-build      # fig1-build ... fig4-build
 ```
 
 ## Naming
