@@ -4565,13 +4565,16 @@ pA <- ggplot(dA, aes(x, est)) +
   geom_line(aes(group = series), colour = "grey45", linewidth = PT(0.6)) +
   geom_linerange(aes(ymin = lo, ymax = hi), colour = "grey15", linewidth = PT(0.9)) +
   geom_point(aes(fill = series), shape = 21, colour = "grey15", size = 2.4, stroke = 0.6) +
-  geom_text(aes(x = x + ifelse(series == SERIES[1], -0.07, 0.07), label = lab,
+  # Value labels sit beside their point and are lifted just clear of the
+  # connecting lines (which run up-right for the pooled series and down-right
+  # for the single-dropping one); on the log axis the lift is multiplicative.
+  geom_text(aes(x = x + ifelse(series == SERIES[1], -0.07, 0.07), y = est * 1.11, label = lab,
                 hjust = ifelse(series == SERIES[1], 1, 0)),
-            size = PT(7), family = FONT, colour = INK) +
+            vjust = 0.5, size = PT(7), family = FONT, colour = INK) +
   scale_fill_manual(values = SER_FILL, name = NULL,
                     labels = c("Pooled season (iNEXT3D, equal depth and coverage)",
                                "Single dropping (year-adjusted gamma GLM)")) +
-  scale_x_continuous(breaks = 0:2, labels = c("q = 0\nrichness", "q = 1\nShannon", "q = 2\nSimpson")) +
+  scale_x_continuous(breaks = 0:2, labels = c("q = 0 (richness)", "q = 1 (Shannon)", "q = 2 (Simpson)")) +
   scale_y_log10(breaks = c(0.25, 0.5, 1, 2), labels = c("0.25", "0.5", "1", "2")) +
   coord_cartesian(xlim = c(-0.5, 2.5), ylim = YL, expand = FALSE) +
   labs(x = "Hill order", y = "Summer / winter diversity ratio (log scale)", tag = "A") +
