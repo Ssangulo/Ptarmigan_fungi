@@ -29,8 +29,7 @@ is in appendix Section 10.
 | | Figure | Appendix |
 |---|---|---|
 | <a href="Supplementary/figures/main/Fig1_composition_function.png"><img src="Supplementary/figures/main/Fig1_composition_function.png" width="240"></a> | **Figure 1.** Composition and function of the dung mycobiome | §10.1 |
-| <a href="Supplementary/figures/main/Fig2_seasonal_turnover.png"><img src="Supplementary/figures/main/Fig2_seasonal_turnover.png" width="240"></a> | **Figure 2.** Seasonal turnover and its year-to-year variation (H1) | §10.2 |
-| <a href="Supplementary/figures/main/Fig3_hmsc_synthesis.png"><img src="Supplementary/figures/main/Fig3_hmsc_synthesis.png" width="240"></a> | **Figure 3.** Seasonal shift at OTU and guild level (HMSC) | §10.3 |
+| <a href="Supplementary/figures/main/Fig2_hmsc_season_niche.png"><img src="Supplementary/figures/main/Fig2_hmsc_season_niche.png" width="240"></a> | **Figure 2.** Seasonal niche across OTUs, lineages and guilds (HMSC) | §10.2 |
 | <a href="Supplementary/figures/main/Fig4_richness_evenness_crossover.png"><img src="Supplementary/figures/main/Fig4_richness_evenness_crossover.png" width="240"></a> | **Figure 4.** Pooled versus per-dropping diversity (H2) | §10.4 |
 | <a href="Supplementary/figures/main/Fig5_dark_taxa_SH.png"><img src="Supplementary/figures/main/Fig5_dark_taxa_SH.png" width="240"></a> | **Figure 5.** Dark, largely novel lineages dominate winter dung (E1) | §10.5 |
 
