@@ -3265,12 +3265,12 @@ conda run -n r_env Rscript build_main_figure.R fig1-build
 ### 10.1 Figure 1 — Composition and function of the dung mycobiome
 
 :::: {.content-visible when-profile="docs"}
-*Provenance: Fig. 1A uses the genus-level composition of Section 3.1 and Fig. 1B the guild assignments of Section 8.2, both on the canonical 52-sample object (`alldat$nopool`) and on one shared sample axis. The season test once drawn as panel C is Figure S-GUILDa(B) of Section 8.2 (same rule, same test; the build chunk re-checks its q-values against `tables/guild_season_readshare.csv`). The schematic in Fig. 1C is redrawn from the Mycology Nordics 2026 poster; its strip numbers are computed in the chunk, and its lineage names are those of Fig. 2B.*
+*Provenance: Fig. 1A uses the genus-level composition of Section 3.1 and Fig. 1B the guild assignments of Section 8.2, both on the canonical 52-sample object (`alldat$nopool`) and on one shared sample axis. The season test once drawn as panel C is Figure S-GUILDa(B) of Section 8.2 (same rule, same test; the build chunk re-checks its q-values against `tables/guild_season_readshare.csv`).*
 ::::
 
 ![](figures/main/Fig1_composition_function.png)
 
-**Figure 1**: Composition and function of the willow ptarmigan dung mycobiome in winter and summer, and the pathway proposed to link them to diet. **(A)** Per-dropping read share of the nine most abundant genera, all other named genera (*Other genera*) and reads on OTUs with no confident genus assignment (*No genus: dark taxa*), for 26 winter and 26 summer droppings; the right-hand bar of each season is the mean over its droppings, labelled in % for segments of at least 8%. **(B)** Per-dropping read share of five functional guilds for the same droppings in the same order (within each season, descending dung-saprotroph share). Each genus in (A) is drawn in a shade of its guild's colour in (B), as the key shows; thin white borders separate the segments. The seasonal test of each guild is Figure S-GUILDa(B) (Appendix Section 8.2). **(C)** Schematic of the proposed pathway, a hypothesis consistent with these data rather than a tested result. In March 1–3 m of snow covers the field layer and the birds browse *Betula* buds and twigs above it; in June they feed in the field layer, onto which coprophilous fungi discharge spores from earlier droppings. The strips give the mean guild read shares of (B) and the lineages that lean towards each season in Figure 2B.
+**Figure 1**: Composition and function of the willow ptarmigan dung mycobiome in winter and summer. **(A)** Per-dropping read share of the nine most abundant genera, all other named genera (*Other genera*) and reads on OTUs with no confident genus assignment (*No genus: dark taxa*), for 26 winter and 26 summer droppings; the right-hand bar of each season is the mean over its droppings, labelled in % for segments of at least 8%. **(B)** Per-dropping read share of five functional guilds for the same droppings in the same order (within each season, descending dung-saprotroph share). Each genus in (A) is drawn in a shade of its guild's colour in (B), as the key shows; thin white borders separate the segments. The seasonal test of each guild is Figure S-GUILDa(B) (Appendix Section 8.2).
 
 :::: {.content-visible when-profile="docs"}
 *Narrative carried over from the previous Figure 1, whose panel C was the guild × season boxplot now cited as Figure S-GUILDa(B); to be rewritten for the new figure.*
@@ -3284,10 +3284,12 @@ Read down a column and the two descriptions line up: the summer samples that are
 #| code-fold: true
 #| code-summary: "Full build code for Figure 1 — the source of truth for figures/main/Fig1_composition_function.{png,jpg,pdf}"
 
-# Figure 1 -- Composition and function of the dung mycobiome, and the proposed
-# diet pathway. Journal layout: 174 mm double column, 7-8 pt text.
+# Figure 1 -- Composition and function of the dung mycobiome.
+# Journal layout: 174 mm double column, 7-8 pt text.
 # Canonical object alldat$nopool (52 samples). Panels A and B share one sample
-# axis; panel C is a schematic whose strip numbers come from panel B.
+# axis and one key. (The proposed-pathway schematic once drawn as panel C was
+# removed on 2026-11-23, to be reworked as a separate introductory figure; its
+# code is in git history, e.g. commit f744dbb.)
 # Rebuild:  conda run -n r_env Rscript build_main_figure.R fig1-build
 
 suppressPackageStartupMessages({
@@ -3367,11 +3369,11 @@ genL <- to_long(gen_share, GEN_LEVELS); guiL <- to_long(guild_share, GUILD_LEVEL
 stopifnot(identical(levels(genL$SampleID), levels(guiL$SampleID)))
 
 # ---- journal style (174 mm double column, 7-8 pt) --------------------------
-suppressPackageStartupMessages({ library(ggtext); library(grid) })
+suppressPackageStartupMessages({ library(ggtext) })
 stopifnot(capabilities("cairo"))          # Unicode glyphs need the cairo devices
 FONT  <- "Liberation Sans"                # metric-identical to Arial
 PT    <- function(pt) pt / ggplot2::.pt   # pt -> ggplot text size / linewidth (mm)
-FIG_W <- 174; FIG_H <- 200                # mm
+FIG_W <- 174; FIG_H <- 135                # mm
 INK   <- "grey10"
 COL_W <- "#0072B2"; COL_S <- "#D55E00"    # winter / summer (repo standard)
 
@@ -3588,183 +3590,10 @@ pK <- ggplot(key) +
   coord_cartesian(xlim = c(-0.45, 4.75), ylim = c(-3.75, 0.45), expand = FALSE, clip = "off") +
   theme_void(base_family = FONT) + theme(plot.margin = margin(1, 1, 1, 1, "mm"))
 
-# ---- panel C: proposed pathway (schematic, no data except the strip numbers) ----
-# Redrawn from the Mycology Nordics 2026 poster panel M8 at journal size. Two
-# cross-sections: WINTER (March) -- 1-3 m of snow seals the ground layer and the
-# bird browses buds and twigs above it; SUMMER (June) -- snow gone, the bird feeds
-# in the field layer, onto which coprophilous fungi discharge their spores from
-# earlier droppings. Snow depth and diet: Methods (Nilsen et al. 2020;
-# Ingvaldsen et al. 2024). The class-level contrast named in the strips is
-# Section 9.6 / Figure 2B; the read shares are computed above and guarded.
-# Everything is drawn in a viewport of exactly MW x MH mm (native unit = 1 mm),
-# so circles and ellipses keep their shape whatever the patchwork cell is.
-MW <- FIG_W - 6; MH <- 63
-registerS3method("makeContent", "lazy_rich", envir = asNamespace("grid"),
-                 function(x) setChildren(x, gList(do.call(gridtext::richtext_grob, x$args))))
-mech_grob <- function() {
-  G <- gList(); add <- function(g) G <<- gList(G, g)
-  gp <- function(...) gpar(fontfamily = FONT, ...)
-  ell <- function(cx, cy, rx, ry, n = 48, rot = 0) {
-    t <- seq(0, 2 * pi, length.out = n); x <- rx * cos(t); y <- ry * sin(t)
-    list(x = cx + x * cos(rot) - y * sin(rot), y = cy + x * sin(rot) + y * cos(rot))
-  }
-  poly <- function(p, fill, col = NA, lwd = 0.6)
-    add(polygonGrob(p$x, p$y, default.units = "native", gp = gpar(fill = fill, col = col, lwd = lwd)))
-  circ <- function(x, y, r, fill, col = NA, lwd = 0.4)
-    add(circleGrob(x, y, r = unit(r, "mm"), default.units = "native",
-                   gp = gpar(fill = fill, col = col, lwd = lwd)))
-  seg <- function(x, y, col, lwd, arrow = NULL, lty = 1)
-    add(linesGrob(x, y, default.units = "native", arrow = arrow,
-                  gp = gpar(col = col, fill = col, lwd = lwd, lineend = "round", lty = lty)))
-  txt <- function(label, x, y, hjust = 0.5, vjust = 0.5, size = 7, col = INK, face = 1, lh = 1)
-    add(textGrob(label, x, y, hjust = hjust, vjust = vjust, default.units = "native",
-                 gp = gp(fontsize = size, col = col, fontface = face, lineheight = lh)))
-  # Rich text is laid out at DRAW time (class "lazy_rich" below): gridtext
-  # measures words on the device that is open when the grob is made, and the
-  # standing pdf(NULL) device has different font metrics from cairo.
-  rich <- function(label, x, y, hjust = 0.5, vjust = 0.5, col = INK)
-    add(gTree(cl = "lazy_rich", args = list(
-      label, x = unit(x, "native"), y = unit(y, "native"), hjust = hjust, vjust = vjust,
-      padding = unit(0, "mm"), margin = unit(0, "mm"),
-      gp = gp(fontsize = 7, col = col, lineheight = 1.15))))
-
-  SOIL <- "#9C8B74"; SNOW <- "#E6EFF6"; SNOW_EDGE <- "#B9CCDB"; SHRUB <- "#5F7F45"
-  SHRUB2 <- "#7E9B5E"; TWIG <- "#6B4A32"; BUD <- "#3E2A1C"; LEAF <- "#7FA65A"
-
-  # stylised willow ptarmigan; (x, y) = feet, s = scale, summer = chestnut male
-  bird <- function(x, y, s, summer = FALSE, peck = 0) {
-    X <- function(v) x + v * s; Y <- function(v) y + v * s
-    body <- ell(0, 10, 12, 9); hx <- 9.5 + peck * 0.3; hy <- 18.5 - peck
-    hd <- ell(hx, hy, 4.7, 4.5); edge <- if (summer) "#4A2A16" else "#8A8A8A"
-    poly(list(x = X(c(-9.5, -15.5, -15, -9.5)), y = Y(c(12.5, 14, 8.5, 8))), "#151515", "#151515")
-    for (lx in c(-2.5, 2)) add(rectGrob(X(lx), Y(0), width = 2.6 * s, height = 3.5 * s,
-                                        just = c(0.5, 0), default.units = "native",
-                                        gp = gpar(fill = "#F4F4F4", col = edge, lwd = 0.4)))
-    poly(list(x = X(body$x), y = Y(body$y)), "#FBFBFB", edge, 0.7)
-    if (summer) { bk <- ell(1.5, 13.2, 11.5, 5.4); poly(list(x = X(bk$x), y = Y(bk$y)), "#8B4A24") }
-    poly(list(x = X(c(5, 12, 12, 5.5)), y = Y(c(13, 15 - peck, 21 - peck, 17))),
-         if (summer) "#8B4A24" else "#FBFBFB")
-    poly(list(x = X(hd$x), y = Y(hd$y)), if (summer) "#8B4A24" else "#FBFBFB", edge, 0.7)
-    poly(list(x = X(c(hx + 4.6, hx + 8.2, hx + 4.4)), y = Y(c(hy + 0.9, hy - 0.6, hy - 1.2))),
-         "#202020", "#202020", 0.4)
-    cb <- ell(hx + 1.2, hy + 3.6, 2.6, 1.05); poly(list(x = X(cb$x), y = Y(cb$y)), "#D3302B")
-    circ(X(hx + 2.2), Y(hy + 1.2), 0.75 * s, "black")
-  }
-  shrub <- function(x, y, s, spores = TRUE, faded = FALSE) {
-    set.seed(round(x * 10))
-    cx <- x + c(-5, 0, 5, -2.5, 2.5) * s; cy <- y + c(3, 5, 3, 8, 8.5) * s
-    cols <- if (faded) c("#AEBCA0", "#C2CDB6") else c(SHRUB, SHRUB2)
-    for (i in seq_along(cx)) circ(cx[i], cy[i], 4 * s, cols[(i %% 2) + 1])
-    if (spores) {
-      px <- x + runif(8, -7.5, 7.5) * s; py <- y + runif(8, 2, 11) * s
-      for (k in seq_along(px)) circ(px[k], py[k], 0.42, if (faded) "#C9A58F" else COL_S,
-                                    "white", 0.3)
-    }
-  }
-  dung <- function(x, y, s) for (k in 0:1)
-    add(roundrectGrob(x + k * 5.5 * s, y, width = unit(5 * s, "mm"), height = unit(2.6 * s, "mm"),
-                      r = unit(0.6, "mm"), default.units = "native", just = c(0, 0),
-                      gp = gpar(fill = "#6B5A3E", col = "white", lwd = 0.4)))
-  ARW <- arrow(length = unit(1.3, "mm"), type = "closed", angle = 22)
-
-  PW <- (MW - 4) / 2                                  # width of each half
-  SB <- 13                                            # outcome strip height
-  G0 <- SB + 4                                        # ground surface
-  for (side in c("winter", "summer")) {
-    summer <- side == "summer"; ox <- if (summer) PW + 4 else 0
-    X <- function(v) ox + v
-    # soil
-    add(rectGrob(X(0), SB, width = PW, height = G0 - SB, just = c(0, 0), default.units = "native",
-                 gp = gpar(fill = SOIL, col = NA)))
-    if (!summer) {
-      ST <- G0 + 23                                   # snow surface
-      for (sx in c(10, 24, 58, 72)) shrub(X(sx), G0, 0.42, faded = TRUE)
-      xs <- seq(0, PW, length.out = 60); ys <- ST + 0.7 * sin(xs / 6)
-      add(polygonGrob(X(c(0, xs, PW)), c(G0, ys, G0), default.units = "native",
-                      gp = gpar(fill = SNOW, col = NA, alpha = 0.8)))
-      add(linesGrob(X(xs), ys, default.units = "native", gp = gpar(col = SNOW_EDGE, lwd = 1)))
-      seg(X(c(3, 3)), c(ST - 1.5, G0 + 1.2), "grey45", 0.8, ARW)
-      seg(X(c(3, 3)), c(G0 + 1.2, ST - 1.5), "grey45", 0.8, ARW)
-      txt("snow\n1–3 m", X(4.6), ST - 6, hjust = 0, col = "grey35", lh = 0.95)
-      txt("ground layer and its coprophile\nspores sealed under the snow", X(31), G0 + 12,
-          col = "grey35", face = 3, lh = 0.95)
-      # birch stem through the snow, buds only above it
-      x0 <- 56; top <- ST + 18
-      seg(X(c(x0, x0 + 1.2)), c(G0, top), TWIG, 2.2)
-      for (k in 1:4) {
-        yy <- ST + 3.2 * k; xx <- x0 + 1.2 * (yy - G0) / (top - G0)
-        dx <- c(4.5, -5.5, 4, -3.2)[k]
-        seg(X(c(xx, xx + dx)), c(yy, yy + 2.2), TWIG, 1.3)
-        circ(X(xx + dx), yy + 2.2, 0.65, BUD)
-      }
-      circ(X(x0 + 1.2), top, 0.75, BUD)
-      bird(X(42), ST + 0.2, 0.55)
-      dung(X(27), ST + 0.4, 0.6)
-      rich("*Betula* buds and twigs<br>above the snow", X(63), ST + 13.5, hjust = 0)
-    } else {
-      # leafy shoot, field-layer shrubs with discharged coprophile spores
-      x0 <- 74; top <- G0 + 28
-      seg(X(c(x0, x0 + 1.2)), c(G0, top), TWIG, 2.2)
-      for (k in 1:5) {
-        yy <- G0 + 28 * (0.35 + 0.13 * k); xx <- x0 + 1.2 * (yy - G0) / 28
-        dx <- if (k %% 2) 4 else -4
-        seg(X(c(xx, xx + dx)), c(yy, yy + 2.6), TWIG, 1.2)
-        lf <- ell(X(xx + dx * 1.15), yy + 2.9, 1.6, 0.95, rot = if (dx > 0) 0.5 else -0.5)
-        poly(lf, LEAF, "#5C7F3C", 0.4)
-      }
-      for (sx in c(7, 41, 57)) shrub(X(sx), G0, 0.5)
-      dung(X(10.5), G0 + 0.2, 0.6)
-      bird(X(25), G0, 0.55, summer = TRUE, peck = 3.5)
-      # spore cycle: discharge from the dropping onto the field layer, eaten again
-      add(curveGrob(X(13.5), G0 + 2.4, X(39.5), G0 + 8.5, default.units = "native",
-                    curvature = -0.55, ncp = 8, square = FALSE, arrow = ARW,
-                    gp = gpar(col = COL_S, fill = COL_S, lwd = 0.9, lty = "22")))
-      rich("leaves, flowers and berries of the field layer<br>(*Vaccinium*, *Empetrum*)",
-           X(PW / 2 - 3), G0 + 36)
-      rich(sprintf("<span style='color:%s'>*coprophile spores discharged from droppings<br>onto the plants are eaten again*</span>", COL_S),
-           X(PW / 2 - 3), G0 + 26)
-    }
-    # season title
-    txt(if (summer) "SUMMER · June" else "WINTER · March", X(4), MH - 0.5,
-        hjust = 0, vjust = 1, size = 8, col = if (summer) COL_S else COL_W, face = 2)
-    # outcome strip: what the dung holds (measured read shares from panel B)
-    tint <- if (summer) "#FBE4D5" else "#DCEAF5"; edge <- if (summer) COL_S else COL_W
-    add(rectGrob(X(0), 0, width = PW, height = SB, just = c(0, 0), default.units = "native",
-                 gp = gpar(fill = tint, col = NA)))
-    add(rectGrob(X(0), 0, width = 1, height = SB, just = c(0, 0), default.units = "native",
-                 gp = gpar(fill = edge, col = NA)))
-    rich(strip_txt[[side]], X(2.5), SB / 2, hjust = 0)
-  }
-  gTree(children = G, vp = viewport(width = unit(MW, "mm"), height = unit(MH, "mm"),
-                                    xscale = c(0, MW), yscale = c(0, MH)))
-}
-
-pct <- function(s, k) sprintf("%.1f%%", 100 * mean(guild_share[Season == s, k]))
-# Strip line 2 names the classes that lean each way in Figure 2B (Section 9.6;
-# those that keep the lean under read-depth control, Table S-HMSCf4).
-strip_txt <- list(
-  winter = sprintf(paste0("<span style='color:%s'>**In the dung:**</span> twig, bark and lichen ",
-                          "lineages; undescribed dark taxa<br>",
-                          "<span style='color:#505050'>(Lecanoromycetes, Eurotiomycetes; ",
-                          "Dothideomycete OTU1369)</span><br>",
-                          "unassigned / dark **%s** of reads \u00B7 dung saprotrophs **%s**"),
-                   COL_W, pct("Winter", "Unassigned / dark"), pct("Winter", "Dung saprotroph")),
-  summer = sprintf(paste0("<span style='color:%s'>**In the dung:**</span> coprophiles and leaf ",
-                          "and flower yeasts<br>",
-                          "<span style='color:#505050'>(*Thelebolus*, *Sporormiella*, ",
-                          "*Coniochaeta*; Tremellomycetes)</span><br>",
-                          "dung saprotrophs **%s** of reads \u00B7 unassigned / dark **%s**"),
-                   COL_S, pct("Summer", "Dung saprotroph"), pct("Summer", "Unassigned / dark")))
-stopifnot(pct("Winter", "Unassigned / dark") == "51.1%", pct("Winter", "Dung saprotroph") == "13.6%",
-          pct("Summer", "Dung saprotroph") == "51.5%", pct("Summer", "Unassigned / dark") == "21.0%")
-pC <- wrap_elements(full = mech_grob()) + labs(tag = "C") +
-  theme(plot.tag = element_text(size = 8, face = "bold", family = FONT),
-        plot.margin = margin(1, 1, 0, 1, "mm"))
-
 # ---- assemble and write ----------------------------------------------------
 for (nm in c("pA", "pB")) audit(get(nm), nm)
-fig1 <- pA / pB / free(pK) / pC +
-  plot_layout(heights = unit(c(1, 1, 16, MH + 2), c("null", "null", "mm", "mm")))
+fig1 <- pA / pB / free(pK) +
+  plot_layout(heights = unit(c(1, 1, 16), c("null", "null", "mm")))
 
 # Every main figure is written three ways: PNG and JPG (600 dpi raster, for
 # submission systems that demand one or the other) and PDF (vector, for print).
