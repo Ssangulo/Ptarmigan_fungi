@@ -3581,6 +3581,9 @@ KX <- c(0, 0.98, 1.9, 2.55, 3.66)                      # column x positions (0..
 key$x <- KX[key$col]; key$y <- -key$row
 key$y[key$row > 0] <- key$y[key$row > 0] - 0.25       # genera set below their guild
 pK <- ggplot(key) +
+  # thin rule separating the guild row (panel B) from the genus rows (panel A)
+  annotate("segment", x = -0.42, xend = 4.72, y = -0.625, yend = -0.625,
+           colour = "grey70", linewidth = PT(0.3)) +
   geom_tile(aes(x = x, y = y, fill = I(fill)), width = 0.075, height = 0.72,
             colour = "white", linewidth = PT(0.25)) +
   geom_richtext(aes(x = x + 0.07, y = y, label = txt), hjust = 0, size = PT(7), family = FONT,
@@ -3621,7 +3624,7 @@ cat("Genus -> guild:\n"); print(genus_guild)
 
 ![](figures/main/Fig2_hmsc_season_niche.png)
 
-**Figure 2**: Seasonal niche of the dung mycobiome across OTUs, lineages and guilds. All panels come from one abundance (CLR) HMSC model of 226 OTUs in 55 droppings, with each dropping's two PCR replicates averaged, Season and Year as fixed effects and the dropping as random level. **(A)** Posterior mean Season coefficient of every OTU (positive = more abundant in summer). Coloured points have a 95% credible interval excluding zero (44 winter-shifted, 30 summer-shifted); grey points do not. Below: mean (triangle) and interquartile range of the per-OTU coefficients within each guild. **(B)** Percentage of OTUs in each fungal class with a positive Season coefficient (filled points; Table S-HMSCf3), and the same after adding each dropping's log library depth as a covariate (open points; Table S-HMSCf4); brackets give the phylum values. Stars give a permutation test of the class's mean standardised coefficient against random groups of the same size (\* p \< 0.05, \*\* p \< 0.01, \*\*\* p \< 0.001). The box gives the phylogenetic signal ρ of the Season responses, with 95% credible interval, from the HMSC phylogeny variant (Appendix Section 9.6). **(C)** Mean share of per-OTU explained variance attributed to Season, Year and the dropping, for all OTUs, dung saprotrophs and unassigned / dark OTUs; *Season + Year* is the fixed-effect total. The italic column is the share of total CLR variance lying between the two PCR replicates of a dropping, estimated outside the model (Table S-HMSCc2). Guilds are the model's five-level trait, which places 46 OTUs with a genus but no FUNGuild call in *Other assigned* rather than *Unassigned / dark* as in Figure 1 (Appendix Section 8.1).
+**Figure 2**: Seasonal niche of the dung mycobiome across OTUs, lineages and guilds. All panels come from one abundance (CLR) HMSC model of 226 OTUs in 55 droppings, with each dropping's two PCR replicates averaged, Season and Year as fixed effects and the dropping as random level. **(A)** Posterior mean Season coefficient of every OTU (positive = more abundant in summer). Coloured points have a 95% credible interval excluding zero (44 winter-shifted, 30 summer-shifted); grey points do not. Below: mean (triangle) and interquartile range of the per-OTU coefficients within each guild. **(B)** Percentage of OTUs in each fungal class with a positive Season coefficient (filled points; Table S-HMSCf3), and the same after adding each dropping's log library depth as a covariate (open points; Table S-HMSCf4); brackets give the phylum values. Stars give a permutation test of the class's mean standardised coefficient against random groups of the same size (\* p \< 0.05, \*\* p \< 0.01, \*\*\* p \< 0.001). The box gives the phylogenetic signal ρ of the Season responses, with 95% credible interval, from the HMSC phylogeny variant (Appendix Section 9.6). **(C)** Mean share of per-OTU explained variance attributed to Season, Year and the dropping, for all OTUs, dung saprotrophs and unassigned / dark OTUs; *Season + Year* is the fixed-effect total. The italic column (*) is the share of total CLR variance lying between the two PCR replicates of a dropping, estimated outside the model (Table S-HMSCc2). Guilds are the model's five-level trait, which places 46 OTUs with a genus but no FUNGuild call in *Other assigned* rather than *Unassigned / dark* as in Figure 1 (Appendix Section 8.1).
 
 :::: {.content-visible when-profile="docs"}
 *Narrative carried over from the former Figure 3, whose panel A is now Figure S-HMSCg and whose panel B is panel C here; to be rewritten for the new figure.*
@@ -3851,7 +3854,7 @@ build_A <- function(panel_w_mm) {
     geom_text(data = g2, aes(x = pmax(q3, mean) + 0.12, y = y, label = val), inherit.aes = FALSE,
               hjust = 0, size = PT(7), colour = g2$col, family = FONT) +
     annotate("text", x = XLIM[1] + 0.05, y = g2$y[1] + ROW_GAP * 0.92, hjust = 0,
-             label = "Guild mean (▲) and interquartile range of per-OTU estimates",
+             label = "Guild mean (▲) and interquartile range",
              size = PT(7), colour = "grey30", family = FONT, fontface = "italic") +
     geom_richtext(data = lab, aes(x = x, y = y, label = txt, hjust = hj, vjust = vj),
                   inherit.aes = FALSE, colour = lab$col, size = PT(7.5), family = FONT,
@@ -3865,7 +3868,7 @@ build_A <- function(panel_w_mm) {
       "Season effect (HMSC β, CLR abundance) of each of the 226 modelled OTUs<br>",
       "<span style='color:%s'>**← more abundant in winter: 44 resolved**</span>",
       "&#8195;&#8195;",
-      "<span style='color:%s'>**30 resolved: more abundant in summer →**</span>"),
+      "<span style='color:%s'>**more abundant in summer: 30 resolved →**</span>"),
       COL_W, COL_S)) +
     guides(fill = guide_legend(nrow = 1, override.aes = list(size = 1.9))) +
     theme_journal() +
@@ -3873,8 +3876,8 @@ build_A <- function(panel_w_mm) {
           axis.line.y = element_blank(),
           axis.title.x = element_markdown(size = 8, colour = INK, lineheight = 1.25,
                                           margin = margin(t = 1.2, unit = "mm"), family = FONT),
-          legend.position = "top", legend.justification = "centre",
-          legend.margin = margin(0, 0, 0, 0), legend.box.spacing = unit(0.5, "mm"),
+          legend.position = "bottom", legend.justification = "centre",
+          legend.margin = margin(0, 0, 0, 0), legend.box.spacing = unit(1.5, "mm"),
           legend.key.spacing.x = unit(2.5, "mm"),
           plot.margin = margin(1, 4, 1, 1, "mm"))
   attr(p, "body_h_mm") <- y_hi - y_lo
@@ -4019,7 +4022,7 @@ pC <- ggplot() +
   geom_text(data = vpm, aes(x = X_PCR, y = y, label = sprintf("%.0f%%", 100 * pcr)),
             colour = INK, size = PT(7), family = FONT, fontface = "italic") +
   annotate("text", x = c(X_TOT, X_PCR), y = hdr_y, vjust = 0, lineheight = 0.95,
-           label = c("Season\n+ Year", "PCR\nreplicate"), size = PT(7), family = FONT,
+           label = c("Season\n+ Year", "PCR\nreplicate*"), size = PT(7), family = FONT,
            colour = "grey30", fontface = c("plain", "italic")) +
   annotate("segment", x = X_DIV, xend = X_DIV, y = min(vpm$y) - H / 2, yend = hdr_y + 1.1,
            colour = "grey60", linewidth = PT(0.4), linetype = "22") +
@@ -4043,11 +4046,14 @@ pC <- ggplot() +
 # ---- assemble and write ----------------------------------------------------
 # The bottom row is wrapped as one element, so panel A is NOT aligned with it
 # (B's long class labels would otherwise squeeze the swarm) and A's body height
-# can be fixed in mm. Tags are therefore set by hand.
-assemble <- function(pA) (pA + labs(tag = "A")) /
+# can be fixed in mm. Tags are therefore set by hand. A thin rule (its own 3 mm
+# row) separates panel A, legend included, from panels B and C.
+rule <- wrap_elements(full = grid::linesGrob(x = unit(c(0.01, 0.99), "npc"), y = unit(0.5, "npc"),
+                                             gp = grid::gpar(col = "grey70", lwd = 0.6)))
+assemble <- function(pA) (pA + labs(tag = "A")) / rule /
   wrap_elements(full = (pB + labs(tag = "B")) + (pC + labs(tag = "C")) +
                   plot_layout(widths = c(1, 1.05))) +
-  plot_layout(heights = unit(c(attr(pA, "body_h_mm"), 1), c("mm", "null")))
+  plot_layout(heights = unit(c(attr(pA, "body_h_mm"), 3, 1), c("mm", "mm", "null")))
 a_dims <- function(pA) {                      # A's body inside the assembled figure
   d <- panel_mm(assemble(pA), FIG_W, FIG_H)
   d[, which.min(abs(d["h", ] - attr(pA, "body_h_mm")) + abs(d["w", ] - max(d["w", ]))),
@@ -4317,7 +4323,7 @@ lab$txt <- sprintf("**%s** %s<br><span style='color:#606060'>%s</span>", lab$OTU
                                                        "no relative")[match(as.character(lab$cat),
                                                        STRATA[2:4])], lab$similarity_percentage)))
 stopifnot(identical(lab$OTU_ID, "OTU1369"))
-lab$tx <- 19.2; lab$ty <- 11.24; lab$hj <- 1             # hand-placed, left of the point
+lab$tx <- 18.6; lab$ty <- 9.3; lab$hj <- 1               # hand-placed, below-left of the point
 
 pB <- ggplot(wd, aes(winter_occ)) +
   geom_segment(aes(xend = winter_occ, y = w_pct, yend = s_pct), colour = "grey70",
