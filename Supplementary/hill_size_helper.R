@@ -1,9 +1,9 @@
 # Shared helper: size-standardised Hill numbers via iNEXT.3D.
 #
-# Sourced by the `fig4-build` chunk of Supplementary_Appendix.qmd (main-text
-# Figure 4B). `Scripts/6_diversity_analyses.R` carries a verbatim copy of the
+# Sourced by the `figS8b-build` chunk of Supplementary_Appendix.qmd
+# (Figure S8b, panel B; main-text Figure 4B until 2026-11). `Scripts/6_diversity_analyses.R` carries a verbatim copy of the
 # same two functions (numbered scripts stay standalone) and produces Section
-# 5.2 with it -- if you change one, change the other. fig4-build asserts that
+# 5.2 with it -- if you change one, change the other. figS8b-build asserts that
 # its recomputed season means equal the table script 6 writes, so a drift
 # between the two copies fails the figure build instead of passing silently.
 #

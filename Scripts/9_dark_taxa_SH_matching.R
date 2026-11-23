@@ -278,7 +278,7 @@ occ <- data.frame(
 
 sh <- left_join(sh, occ, by = "OTU_ID")
 
-# ---- 4b) Per-sample read share by SH stratum (main-text Fig. 4B) -------------
+# ---- 4b) Per-sample read share by SH stratum (main-text Fig. 3A) -------------
 # Sections 5a/5b count OTUs and report per-OTU season means; the main figure also
 # needs the READ-weighted view per sample, so the seasonal claim ("dark, largely
 # candidate-novel lineages dominate winter dung") can be shown and tested rather

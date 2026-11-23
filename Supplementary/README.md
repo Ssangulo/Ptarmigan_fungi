@@ -9,7 +9,7 @@ Published version: <https://ssangulo.github.io/Ptarmigan_fungi/>
 | `figures/` | Supplementary figures (PNG). Each is written ("staged") here by the numbered script that produces it. |
 | `tables/` | Result tables (CSV) shown or cited in the appendix, staged the same way. [`repro/manifest.csv`](../repro/manifest.csv) names the producer of every file in `figures/` and `tables/`. |
 | `build_main_figure.R` | Runs one build chunk of the `.qmd` by its label, e.g. `fig1-build`. |
-| `hill_size_helper.R` | Size-standardised Hill numbers (iNEXT.3D), sourced by `fig4-build`. `Scripts/6_diversity_analyses.R` carries a verbatim copy. |
+| `hill_size_helper.R` | Size-standardised Hill numbers (iNEXT.3D), sourced by `figS8b-build`. `Scripts/6_diversity_analyses.R` carries a verbatim copy. |
 | `publish_pages.sh` | Renders the submission version and publishes it to GitHub Pages (the `gh-pages` branch). |
 | `appendix_qr.{png,svg,pdf}` | QR code linking to the published appendix. |
 

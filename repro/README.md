@@ -37,7 +37,7 @@ run's PID is in `repro/logs/<RUN_ID>/run.pid` (`kill -- -<PID>` stops it and its
    the sandbox (`$REPRO_SANDBOX/<RUN_ID>/`, default `~/Ptarmigan/repro_sandbox/`)
    and stages its appendix files into **this checkout's** `Supplementary/`.
    Scripts run from frozen copies, because `Rscript` reads a file incrementally.
-4. Runs the appendix build chunks (`sec2/4/5-build`, `figS6b`/`figS-hmscg-build`, `fig1`-`fig4-build`) with
+4. Runs the appendix build chunks (`sec2/4/5-build`, `figS6b`/`figS8b`/`figS-hmscg-build`, `fig1`-`fig4-build`) with
    `Supplementary/build_main_figure.R`, and `model_development/hmsc_convergence/04_v1_disagreement_table.R`.
 5. Renders both appendix profiles, greps for stray `:::` fences, and checks that
    no pointer chunk sits inside a docs-only block.

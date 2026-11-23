@@ -1246,7 +1246,7 @@ kable(data.frame(
   caption = "Table S8. Pooled-season taxonomic Hill diversity at equal sequencing depth and equal sample coverage (iNEXT3D, incidence data; every sample rarefied to 12,615 reads; coverage 0.65; 50 rarefaction draws, 100 bootstraps each). Estimate and CI are medians over draws. 'Summer/winter' is the median ratio of the two estimates with the 2.5–97.5% range across draws. The last column is the share of draws in which the two Seasons' 95% CIs do not overlap.")
 ```
 
-The depth-controlled estimates in Table S8 are plotted as main-text **Fig. 4A** (Section 10.4). Summer is the richer pooled assemblage at every order, by a factor of 1.42 at q = 0, 1.57 at q = 1 and 1.78 at q = 2.
+The summer/winter ratios of Table S8 are main-text **Fig. 4A** (Section 10.4), with an interval taken over every rarefaction draw × bootstrap replicate (`tables/H2_iNEXT3D_TD_coverage_rarefied_boot.csv`); the season estimates themselves are drawn in Figure S8b(A) (Section 5.5). Summer is the richer pooled assemblage at every order, by a factor of 1.42 at q = 0, 1.57 at q = 1 and 1.78 at q = 2.
 
 :::: {.content-visible when-profile="docs"}
 **Raw-count and asymptotic versions (superseded as the primary result).** Without rarefying first, the same coverage-standardised comparison gives summer/winter ratios of 1.73, 1.96 and 2.28 (`tables/H2_iNEXT3D_TD_coverage_standardised.csv`), i.e. about a fifth of the raw summer advantage is the depth difference. The asymptotic estimates below were the Table S8 of earlier drafts; they carry the same depth confound and extrapolate to about twice the observed richness (summer 1,708 vs 864 observed; winter 1,046 vs 436), which is the regime in which asymptotic richness is least reliable.
@@ -1268,7 +1268,7 @@ kable(inx, digits = 2,
 
 **Figure S8**: Per-sample Hill numbers (PCR-collapsed object, size-standardised with iNEXT3D to the minimum sample depth of 12,615 reads). Winter exceeds summer at q1/q2 (Shannon/Simpson); summer has the higher mean at q0 (richness), but that difference is weak and depends on the model family (Tables S9, S9b).
 
-This is the same quantity as main-text **Fig. 4B** (Section 10.4), which redraws it to the main-figure specification: annotated with the Table S9 contrasts below, and stacked beneath the pooled estimates of Fig. 4A on a shared set of facet columns. Figure S8 is retained here as the plain, unannotated view.
+Figure S8b(B) (Section 5.5) redraws the same quantity annotated with the Table S9 contrasts below and stacked beneath the pooled estimates on a shared set of facet columns, and main-text **Fig. 4A** (Section 10.4) plots the Table S9 ratios themselves. Figure S8 is retained here as the plain, unannotated view.
 
 The Season effect is tested on the plotted values themselves: one size-standardised value per dung sample (n = 52), with a gamma GLM (log link) of `q ~ Season + Year`, so the Season coefficient is a summer/winter ratio adjusted for year. Year is a fixed effect (three levels are too few to estimate a variance), and individual bird is not modelled because only three birds were sampled more than once. The Season × Year interaction is tested by F-test and ΔAICc against the additive model.
 
@@ -1375,6 +1375,7 @@ Summer's dominance is driven by three strongly season-skewed OTUs: **OTU1 (*Thel
 #          tables/H2_hill_per_sample.csv
 #          tables/H2_iNEXT3D_TD_asymptotic.csv
 #          tables/H2_iNEXT3D_TD_coverage_rarefied.csv
+#          tables/H2_iNEXT3D_TD_coverage_rarefied_boot.csv
 #          tables/H2_iNEXT3D_TD_coverage_rarefied_draws.csv
 #          tables/H2_iNEXT3D_TD_coverage_standardised.csv
 #          tables/H2_lmm_season_effect.csv
@@ -1518,6 +1519,421 @@ print(copro_df %>% group_by(Season) %>%
         summarise(mean_pct = round(mean(copro_pct_share), 2),
                   median_pct = round(median(copro_pct_share), 2), .groups = "drop"))
 print(wilcox.test(copro_pct_share ~ Season, data = copro_df))
+```
+
+
+### 5.5 Summary figure: pooled versus per-sample diversity
+
+![](figures/S8b_richness_evenness_crossover.png)
+
+**Figure S8b**: The summer dung mycobiome holds more fungal OTUs than winter ones, yet each individual dropping is far less even. **(A)** Taxonomic diversity of each season's pooled sample set (iNEXT3D, incidence data) at Hill orders q = 0, 1 and 2 at equal sequencing depth. Points are the median estimate over 50 rarefaction draws, and bars the median 95% CI. **(B)** Per-sample Hill numbers for the same 52 samples, size-standardised to 12,615 reads. Boxes show the median and interquartile range, points are individual samples, white diamonds are season means, and the grey segment joins those means. Annotations give the year-adjusted summer/winter ratio with its p-value from the GLMs of Table S9. **(C)** Per-sample top-1-OTU read share and Pielou evenness J, both on a 0–1 scale, with symbols as in (B) and brackets giving the Wilcoxon rank-sum result (Table S10). **(D)** The identity of the dominants: the five OTUs with the highest mean within-season read share in each season, coloured by functional guild. Bar labels give that mean share and, in parentheses, the number of the season's 26 samples in which the OTU was detected at all. Taxa are named at the finest confidently assigned rank.
+
+:::: {.content-visible when-profile="docs"}
+*This was main-text Figure 4 until 2026-11; main-text Figure 4 (Section 10.4) now shows the summer/winter ratios of panels A and B and the top-1 OTU share of panel C.*
+
+**Figure S8b (full legend)**: The summer dung mycobiome is the richer assemblage when droppings are pooled, yet each individual dropping is far less even. **(A)** Taxonomic diversity of each season's pooled sample set at Hill orders q = 0, 1 and 2, at equal sequencing depth (every sample rarefied to 12,615 reads) and equal sample coverage (0.65) (iNEXT3D, incidence data); points are the median estimate over 50 rarefaction draws, bars the median 95% confidence interval, and the grey segment joins the two seasons within an order. Summer exceeds winter at every order (Table S8). **(B)** Per-sample Hill numbers for the same 52 samples, size-standardised with iNEXT3D to a common depth of 12,615 reads, drawn in the same three columns against the same season axis so that the two rows can be read against one another; boxes show the median and interquartile range, points are individual samples, white diamonds are season means, and the grey segment joins those means. The slope that rises in all three columns of (A) rises only at q = 0 here and falls at q = 1 and q = 2 — that reversal is the crossover. Annotations give the year-adjusted summer/winter ratio and its p-value from a gamma GLM fitted to the plotted per-sample values (Table S9); the q = 0 contrast depends on the model family (p = 0.026–0.29; Table S9b), the q = 1 and q = 2 contrasts do not. Both rows scale y freely within each column, because the three Hill orders differ by an order of magnitude. **(C)** The mechanism: per-sample top-1-OTU read share and Pielou evenness *J*, both on a 0–1 scale, with symbols as in (B) and brackets giving the Wilcoxon rank-sum result (Table S10). **(D)** The identity of the dominants — the five OTUs with the highest mean within-season read share in each season, coloured by functional guild under the rule of Section 8.1. Bar labels give that mean share and, in parentheses, the number of the season's 26 samples in which the OTU was detected at all. Taxa are named at the finest confidently assigned rank, so an OTU with no genus appears under its family, or as *unclassified* plus its order or class. *Candida parapsilosis* is coloured plant-associated because its compound FUNGuild string contains `Epiphyte`; the rule is applied unchanged rather than special-cased, so that Figures 1 and 4 and Sections 8–9 classify every OTU identically.
+
+Panels A and B put the same question to two scales and get opposite answers, and that disagreement is the result rather than a problem with it. Pooled across a season and with sequencing depth held equal, summer is the richer assemblage at every Hill order — 548 against winter's 383 OTUs at q = 0, and the gap widens under abundance weighting (412 vs 261 at q = 1; 287 vs 162 at q = 2). Within a single dropping the ordering reverses as soon as abundance enters: winter droppings are significantly more diverse at q = 1 (14.9 vs 7.4 effective OTUs; summer/winter 0.46, p = 0.001) and q = 2 (10.1 vs 4.6; 0.40, p < 0.001), whereas at q = 0 summer's higher mean (48.3 vs 31.3) is a weak, family-dependent difference carried by a few very rich summer samples (Tables S9, S9b). Panel C locates the reversal in dominance rather than in the species lists: an average summer sample gives 56% of its reads to a single OTU against 25% in winter, and Pielou evenness falls from 0.72 to 0.38 (both p \< 0.001). Summer droppings are far more top-heavy, which is precisely what depresses q = 1 and q = 2 even where a dropping's species list is as long as, or longer than, a winter one. Panel D names the taxa responsible, and they are the ones a coprophilous account predicts: *Thelebolus*, *Coniochaeta* and *Sporormiella intermedia* together take 44% of summer reads and are all dung saprotrophs, whereas winter's leading OTUs are mostly unclassified below class and carry no guild call at all — among them OTU1369, an unclassified Dothideomycete that is winter's most abundant OTU and is present in 20 of 26 winter samples, and which is taken up as a dark taxon in Section 3.4. Two caveats travel with the figure. The per-sample richness contrast in (B) is not robust to the choice of model family (Table S9b), so the crossover is firm at q = 1 and q = 2 and in the pooled estimates of (A), but not as a per-dropping richness gain. And the shares in (D) are seasonal averages, not universals — *Thelebolus* reaches its 24.9% mean while being detected in only 15 of the 26 summer droppings.
+::::
+
+```{r figS8b-build}
+#| eval: false
+#| echo: !expr knitr::is_html_output()
+#| code-fold: true
+#| code-summary: "Build code for Figure S8b — source of truth for figures/S8b_richness_evenness_crossover.{png,pdf}"
+
+# Figure S8b -- the four-panel H2 summary that was main-text Figure 4 until
+# 2026-11, carried over verbatim (only the output name changed): A pooled-season
+# iNEXT3D estimates (Table S8), B per-sample size-standardised Hill numbers with the
+# Table S9 contrasts, C dominance and evenness (Table S10), D top-5 OTUs per season
+# (Table S11). Per-sample quantities are recomputed via hill_size_helper.R; pooled
+# estimates and test statistics are READ from committed tables/ CSVs, with guards.
+# Rebuild:  conda run -n r_env Rscript build_main_figure.R figS8b-build
+
+
+suppressPackageStartupMessages({
+  library(phyloseq); library(ggplot2); library(patchwork); library(iNEXT.3D)
+})
+# Size-standardised Hill numbers: the same estimator Scripts/6_diversity_analyses.R
+# uses for Section 5.2 (it carries a verbatim copy); the guard below checks the
+# season means against the table that script writes.
+source("hill_size_helper.R")
+
+rdata <- if (file.exists("eco_analysis.RData")) "eco_analysis.RData" else
+         "/home/daniel/Ptarmigan/trimmed/mergedPlates/eco_analysis.RData"
+load(rdata)
+stopifnot(exists("alldat"), exists("alldat.rfy"), exists("alldat_full"),
+          exists("funguild_otu"))                 # funguild_otu <- 8_functional_guilds.R
+tab_dir <- if (dir.exists("tables")) "tables" else
+           "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
+out_dir <- "figures"
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+grDevices::pdf(NULL)                                 # headless: no X11 fallback
+
+# ---- shared style ----------------------------------------------------------
+# Season and guild palettes are the repo standard (8_functional_guilds.R), so one
+# colour means one thing across Fig. 1, Fig. 2 and Fig. 4.
+season_cols  <- c(Winter = "#0072B2", Summer = "#D55E00")
+guild_cols   <- c("Dung saprotroph" = "#E69F00", "Plant-associated" = "#009E73",
+                  "Pathotroph" = "#CC79A7", "Other assigned" = "#56B4E9",
+                  "Unassigned / dark" = "#999999")
+GUILD_LEVELS <- names(guild_cols)
+
+# The one facet vocabulary shared by panels A and B. A carries the strips; B
+# repeats the columns beneath it and blanks them, exactly as Fig. 1B does.
+Q_LEVELS <- c("q = 0  (richness)", "q = 1  (Shannon)", "q = 2  (Simpson)")
+
+base_theme <- theme_classic(base_size = 12) +
+  theme(strip.background = element_blank(),
+        strip.text       = element_text(face = "bold"),
+        plot.tag         = element_text(face = "bold", size = 14),
+        plot.subtitle    = element_text(size = 9, colour = "grey30"),
+        panel.spacing    = unit(0.8, "lines"),
+        legend.key.size  = unit(0.42, "cm"),
+        legend.title     = element_text(size = 10),
+        legend.text      = element_text(size = 9))
+
+# All in-plot text is ASCII. save_fig() falls back to grDevices::pdf when cairo
+# is unavailable, and that device silently substitutes a dot for a Unicode minus
+# or delta -- a corrupted PDF that would not fail the build.
+pfmt <- function(p) ifelse(is.na(p), "p = NA",
+                    ifelse(p < 0.001, "p < 0.001", sprintf("p = %.3f", p)))
+to_season <- function(x) factor(c(winter = "Winter", summer = "Summer")[as.character(x)],
+                                levels = c("Winter", "Summer"))
+
+# ============================================================================
+# Panel A -- season-pool diversity (Section 5.1, Table S8)
+# ============================================================================
+# Read, never recomputed: 50 rarefaction draws x 100 bootstraps are expensive
+# and the estimates are already committed. Pooling samples within a Season asks
+# about the Season's whole species pool. These are the DEPTH-CONTROLLED,
+# coverage-standardised estimates of Table S8 (every sample rarefied to 12,615
+# reads, common coverage), not asymptotic ones: asymptotic richness extrapolates
+# to ~2x observed here, and raw incidence carries summer's ~2.6x depth advantage.
+asy <- read.csv(file.path(tab_dir, "H2_iNEXT3D_TD_coverage_rarefied.csv"), check.names = FALSE)
+stopifnot(setequal(asy$Season, c("Summer", "Winter")), setequal(asy$Order.q, 0:2))
+asy$q      <- factor(Q_LEVELS[asy$Order.q + 1], levels = Q_LEVELS)
+asy$Season <- factor(asy$Season, levels = c("Winter", "Summer"))
+asy$TD_asy <- asy$qTD                                 # plotted estimate (name kept for the ggplot below)
+sc_level   <- unique(asy$SC); stopifnot(length(sc_level) == 1L)
+
+pick  <- function(sea) { d <- asy[asy$Season == sea, ]
+                         d[match(Q_LEVELS, as.character(d$q)), ] }
+A_sum <- pick("Summer"); A_win <- pick("Winter")
+# The panel's whole claim in one line: summer above winter at every order, with
+# 95% CIs that do not overlap. If that ever stops being true, the build stops.
+stopifnot(all(A_sum$qTD.LCL > A_win$qTD.UCL))
+
+pA <- ggplot(asy, aes(Season, TD_asy)) +
+  geom_line(aes(group = 1), colour = "grey55", linewidth = 0.4) +
+  geom_errorbar(aes(ymin = qTD.LCL, ymax = qTD.UCL, colour = Season),
+                width = 0.12, linewidth = 0.6, show.legend = FALSE) +
+  geom_point(aes(fill = Season), shape = 21, size = 3.4,
+             colour = "grey25", stroke = 0.4, show.legend = FALSE) +
+  facet_wrap(~ q, nrow = 1, scales = "free_y") +
+  scale_fill_manual(values = season_cols) +
+  scale_colour_manual(values = season_cols) +
+  scale_y_continuous(expand = expansion(mult = c(0.18, 0.18))) +
+  labs(x = NULL, y = "Season pool\n(effective no. of OTUs)",
+       subtitle = sprintf("Pooled-season diversity at equal depth (12,615 reads/sample) and equal coverage (%.2f); iNEXT3D, incidence,\nmedian over 50 rarefaction draws; bars are 95%% CIs. Summer exceeds winter at every order.", sc_level)) +
+  base_theme +
+  # A's x axis is identical to B's directly below, so only B prints it.
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+  guides(fill = "none", colour = "none")
+
+# ============================================================================
+# Panel B -- per-sample diversity (Section 5.2, Fig. S9 + Table S9)
+# ============================================================================
+# Raw counts: iNEXT.3D size-standardises internally to rfy_depth, the same depth
+# alldat.rfy is rarefied to. Deterministic (an analytic expectation, not one
+# rarefaction draw), so no seed is involved; the guard makes that testable.
+ps_rfy <- alldat$nopool
+m_rfy  <- as(otu_table(ps_rfy), "matrix")
+if (taxa_are_rows(ps_rfy)) m_rfy <- t(m_rfy)         # sites x species
+rfy_depth <- min(rowSums(m_rfy))
+stopifnot(nsamples(ps_rfy) == 52L,
+          rfy_depth == unique(rowSums(otu_mat_of(alldat.rfy$nopool))))
+
+md_rfy <- data.frame(as(sample_data(ps_rfy), "data.frame"), stringsAsFactors = FALSE)
+stopifnot(identical(rownames(m_rfy), rownames(md_rfy)))
+season_rfy <- to_season(md_rfy$Season); stopifnot(!anyNA(season_rfy))
+
+hill_raw <- hill_inext_size(ps_rfy, level = rfy_depth, label = "Figure 4B")
+stopifnot(identical(hill_raw$row, rownames(m_rfy)))
+hill <- data.frame(Season = season_rfy,
+                   q0 = hill_raw$q0, q1 = hill_raw$q1, q2 = hill_raw$q2)
+hill_long <- data.frame(
+  Season = rep(hill$Season, times = 3),
+  q      = factor(rep(Q_LEVELS, each = nrow(hill)), levels = Q_LEVELS),
+  value  = c(hill$q0, hill$q1, hill$q2))
+
+# The annotated contrast is Table S9: a gamma GLM (log link, q ~ Season + Year)
+# fitted to exactly the per-sample values plotted here (n = 52), so the figure
+# and its test are on the same unit. Guards: the CSV's season means must equal
+# the recomputed ones, and the model ratio must agree in direction with them.
+lmm <- read.csv(file.path(tab_dir, "H2_season_effect_per_sample.csv"), check.names = FALSE)
+stopifnot(setequal(lmm$metric, c("q0", "q1", "q2")), all(lmm$n == nrow(hill)))
+lmm <- lmm[match(c("q0", "q1", "q2"), lmm$metric), ]
+obs_diff <- vapply(c("q0", "q1", "q2"), function(q)
+  mean(hill[[q]][hill$Season == "Summer"]) - mean(hill[[q]][hill$Season == "Winter"]),
+  numeric(1))
+stopifnot(max(abs(lmm$mean_summer - lmm$mean_winter - obs_diff)) < 1e-8,
+          all(sign(obs_diff) == sign(log(lmm$ratio_summer_winter))))
+
+# Boxes show medians, but Section 5.3's text quotes MEANS -- so the means are
+# drawn, and the segment joining them is what makes the slope flip legible
+# against panel A directly above.
+meanB <- aggregate(value ~ q + Season, hill_long, mean)
+y_top <- as.numeric(tapply(hill_long$value, hill_long$q, max)[Q_LEVELS])
+ann_B <- data.frame(q     = factor(Q_LEVELS, levels = Q_LEVELS),
+                    value = y_top * 1.32,
+                    lab   = sprintf("summer / winter\n%.2fx, %s",
+                                    lmm$ratio_summer_winter, pfmt(lmm$p_season)))
+
+# seed = on the jitter: save_fig() prints the object once per device, and an
+# unseeded jitter would place the points differently in the PNG, the JPG and the
+# PDF -- three subtly different figures from one build.
+pB <- ggplot(hill_long, aes(Season, value)) +
+  geom_boxplot(aes(fill = Season), outlier.shape = NA, width = 0.6, alpha = 0.85) +
+  geom_point(position = position_jitter(width = 0.14, height = 0, seed = 1),
+             size = 1.1, alpha = 0.55, colour = "grey20") +
+  geom_line(data = meanB, aes(group = 1), colour = "grey35", linewidth = 0.4) +
+  geom_point(data = meanB, shape = 23, size = 2.4, stroke = 0.5,
+             fill = "white", colour = "grey15") +
+  geom_text(data = ann_B, aes(x = 1.5, label = lab), inherit.aes = TRUE,
+            size = 2.9, lineheight = 0.95, vjust = 1) +
+  facet_wrap(~ q, nrow = 1, scales = "free_y") +
+  scale_fill_manual(values = season_cols) +
+  # Linear, not log: a Hill number is an effective number of OTUs and is meant to
+  # be read off the axis. free_y absorbs the 164-vs-32 range difference instead.
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.36))) +
+  labs(x = NULL, y = "Per sample\n(effective no. of OTUs)",
+       subtitle = sprintf("Per-sample Hill numbers (n = %d, iNEXT3D size-standardised to %s reads); white diamonds are season means.\nAnnotations: year-adjusted summer/winter ratio, gamma GLM on these values (Table S9).",
+                          nrow(hill), format(rfy_depth, big.mark = ","))) +
+  base_theme +
+  # B repeats A's facet columns exactly, so its strips are dropped as redundant.
+  theme(strip.text = element_blank()) +
+  guides(fill = guide_legend(order = 1))
+
+# ============================================================================
+# Panel C -- dominance and evenness, the mechanism (Section 5.3, Table S10)
+# ============================================================================
+ps  <- alldat$nopool                                 # canonical, raw counts
+m   <- as(otu_table(ps), "matrix")
+if (!taxa_are_rows(ps)) m <- t(m)                    # taxa x samples, as 5.3 uses
+rel <- sweep(m, 2, colSums(m), "/")
+stopifnot(all(abs(colSums(rel) - 1) < 1e-10))
+md  <- data.frame(as(sample_data(ps), "data.frame"), stringsAsFactors = FALSE)
+stopifnot(identical(colnames(rel), rownames(md)),
+          setequal(colnames(rel), rownames(m_rfy)))  # B and C/D are the same 52 birds
+season_c <- to_season(md$Season)
+
+pielou_J <- function(p) { p <- p[p > 0]; -sum(p * log(p)) / log(length(p)) }
+dom <- data.frame(Season    = season_c,
+                  top1_prop = apply(rel, 2, max),
+                  pielou_J  = apply(rel, 2, pielou_J))
+
+# Drift guard: the recomputed means must reproduce committed Table S10 exactly at
+# the precision the CSV stores (1 dp for the percentage, 2 dp for J).
+dom_csv <- read.csv(file.path(tab_dir, "report_dominance_summary.csv"), check.names = FALSE)
+dom_csv <- dom_csv[match(c("winter", "summer"), dom_csv$Season), ]
+obs_top1 <- tapply(dom$top1_prop, dom$Season, mean)
+obs_J    <- tapply(dom$pielou_J,  dom$Season, mean)
+stopifnot(max(abs(round(100 * as.numeric(obs_top1[c("Winter","Summer")]), 1) -
+                  dom_csv$mean_top1_prop_pct)) < 1e-8,
+          max(abs(round(as.numeric(obs_J[c("Winter","Summer")]), 2) -
+                  dom_csv$mean_pielou_J)) < 1e-8)
+p_top1 <- unique(dom_csv$wilcox_p_top1_prop); p_J <- unique(dom_csv$wilcox_p_pielou_J)
+stopifnot(length(p_top1) == 1L, length(p_J) == 1L)
+
+# Both metrics live on 0-1, so one shared axis works and the mechanism reads as a
+# single picture: the seasons swap sides between the two metric groups.
+# <br> not \n: these labels are rendered by element_markdown, which honours HTML
+# breaks. Wrapped because the two names collide at this panel's width.
+M_LEVELS <- c("Top-1 OTU<br>read share", "Pielou<br>evenness *J*")
+dom_long <- data.frame(
+  Season = rep(dom$Season, times = 2),
+  Metric = factor(rep(M_LEVELS, each = nrow(dom)), levels = M_LEVELS),
+  value  = c(dom$top1_prop, dom$pielou_J))
+meanC <- aggregate(value ~ Metric + Season, dom_long, mean)
+brk   <- data.frame(Metric = factor(M_LEVELS, levels = M_LEVELS),
+                    lab    = pfmt(c(p_top1, p_J)),
+                    xmid   = seq_along(M_LEVELS))
+brk$xmin <- brk$xmid - 0.19; brk$xmax <- brk$xmid + 0.19  # dodge(0.75) box centres
+
+pC <- ggplot(dom_long, aes(Metric, value, fill = Season)) +
+  geom_boxplot(outlier.shape = NA, width = 0.65, alpha = 0.85,
+               position = position_dodge(width = 0.75)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.12, dodge.width = 0.75,
+                                             seed = 1),
+             size = 1.1, alpha = 0.55, colour = "grey20", show.legend = FALSE) +
+  geom_point(data = meanC, aes(group = Season), inherit.aes = TRUE,
+             position = position_dodge(width = 0.75), shape = 23, size = 2.3,
+             stroke = 0.5, fill = "white", colour = "grey15", show.legend = FALSE) +
+  geom_segment(data = brk, aes(x = xmin, xend = xmax, y = 1.03, yend = 1.03),
+               inherit.aes = FALSE, linewidth = 0.3) +
+  geom_text(data = brk, aes(x = xmid, y = 1.055, label = lab), inherit.aes = FALSE,
+            size = 3, vjust = 0) +
+  scale_fill_manual(values = season_cols) +
+  scale_y_continuous(limits = c(0, 1.13), breaks = seq(0, 1, 0.25)) +
+  labs(x = NULL, y = "Per-sample value (proportion)",
+       subtitle = "White diamonds are season means;\nbrackets give the Wilcoxon rank-sum test (Table S10).") +
+  base_theme +
+  # The x labels carry markdown (*J*); without element_markdown the asterisks
+  # print literally, and this theme() must come after base_theme to win.
+  theme(axis.text.x = ggtext::element_markdown(size = 9)) +
+  guides(fill = "none")
+
+# ============================================================================
+# Panel D -- who the dominants are (Section 5.4, Table S11), by guild
+# ============================================================================
+top5 <- do.call(rbind, lapply(levels(season_c), function(s) {
+  cols   <- colnames(rel)[season_c == s]
+  shares <- rowMeans(rel[, cols, drop = FALSE])      # mean WITHIN-season share
+  ids    <- names(sort(shares, decreasing = TRUE))[1:5]
+  data.frame(Season = s, OTU = ids, share = 100 * shares[ids],
+             n_detect = rowSums(rel[ids, cols, drop = FALSE] > 0),
+             n_season = length(cols), stringsAsFactors = FALSE, row.names = NULL)
+}))
+top5$Season <- factor(top5$Season, levels = c("Winter", "Summer"))
+
+# Drift guard: same OTUs, same order, same shares as committed Table S11.
+t5_csv <- read.csv(file.path(tab_dir, "report_top5_otu_by_season.csv"),
+                   stringsAsFactors = FALSE)
+t5_csv$Season <- to_season(t5_csv$Season)
+t5_csv <- t5_csv[order(t5_csv$Season, -t5_csv$mean_pct_share), ]
+chk    <- top5[order(top5$Season, -top5$share), ]
+stopifnot(identical(paste(chk$Season, chk$OTU), paste(t5_csv$Season, t5_csv$OTU)),
+          max(abs(round(chk$share, 2) - t5_csv$mean_pct_share)) < 1e-8)
+
+# UNITE taxonomy carries rank prefixes ("g__Thelebolus") and, at species level, a
+# trailing hypothesis index ("intermedia 1"). Labels fall back down the ranks
+# until something is assigned: a family name stands alone unambiguously, an order
+# or class does not and is prefixed "unclassified". Markdown asterisks italicise
+# real Latin names only -- never a rank name, never an Incertae sedis placeholder.
+tax <- data.frame(as(tax_table(ps), "matrix"), stringsAsFactors = FALSE)
+strip_rank <- function(x) sub("^[a-z]__", "", x)
+clean_rank <- function(x) { x <- strip_rank(x)
+  x[is.na(x) | x == "" | x == "NA" | grepl("unidentified", x, ignore.case = TRUE)] <- NA_character_
+  x }
+otu_label <- function(otu) {
+  rk <- lapply(c("Genus", "Species", "Family", "Order", "Class"),
+               function(r) clean_rank(tax[otu, r]))
+  names(rk) <- c("Genus", "Species", "Family", "Order", "Class")
+  incertae <- function(x) !is.na(x) && grepl("Incertae_sedis", x)
+  nm <-
+    if (!is.na(rk$Genus) && !incertae(rk$Genus)) {
+      if (!is.na(rk$Species))
+        paste0("*", rk$Genus, " ", sub("[ _]+[0-9]+$", "", rk$Species), "*")
+      else paste0("*", rk$Genus, "*")
+    } else if (incertae(rk$Genus))                      sub("_gen_Incertae_sedis", " (unclass.)", rk$Genus)
+      else if (!is.na(rk$Family) && !incertae(rk$Family)) rk$Family
+      else if (!is.na(rk$Order))                        paste("unclassified", rk$Order)
+      else if (!is.na(rk$Class))                        paste("unclassified", rk$Class)
+      else                                              "unclassified fungus"
+  paste0(nm, " (", otu, ")")
+}
+top5$label <- unname(vapply(top5$OTU, otu_label, character(1)))
+stopifnot(!anyDuplicated(top5$label))
+
+# Guild rule VERBATIM from the Fig. 1 chunk (itself from 8_functional_guilds.R),
+# including its genus cleaning, so Fig. 1, Fig. 4, Section 8 and Section 9 all
+# classify an OTU identically. One consequence is visible here: FUNGuild returns
+# a compound string for Candida parapsilosis containing "Epiphyte", so the
+# priority rule lands OTU136 in Plant-associated. That is an artifact of compound
+# FUNGuild strings, not a claim about the taxon -- but the rule is applied
+# unchanged rather than special-cased, because cross-section consistency is worth
+# more than one prettier label.
+COPRO_GENERA <- c("Sordaria","Podospora","Cercophora","Chaetomium","Schizothecium",
+                  "Preussia","Delitschia","Pilobolus","Ascobolus","Saccobolus",
+                  "Sporormiella","Coprinopsis","Thelebolus","Coniochaeta")
+gen       <- strip_rank(tax$Genus[match(top5$OTU, rownames(tax))])
+gen       <- ifelse(gen %in% c("", "NA"), NA, gen)
+guild_str <- funguild_otu$Guild[match(top5$OTU, funguild_otu$OTU_ID)]
+is_copro  <- (!is.na(guild_str) & grepl("Dung Saprotroph", guild_str)) |
+             (!is.na(gen)       & gen %in% COPRO_GENERA)
+is_plant  <- !is_copro & !is.na(guild_str) &
+             grepl("Endophyte|Plant Saprotroph|Plant Pathogen|Epiphyte", guild_str)
+is_patho  <- !is_copro & !is_plant & !is.na(guild_str) & grepl("Pathogen|Parasite", guild_str)
+top5$Guild <- factor(
+  ifelse(is_copro, "Dung saprotroph",
+  ifelse(is_plant, "Plant-associated",
+  ifelse(is_patho, "Pathotroph",
+  ifelse(!is.na(guild_str), "Other assigned", "Unassigned / dark")))),
+  levels = GUILD_LEVELS)
+
+# The two seasons' top-5 sets are disjoint, so one global factor ordered
+# (Season, share) gives each facet its own descending bars under free_y.
+top5 <- top5[order(top5$Season, top5$share), ]
+top5$label <- factor(top5$label, levels = top5$label)
+n_lab <- setNames(sprintf("%s (n = %d)", levels(season_c), as.integer(table(season_c))),
+                  levels(season_c))
+
+pD <- ggplot(top5, aes(share, label, fill = Guild)) +
+  geom_col(width = 0.72, colour = "grey30", linewidth = 0.15) +
+  geom_text(aes(label = sprintf("%.1f%%  (%d/%d)", share, n_detect, n_season)),
+            hjust = -0.12, size = 2.8, colour = "grey25") +
+  facet_grid(Season ~ ., scales = "free_y", space = "free_y",
+             labeller = labeller(Season = n_lab)) +
+  # drop = TRUE: "Other assigned" has no member among these ten OTUs and a key
+  # with no bar is noise; the level ORDER stays the repo-canonical one.
+  scale_fill_manual(values = guild_cols, name = "Functional guild", drop = TRUE) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.32))) +
+  labs(x = "Mean within-season read share (%)", y = NULL,
+       subtitle = "Bar labels give the mean share and, in parentheses,\nthe number of that season's samples with any detection.") +
+  base_theme +
+  theme(axis.text.y = ggtext::element_markdown(size = 9)) +
+  guides(fill = guide_legend(order = 2, nrow = 2))
+
+# ---- assemble and write ----------------------------------------------------
+# An explicit design grid, not nested `/` and `|`: patchwork FLATTENS a chain of
+# `/`, so (pA / pB) / (pC | pD) silently becomes a three-row layout and errors.
+# The grid also guarantees what panel A and B depend on -- one shared column
+# geometry, so their facet columns line up and the slope flip reads vertically.
+# D gets five of the eight columns because its taxon labels are up to 38 chars.
+design <- "
+AAAAAAAA
+BBBBBBBB
+CCCDDDDD
+"
+fig4 <- pA + pB + pC + pD +
+  plot_layout(design = design, heights = c(1, 1.18, 1.55), guides = "collect") +
+  plot_annotation(tag_levels = "A") &
+  theme(legend.position = "bottom", legend.box = "horizontal")
+
+# Written as PNG (600 dpi) and PDF (vector).
+save_fig <- function(stem, obj, width, height, res = 600) {
+  one <- function(open_dev) { open_dev(); on.exit(grDevices::dev.off()); print(obj) }
+  one(function() grDevices::png(paste0(stem, ".png"), width = width, height = height,
+                                units = "in", res = res))
+  pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
+  one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
+}
+save_fig(file.path(out_dir, "S8b_richness_evenness_crossover"), fig4, 10, 10.4)
+
+# ---- console summary -------------------------------------------------------
+cat("Season-pool diversity, depth-controlled and coverage-standardised (Table S8):\n")
+print(data.frame(q = Q_LEVELS,
+                 summer = sprintf("%.0f [%.0f, %.0f]", A_sum$TD_asy, A_sum$qTD.LCL, A_sum$qTD.UCL),
+                 winter = sprintf("%.0f [%.0f, %.0f]", A_win$TD_asy, A_win$qTD.LCL, A_win$qTD.UCL)),
+      row.names = FALSE)
+hill_means <- aggregate(cbind(q0, q1, q2) ~ Season, hill, mean)
+hill_means[-1] <- round(hill_means[-1], 2)
+cat(sprintf("\nPer-sample Hill means (n = %d, size-standardised to %d reads):\n", nrow(hill), rfy_depth))
+print(hill_means, row.names = FALSE)
+cat("\nPer-sample gamma GLM, summer/winter ratio (n = 52; Table S9):\n")
+print(data.frame(metric = lmm$metric, ratio = round(lmm$ratio_summer_winter, 3),
+                 lwr = round(lmm$ratio_lwr, 3), upr = round(lmm$ratio_upr, 3),
+                 p = signif(lmm$p_season, 3)), row.names = FALSE)
+cat(sprintf("\nTop-1 OTU read share: summer %.1f%% vs winter %.1f%%  (%s)\n",
+            100 * obs_top1[["Summer"]], 100 * obs_top1[["Winter"]], pfmt(p_top1)))
+cat(sprintf("Pielou evenness J   : summer %.2f  vs winter %.2f   (%s)\n",
+            obs_J[["Summer"]], obs_J[["Winter"]], pfmt(p_J)))
+cat("\nTop-5 OTUs per season (mean within-season read share):\n")
+print(data.frame(Season = chk$Season, OTU = chk$OTU, share_pct = round(chk$share, 2),
+                 detected = sprintf("%d/%d", chk$n_detect, chk$n_season),
+                 guild = as.character(top5$Guild[match(chk$OTU, top5$OTU)])),
+      row.names = FALSE)
 ```
 
 ::: {.content-visible when-profile="docs"}
@@ -4161,17 +4577,15 @@ print(data.frame(lab[, c("OTU_ID", "taxon", "winter_occ")], winter_pct = round(l
 ### 10.4 Figure 4 — Pooled versus per-dropping diversity (H2)
 
 :::: {.content-visible when-profile="docs"}
-*Provenance: Fig. 4A is the coverage-based pooled-season iNEXT3D analysis of Section 5.1 (Table S8); Fig. 4B the size-standardised per-sample iNEXT3D Hill numbers of Section 5.2 (Figure S8), annotated with the per-sample gamma-GLM contrasts of Table S9; Fig. 4C the dominance and evenness metrics of Section 5.3 (Table S10); Fig. 4D the top-5 dominant OTUs of Section 5.4 (Table S11), coloured by the guild rule of Section 8.1. Panels B–D are computed on the canonical 52-sample object (`alldat$nopool`); panel B standardises it to 12,615 reads through `hill_size_helper.R`, a verbatim copy of the estimator `Scripts/6_diversity_analyses.R` uses for Section 5.2, and the build checks that the two agree. Panel A's estimates and every test statistic are read from the committed `tables/` CSVs, so the figure cannot drift from Section 5.*
+*Provenance: Fig. 4A reads `tables/H2_iNEXT3D_TD_coverage_rarefied_boot.csv` (every rarefaction draw × bootstrap replicate behind Table S8, written by `Scripts/6_diversity_analyses.R` Section 1, which replays iNEXT3D's own bootstrap and checks it against the committed per-draw s.e.) and Table S9 (`tables/H2_season_effect_per_sample.csv`); Fig. 4B reads Table S10's per-sample table (`tables/report_dominance_per_sample.csv`, written by `sec5-build`). Every printed ratio and p is drift-guarded in the chunk. The former four-panel figure, with its full legend and narrative, is Figure S8b (Section 5.5).*
 ::::
 
 ![](figures/main/Fig4_richness_evenness_crossover.png)
 
-**Figure 4**: The summer dung mycobiome holds more fungal OTUs than winter ones, yet each individual dropping is far less even. **(A)** Taxonomic diversity of each season's pooled sample set (iNEXT3D, incidence data) at Hill orders q = 0, 1 and 2 at equal sequencing depth. Points are the median estimate over 50 rarefaction draws, and bars the median 95% CI. **(B)** Per-sample Hill numbers for the same 52 samples, size-standardised to 12,615 reads. Boxes show the median and interquartile range, points are individual samples, white diamonds are season means, and the grey segment joins those means. Annotations give the year-adjusted summer/winter ratio with its p-value from the GLMs of Table S9. **(C)** Per-sample top-1-OTU read share and Pielou evenness J, both on a 0–1 scale, with symbols as in (B) and brackets giving the Wilcoxon rank-sum result (Table S10). **(D)** The identity of the dominants: the five OTUs with the highest mean within-season read share in each season, coloured by functional guild. Bar labels give that mean share and, in parentheses, the number of the season's 26 samples in which the OTU was detected at all. Taxa are named at the finest confidently assigned rank.
+**Figure 4**: Pooled across droppings, summer is the richer season at every Hill order; within a single dropping, winter is the more diverse one once abundance is weighted. **(A)** Summer/winter ratio of taxonomic Hill diversity at orders q = 0, 1 and 2 (log scale; the dashed line marks equal diversity). *Pooled season*: iNEXT3D estimates from incidence data, every dropping rarefied to 12,615 reads and both seasons standardised to sample coverage 0.65; points give the median ratio over 50 rarefaction draws (Table S8), and bars the 2.5–97.5% range of the ratio formed within each of the 50 draws × 100 bootstrap replicates. *Single dropping*: year-adjusted summer/winter ratio from a gamma GLM (log link) of the size-standardised per-dropping Hill number on Season + Year (n = 52), with its 95% confidence interval (Table S9). **(B)** Read share of each dropping's single most abundant OTU, by season. Boxes show the median and interquartile range, points are individual droppings, white diamonds are season means, and the bracket gives the Wilcoxon rank-sum test (Table S10). The former four-panel version of this figure is Figure S8b.
 
 :::: {.content-visible when-profile="docs"}
-**Figure 4**: The summer dung mycobiome is the richer assemblage when droppings are pooled, yet each individual dropping is far less even. **(A)** Taxonomic diversity of each season's pooled sample set at Hill orders q = 0, 1 and 2, at equal sequencing depth (every sample rarefied to 12,615 reads) and equal sample coverage (0.65) (iNEXT3D, incidence data); points are the median estimate over 50 rarefaction draws, bars the median 95% confidence interval, and the grey segment joins the two seasons within an order. Summer exceeds winter at every order (Table S8). **(B)** Per-sample Hill numbers for the same 52 samples, size-standardised with iNEXT3D to a common depth of 12,615 reads, drawn in the same three columns against the same season axis so that the two rows can be read against one another; boxes show the median and interquartile range, points are individual samples, white diamonds are season means, and the grey segment joins those means. The slope that rises in all three columns of (A) rises only at q = 0 here and falls at q = 1 and q = 2 — that reversal is the crossover. Annotations give the year-adjusted summer/winter ratio and its p-value from a gamma GLM fitted to the plotted per-sample values (Table S9); the q = 0 contrast depends on the model family (p = 0.026–0.29; Table S9b), the q = 1 and q = 2 contrasts do not. Both rows scale y freely within each column, because the three Hill orders differ by an order of magnitude. **(C)** The mechanism: per-sample top-1-OTU read share and Pielou evenness *J*, both on a 0–1 scale, with symbols as in (B) and brackets giving the Wilcoxon rank-sum result (Table S10). **(D)** The identity of the dominants — the five OTUs with the highest mean within-season read share in each season, coloured by functional guild under the rule of Section 8.1. Bar labels give that mean share and, in parentheses, the number of the season's 26 samples in which the OTU was detected at all. Taxa are named at the finest confidently assigned rank, so an OTU with no genus appears under its family, or as *unclassified* plus its order or class. *Candida parapsilosis* is coloured plant-associated because its compound FUNGuild string contains `Epiphyte`; the rule is applied unchanged rather than special-cased, so that Figures 1 and 4 and Sections 8–9 classify every OTU identically.
-
-Panels A and B put the same question to two scales and get opposite answers, and that disagreement is the result rather than a problem with it. Pooled across a season and with sequencing depth held equal, summer is the richer assemblage at every Hill order — 548 against winter's 383 OTUs at q = 0, and the gap widens under abundance weighting (412 vs 261 at q = 1; 287 vs 162 at q = 2). Within a single dropping the ordering reverses as soon as abundance enters: winter droppings are significantly more diverse at q = 1 (14.9 vs 7.4 effective OTUs; summer/winter 0.46, p = 0.001) and q = 2 (10.1 vs 4.6; 0.40, p < 0.001), whereas at q = 0 summer's higher mean (48.3 vs 31.3) is a weak, family-dependent difference carried by a few very rich summer samples (Tables S9, S9b). Panel C locates the reversal in dominance rather than in the species lists: an average summer sample gives 56% of its reads to a single OTU against 25% in winter, and Pielou evenness falls from 0.72 to 0.38 (both p \< 0.001). Summer droppings are far more top-heavy, which is precisely what depresses q = 1 and q = 2 even where a dropping's species list is as long as, or longer than, a winter one. Panel D names the taxa responsible, and they are the ones a coprophilous account predicts: *Thelebolus*, *Coniochaeta* and *Sporormiella intermedia* together take 44% of summer reads and are all dung saprotrophs, whereas winter's leading OTUs are mostly unclassified below class and carry no guild call at all — among them OTU1369, an unclassified Dothideomycete that is winter's most abundant OTU and is present in 20 of 26 winter samples, and which is taken up as a dark taxon in Section 3.4. Two caveats travel with the figure. The per-sample richness contrast in (B) is not robust to the choice of model family (Table S9b), so the crossover is firm at q = 1 and q = 2 and in the pooled estimates of (A), but not as a per-dropping richness gain. And the shares in (D) are seasonal averages, not universals — *Thelebolus* reaches its 24.9% mean while being detected in only 15 of the 26 summer droppings.
+[To be written — Daniel]
 ::::
 
 ```{r fig4-build}
@@ -4180,403 +4594,224 @@ Panels A and B put the same question to two scales and get opposite answers, and
 #| code-fold: true
 #| code-summary: "Full build code for Figure 4 — the source of truth for figures/main/Fig4_richness_evenness_crossover.{png,jpg,pdf}"
 
-# Figure 4 -- Richness rises, evenness collapses (H2).
-# Panels A and B share one grammar (Season on x, diversity on y, faceted by Hill
-# order) and one set of facet strips, so the crossover is a single visual event:
-# the same three columns, with the Winter->Summer slope flipping between rows.
-# C then gives the mechanism (dominance) and D the identity of the dominants.
-# Per-sample quantities are recomputed from the canonical objects (Fig. 1
-# precedent) via the shared hill_size_helper.R; every pooled estimate and test
-# statistic is READ from a committed tables/ CSV (former Fig. 2 precedent), with guards
-# asserting the two agree.
+# Figure 4 -- Pooled versus per-dropping diversity: the richness/evenness
+# crossover (H2). Journal layout: 174 mm double column, 7-8 pt text.
+# Every number is READ from committed tables/ CSVs; no model is refitted here.
+#   A  tables/H2_iNEXT3D_TD_coverage_rarefied_boot.csv  pooled season, iNEXT3D incidence
+#        at equal depth (12,615 reads) and coverage 0.65: summer/winter ratio of every
+#        rarefaction draw x bootstrap replicate (50 x 100; script 6 Section 1)
+#      tables/H2_iNEXT3D_TD_coverage_rarefied.csv       Table S8 (drift guard)
+#      tables/H2_season_effect_per_sample.csv           Table S9: per-dropping gamma GLM,
+#        q ~ Season + Year, year-adjusted summer/winter ratio + 95% CI
+#   B  tables/report_dominance_per_sample.csv           per-dropping top-1 OTU read share
+#      tables/report_dominance_summary.csv              Table S10 (Wilcoxon p, guard)
+# The former four-panel Figure 4 is Figure S8b (figS8b-build, Section 5).
 # Rebuild:  conda run -n r_env Rscript build_main_figure.R fig4-build
 
 suppressPackageStartupMessages({
-  library(phyloseq); library(ggplot2); library(patchwork); library(iNEXT.3D)
+  library(ggplot2); library(patchwork); library(ggtext)
 })
-# Size-standardised Hill numbers: the same estimator Scripts/6_diversity_analyses.R
-# uses for Section 5.2 (it carries a verbatim copy); the guard below checks the
-# season means against the table that script writes.
-source("hill_size_helper.R")
+stopifnot(capabilities("cairo"))          # Unicode glyphs need the cairo devices
 
-rdata <- if (file.exists("eco_analysis.RData")) "eco_analysis.RData" else
-         "/home/daniel/Ptarmigan/trimmed/mergedPlates/eco_analysis.RData"
-load(rdata)
-stopifnot(exists("alldat"), exists("alldat.rfy"), exists("alldat_full"),
-          exists("funguild_otu"))                 # funguild_otu <- 8_functional_guilds.R
 tab_dir <- if (dir.exists("tables")) "tables" else
            "/home/daniel/Ptarmigan/Scripts_server/Supplementary/tables"
 out_dir <- "figures/main"
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-grDevices::pdf(NULL)                                 # headless: no X11 fallback
+grDevices::pdf(NULL)                                  # headless: no X11 fallback
 
-# ---- shared style ----------------------------------------------------------
-# Season and guild palettes are the repo standard (8_functional_guilds.R), so one
-# colour means one thing across Fig. 1, Fig. 2 and Fig. 4.
-season_cols  <- c(Winter = "#0072B2", Summer = "#D55E00")
-guild_cols   <- c("Dung saprotroph" = "#E69F00", "Plant-associated" = "#009E73",
-                  "Pathotroph" = "#CC79A7", "Other assigned" = "#56B4E9",
-                  "Unassigned / dark" = "#999999")
-GUILD_LEVELS <- names(guild_cols)
+# ---- journal style (as Figures 1-3) -----------------------------------------
+FONT  <- "Liberation Sans"                # metric-identical to Arial
+PT    <- function(pt) pt / ggplot2::.pt   # pt -> ggplot text size / linewidth (mm)
+FIG_W <- 174; FIG_H <- 78                 # mm
+INK   <- "grey10"
+COL_W <- "#0072B2"; COL_S <- "#D55E00"    # winter / summer (repo standard)
 
-# The one facet vocabulary shared by panels A and B. A carries the strips; B
-# repeats the columns beneath it and blanks them, exactly as Fig. 1B does.
-Q_LEVELS <- c("q = 0  (richness)", "q = 1  (Shannon)", "q = 2  (Simpson)")
-
-base_theme <- theme_classic(base_size = 12) +
-  theme(strip.background = element_blank(),
-        strip.text       = element_text(face = "bold"),
-        plot.tag         = element_text(face = "bold", size = 14),
-        plot.subtitle    = element_text(size = 9, colour = "grey30"),
-        panel.spacing    = unit(0.8, "lines"),
-        legend.key.size  = unit(0.42, "cm"),
-        legend.title     = element_text(size = 10),
-        legend.text      = element_text(size = 9))
-
-# All in-plot text is ASCII. save_fig() falls back to grDevices::pdf when cairo
-# is unavailable, and that device silently substitutes a dot for a Unicode minus
-# or delta -- a corrupted PDF that would not fail the build.
-pfmt <- function(p) ifelse(is.na(p), "p = NA",
-                    ifelse(p < 0.001, "p < 0.001", sprintf("p = %.3f", p)))
-to_season <- function(x) factor(c(winter = "Winter", summer = "Summer")[as.character(x)],
-                                levels = c("Winter", "Summer"))
-
-# ============================================================================
-# Panel A -- season-pool diversity (Section 5.1, Table S8)
-# ============================================================================
-# Read, never recomputed: 50 rarefaction draws x 100 bootstraps are expensive
-# and the estimates are already committed. Pooling samples within a Season asks
-# about the Season's whole species pool. These are the DEPTH-CONTROLLED,
-# coverage-standardised estimates of Table S8 (every sample rarefied to 12,615
-# reads, common coverage), not asymptotic ones: asymptotic richness extrapolates
-# to ~2x observed here, and raw incidence carries summer's ~2.6x depth advantage.
-asy <- read.csv(file.path(tab_dir, "H2_iNEXT3D_TD_coverage_rarefied.csv"), check.names = FALSE)
-stopifnot(setequal(asy$Season, c("Summer", "Winter")), setequal(asy$Order.q, 0:2))
-asy$q      <- factor(Q_LEVELS[asy$Order.q + 1], levels = Q_LEVELS)
-asy$Season <- factor(asy$Season, levels = c("Winter", "Summer"))
-asy$TD_asy <- asy$qTD                                 # plotted estimate (name kept for the ggplot below)
-sc_level   <- unique(asy$SC); stopifnot(length(sc_level) == 1L)
-
-pick  <- function(sea) { d <- asy[asy$Season == sea, ]
-                         d[match(Q_LEVELS, as.character(d$q)), ] }
-A_sum <- pick("Summer"); A_win <- pick("Winter")
-# The panel's whole claim in one line: summer above winter at every order, with
-# 95% CIs that do not overlap. If that ever stops being true, the build stops.
-stopifnot(all(A_sum$qTD.LCL > A_win$qTD.UCL))
-
-pA <- ggplot(asy, aes(Season, TD_asy)) +
-  geom_line(aes(group = 1), colour = "grey55", linewidth = 0.4) +
-  geom_errorbar(aes(ymin = qTD.LCL, ymax = qTD.UCL, colour = Season),
-                width = 0.12, linewidth = 0.6, show.legend = FALSE) +
-  geom_point(aes(fill = Season), shape = 21, size = 3.4,
-             colour = "grey25", stroke = 0.4, show.legend = FALSE) +
-  facet_wrap(~ q, nrow = 1, scales = "free_y") +
-  scale_fill_manual(values = season_cols) +
-  scale_colour_manual(values = season_cols) +
-  scale_y_continuous(expand = expansion(mult = c(0.18, 0.18))) +
-  labs(x = NULL, y = "Season pool\n(effective no. of OTUs)",
-       subtitle = sprintf("Pooled-season diversity at equal depth (12,615 reads/sample) and equal coverage (%.2f); iNEXT3D, incidence,\nmedian over 50 rarefaction draws; bars are 95%% CIs. Summer exceeds winter at every order.", sc_level)) +
-  base_theme +
-  # A's x axis is identical to B's directly below, so only B prints it.
-  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
-  guides(fill = "none", colour = "none")
-
-# ============================================================================
-# Panel B -- per-sample diversity (Section 5.2, Fig. S9 + Table S9)
-# ============================================================================
-# Raw counts: iNEXT.3D size-standardises internally to rfy_depth, the same depth
-# alldat.rfy is rarefied to. Deterministic (an analytic expectation, not one
-# rarefaction draw), so no seed is involved; the guard makes that testable.
-ps_rfy <- alldat$nopool
-m_rfy  <- as(otu_table(ps_rfy), "matrix")
-if (taxa_are_rows(ps_rfy)) m_rfy <- t(m_rfy)         # sites x species
-rfy_depth <- min(rowSums(m_rfy))
-stopifnot(nsamples(ps_rfy) == 52L,
-          rfy_depth == unique(rowSums(otu_mat_of(alldat.rfy$nopool))))
-
-md_rfy <- data.frame(as(sample_data(ps_rfy), "data.frame"), stringsAsFactors = FALSE)
-stopifnot(identical(rownames(m_rfy), rownames(md_rfy)))
-season_rfy <- to_season(md_rfy$Season); stopifnot(!anyNA(season_rfy))
-
-hill_raw <- hill_inext_size(ps_rfy, level = rfy_depth, label = "Figure 4B")
-stopifnot(identical(hill_raw$row, rownames(m_rfy)))
-hill <- data.frame(Season = season_rfy,
-                   q0 = hill_raw$q0, q1 = hill_raw$q1, q2 = hill_raw$q2)
-hill_long <- data.frame(
-  Season = rep(hill$Season, times = 3),
-  q      = factor(rep(Q_LEVELS, each = nrow(hill)), levels = Q_LEVELS),
-  value  = c(hill$q0, hill$q1, hill$q2))
-
-# The annotated contrast is Table S9: a gamma GLM (log link, q ~ Season + Year)
-# fitted to exactly the per-sample values plotted here (n = 52), so the figure
-# and its test are on the same unit. Guards: the CSV's season means must equal
-# the recomputed ones, and the model ratio must agree in direction with them.
-lmm <- read.csv(file.path(tab_dir, "H2_season_effect_per_sample.csv"), check.names = FALSE)
-stopifnot(setequal(lmm$metric, c("q0", "q1", "q2")), all(lmm$n == nrow(hill)))
-lmm <- lmm[match(c("q0", "q1", "q2"), lmm$metric), ]
-obs_diff <- vapply(c("q0", "q1", "q2"), function(q)
-  mean(hill[[q]][hill$Season == "Summer"]) - mean(hill[[q]][hill$Season == "Winter"]),
-  numeric(1))
-stopifnot(max(abs(lmm$mean_summer - lmm$mean_winter - obs_diff)) < 1e-8,
-          all(sign(obs_diff) == sign(log(lmm$ratio_summer_winter))))
-
-# Boxes show medians, but Section 5.3's text quotes MEANS -- so the means are
-# drawn, and the segment joining them is what makes the slope flip legible
-# against panel A directly above.
-meanB <- aggregate(value ~ q + Season, hill_long, mean)
-y_top <- as.numeric(tapply(hill_long$value, hill_long$q, max)[Q_LEVELS])
-ann_B <- data.frame(q     = factor(Q_LEVELS, levels = Q_LEVELS),
-                    value = y_top * 1.32,
-                    lab   = sprintf("summer / winter\n%.2fx, %s",
-                                    lmm$ratio_summer_winter, pfmt(lmm$p_season)))
-
-# seed = on the jitter: save_fig() prints the object once per device, and an
-# unseeded jitter would place the points differently in the PNG, the JPG and the
-# PDF -- three subtly different figures from one build.
-pB <- ggplot(hill_long, aes(Season, value)) +
-  geom_boxplot(aes(fill = Season), outlier.shape = NA, width = 0.6, alpha = 0.85) +
-  geom_point(position = position_jitter(width = 0.14, height = 0, seed = 1),
-             size = 1.1, alpha = 0.55, colour = "grey20") +
-  geom_line(data = meanB, aes(group = 1), colour = "grey35", linewidth = 0.4) +
-  geom_point(data = meanB, shape = 23, size = 2.4, stroke = 0.5,
-             fill = "white", colour = "grey15") +
-  geom_text(data = ann_B, aes(x = 1.5, label = lab), inherit.aes = TRUE,
-            size = 2.9, lineheight = 0.95, vjust = 1) +
-  facet_wrap(~ q, nrow = 1, scales = "free_y") +
-  scale_fill_manual(values = season_cols) +
-  # Linear, not log: a Hill number is an effective number of OTUs and is meant to
-  # be read off the axis. free_y absorbs the 164-vs-32 range difference instead.
-  scale_y_continuous(expand = expansion(mult = c(0.04, 0.36))) +
-  labs(x = NULL, y = "Per sample\n(effective no. of OTUs)",
-       subtitle = sprintf("Per-sample Hill numbers (n = %d, iNEXT3D size-standardised to %s reads); white diamonds are season means.\nAnnotations: year-adjusted summer/winter ratio, gamma GLM on these values (Table S9).",
-                          nrow(hill), format(rfy_depth, big.mark = ","))) +
-  base_theme +
-  # B repeats A's facet columns exactly, so its strips are dropped as redundant.
-  theme(strip.text = element_blank()) +
-  guides(fill = guide_legend(order = 1))
-
-# ============================================================================
-# Panel C -- dominance and evenness, the mechanism (Section 5.3, Table S10)
-# ============================================================================
-ps  <- alldat$nopool                                 # canonical, raw counts
-m   <- as(otu_table(ps), "matrix")
-if (!taxa_are_rows(ps)) m <- t(m)                    # taxa x samples, as 5.3 uses
-rel <- sweep(m, 2, colSums(m), "/")
-stopifnot(all(abs(colSums(rel) - 1) < 1e-10))
-md  <- data.frame(as(sample_data(ps), "data.frame"), stringsAsFactors = FALSE)
-stopifnot(identical(colnames(rel), rownames(md)),
-          setequal(colnames(rel), rownames(m_rfy)))  # B and C/D are the same 52 birds
-season_c <- to_season(md$Season)
-
-pielou_J <- function(p) { p <- p[p > 0]; -sum(p * log(p)) / log(length(p)) }
-dom <- data.frame(Season    = season_c,
-                  top1_prop = apply(rel, 2, max),
-                  pielou_J  = apply(rel, 2, pielou_J))
-
-# Drift guard: the recomputed means must reproduce committed Table S10 exactly at
-# the precision the CSV stores (1 dp for the percentage, 2 dp for J).
-dom_csv <- read.csv(file.path(tab_dir, "report_dominance_summary.csv"), check.names = FALSE)
-dom_csv <- dom_csv[match(c("winter", "summer"), dom_csv$Season), ]
-obs_top1 <- tapply(dom$top1_prop, dom$Season, mean)
-obs_J    <- tapply(dom$pielou_J,  dom$Season, mean)
-stopifnot(max(abs(round(100 * as.numeric(obs_top1[c("Winter","Summer")]), 1) -
-                  dom_csv$mean_top1_prop_pct)) < 1e-8,
-          max(abs(round(as.numeric(obs_J[c("Winter","Summer")]), 2) -
-                  dom_csv$mean_pielou_J)) < 1e-8)
-p_top1 <- unique(dom_csv$wilcox_p_top1_prop); p_J <- unique(dom_csv$wilcox_p_pielou_J)
-stopifnot(length(p_top1) == 1L, length(p_J) == 1L)
-
-# Both metrics live on 0-1, so one shared axis works and the mechanism reads as a
-# single picture: the seasons swap sides between the two metric groups.
-# <br> not \n: these labels are rendered by element_markdown, which honours HTML
-# breaks. Wrapped because the two names collide at this panel's width.
-M_LEVELS <- c("Top-1 OTU<br>read share", "Pielou<br>evenness *J*")
-dom_long <- data.frame(
-  Season = rep(dom$Season, times = 2),
-  Metric = factor(rep(M_LEVELS, each = nrow(dom)), levels = M_LEVELS),
-  value  = c(dom$top1_prop, dom$pielou_J))
-meanC <- aggregate(value ~ Metric + Season, dom_long, mean)
-brk   <- data.frame(Metric = factor(M_LEVELS, levels = M_LEVELS),
-                    lab    = pfmt(c(p_top1, p_J)),
-                    xmid   = seq_along(M_LEVELS))
-brk$xmin <- brk$xmid - 0.19; brk$xmax <- brk$xmid + 0.19  # dodge(0.75) box centres
-
-pC <- ggplot(dom_long, aes(Metric, value, fill = Season)) +
-  geom_boxplot(outlier.shape = NA, width = 0.65, alpha = 0.85,
-               position = position_dodge(width = 0.75)) +
-  geom_point(position = position_jitterdodge(jitter.width = 0.12, dodge.width = 0.75,
-                                             seed = 1),
-             size = 1.1, alpha = 0.55, colour = "grey20", show.legend = FALSE) +
-  geom_point(data = meanC, aes(group = Season), inherit.aes = TRUE,
-             position = position_dodge(width = 0.75), shape = 23, size = 2.3,
-             stroke = 0.5, fill = "white", colour = "grey15", show.legend = FALSE) +
-  geom_segment(data = brk, aes(x = xmin, xend = xmax, y = 1.03, yend = 1.03),
-               inherit.aes = FALSE, linewidth = 0.3) +
-  geom_text(data = brk, aes(x = xmid, y = 1.055, label = lab), inherit.aes = FALSE,
-            size = 3, vjust = 0) +
-  scale_fill_manual(values = season_cols) +
-  scale_y_continuous(limits = c(0, 1.13), breaks = seq(0, 1, 0.25)) +
-  labs(x = NULL, y = "Per-sample value (proportion)",
-       subtitle = "White diamonds are season means;\nbrackets give the Wilcoxon rank-sum test (Table S10).") +
-  base_theme +
-  # The x labels carry markdown (*J*); without element_markdown the asterisks
-  # print literally, and this theme() must come after base_theme to win.
-  theme(axis.text.x = ggtext::element_markdown(size = 9)) +
-  guides(fill = "none")
-
-# ============================================================================
-# Panel D -- who the dominants are (Section 5.4, Table S11), by guild
-# ============================================================================
-top5 <- do.call(rbind, lapply(levels(season_c), function(s) {
-  cols   <- colnames(rel)[season_c == s]
-  shares <- rowMeans(rel[, cols, drop = FALSE])      # mean WITHIN-season share
-  ids    <- names(sort(shares, decreasing = TRUE))[1:5]
-  data.frame(Season = s, OTU = ids, share = 100 * shares[ids],
-             n_detect = rowSums(rel[ids, cols, drop = FALSE] > 0),
-             n_season = length(cols), stringsAsFactors = FALSE, row.names = NULL)
-}))
-top5$Season <- factor(top5$Season, levels = c("Winter", "Summer"))
-
-# Drift guard: same OTUs, same order, same shares as committed Table S11.
-t5_csv <- read.csv(file.path(tab_dir, "report_top5_otu_by_season.csv"),
-                   stringsAsFactors = FALSE)
-t5_csv$Season <- to_season(t5_csv$Season)
-t5_csv <- t5_csv[order(t5_csv$Season, -t5_csv$mean_pct_share), ]
-chk    <- top5[order(top5$Season, -top5$share), ]
-stopifnot(identical(paste(chk$Season, chk$OTU), paste(t5_csv$Season, t5_csv$OTU)),
-          max(abs(round(chk$share, 2) - t5_csv$mean_pct_share)) < 1e-8)
-
-# UNITE taxonomy carries rank prefixes ("g__Thelebolus") and, at species level, a
-# trailing hypothesis index ("intermedia 1"). Labels fall back down the ranks
-# until something is assigned: a family name stands alone unambiguously, an order
-# or class does not and is prefixed "unclassified". Markdown asterisks italicise
-# real Latin names only -- never a rank name, never an Incertae sedis placeholder.
-tax <- data.frame(as(tax_table(ps), "matrix"), stringsAsFactors = FALSE)
-strip_rank <- function(x) sub("^[a-z]__", "", x)
-clean_rank <- function(x) { x <- strip_rank(x)
-  x[is.na(x) | x == "" | x == "NA" | grepl("unidentified", x, ignore.case = TRUE)] <- NA_character_
-  x }
-otu_label <- function(otu) {
-  rk <- lapply(c("Genus", "Species", "Family", "Order", "Class"),
-               function(r) clean_rank(tax[otu, r]))
-  names(rk) <- c("Genus", "Species", "Family", "Order", "Class")
-  incertae <- function(x) !is.na(x) && grepl("Incertae_sedis", x)
-  nm <-
-    if (!is.na(rk$Genus) && !incertae(rk$Genus)) {
-      if (!is.na(rk$Species))
-        paste0("*", rk$Genus, " ", sub("[ _]+[0-9]+$", "", rk$Species), "*")
-      else paste0("*", rk$Genus, "*")
-    } else if (incertae(rk$Genus))                      sub("_gen_Incertae_sedis", " (unclass.)", rk$Genus)
-      else if (!is.na(rk$Family) && !incertae(rk$Family)) rk$Family
-      else if (!is.na(rk$Order))                        paste("unclassified", rk$Order)
-      else if (!is.na(rk$Class))                        paste("unclassified", rk$Class)
-      else                                              "unclassified fungus"
-  paste0(nm, " (", otu, ")")
+theme_journal <- function() {
+  theme_classic(base_size = 7, base_family = FONT) +
+    theme(text         = element_text(size = 7, colour = INK, family = FONT),
+          axis.text    = element_text(size = 7, colour = INK),
+          axis.title   = element_text(size = 8, colour = INK),
+          axis.line    = element_line(linewidth = PT(0.5), colour = INK),
+          axis.ticks   = element_line(linewidth = PT(0.5), colour = INK),
+          axis.ticks.length = unit(1, "mm"),
+          legend.text  = element_text(size = 7, colour = INK),
+          legend.title = element_text(size = 7, colour = INK),
+          strip.background = element_blank(),
+          strip.text   = element_text(size = 8, face = "bold", colour = INK),
+          plot.title   = element_blank(),
+          plot.subtitle = element_text(size = 7, colour = "grey25"),
+          plot.tag     = element_text(size = 8, face = "bold", colour = "black"),
+          plot.margin  = margin(1, 1, 1, 1, "mm"))
 }
-top5$label <- unname(vapply(top5$OTU, otu_label, character(1)))
-stopifnot(!anyDuplicated(top5$label))
+# Type audit -- fails the build rather than ship text outside 7-8 pt.
+audit <- function(p, id) {
+  th <- p$theme
+  for (nm in c("axis.text.x", "axis.text.y", "axis.title.x", "axis.title.y", "legend.text",
+               "legend.title", "strip.text", "plot.subtitle", "plot.tag")) {
+    el <- tryCatch(calc_element(nm, th), error = function(e) NULL)
+    if (is.null(el) || inherits(el, "element_blank") || !is.numeric(el$size)) next
+    if (el$size < 7 - 1e-9 || el$size > 8 + 1e-9)
+      stop(sprintf("%s: theme %s = %.2f pt (allowed 7-8)", id, nm, el$size))
+  }
+  for (i in seq_along(p$layers)) {
+    l <- p$layers[[i]]
+    if (inherits(l$geom, c("GeomText", "GeomLabel", "GeomRichtext", "GeomRichText"))) {
+      sz <- l$aes_params$size
+      if (is.null(sz)) stop(sprintf("%s: layer %d text has no explicit size", id, i))
+      if (sz * ggplot2::.pt < 7 - 1e-9 || sz * ggplot2::.pt > 8 + 1e-9)
+        stop(sprintf("%s: layer %d text %.2f pt (allowed 7-8)", id, i, sz * ggplot2::.pt))
+    }
+    lw <- l$aes_params$linewidth
+    if (is.numeric(lw) && lw * ggplot2::.pt < 0.25 - 1e-9)
+      stop(sprintf("%s: layer %d linewidth %.2f pt < 0.25", id, i, lw * ggplot2::.pt))
+  }
+  invisible(TRUE)
+}
+sci_p <- function(p) {                    # 1.3e-05 -> "1.3 × 10<sup>−5</sup>"
+  if (p >= 0.001) return(sprintf("%.3f", p))
+  s <- formatC(signif(p, 2), format = "e", digits = 1)
+  sub("e-0?(\\d+)$", " × 10<sup>−\\1</sup>", s)
+}
 
-# Guild rule VERBATIM from the Fig. 1 chunk (itself from 8_functional_guilds.R),
-# including its genus cleaning, so Fig. 1, Fig. 4, Section 8 and Section 9 all
-# classify an OTU identically. One consequence is visible here: FUNGuild returns
-# a compound string for Candida parapsilosis containing "Epiphyte", so the
-# priority rule lands OTU136 in Plant-associated. That is an artifact of compound
-# FUNGuild strings, not a claim about the taxon -- but the rule is applied
-# unchanged rather than special-cased, because cross-section consistency is worth
-# more than one prettier label.
-COPRO_GENERA <- c("Sordaria","Podospora","Cercophora","Chaetomium","Schizothecium",
-                  "Preussia","Delitschia","Pilobolus","Ascobolus","Saccobolus",
-                  "Sporormiella","Coprinopsis","Thelebolus","Coniochaeta")
-gen       <- strip_rank(tax$Genus[match(top5$OTU, rownames(tax))])
-gen       <- ifelse(gen %in% c("", "NA"), NA, gen)
-guild_str <- funguild_otu$Guild[match(top5$OTU, funguild_otu$OTU_ID)]
-is_copro  <- (!is.na(guild_str) & grepl("Dung Saprotroph", guild_str)) |
-             (!is.na(gen)       & gen %in% COPRO_GENERA)
-is_plant  <- !is_copro & !is.na(guild_str) &
-             grepl("Endophyte|Plant Saprotroph|Plant Pathogen|Epiphyte", guild_str)
-is_patho  <- !is_copro & !is_plant & !is.na(guild_str) & grepl("Pathogen|Parasite", guild_str)
-top5$Guild <- factor(
-  ifelse(is_copro, "Dung saprotroph",
-  ifelse(is_plant, "Plant-associated",
-  ifelse(is_patho, "Pathotroph",
-  ifelse(!is.na(guild_str), "Other assigned", "Unassigned / dark")))),
-  levels = GUILD_LEVELS)
+# ============================================================================
+# Panel A -- summer/winter ratio by Hill order, two scales
+# ============================================================================
+bt <- read.csv(file.path(tab_dir, "H2_iNEXT3D_TD_coverage_rarefied_boot.csv"))
+s8 <- read.csv(file.path(tab_dir, "H2_iNEXT3D_TD_coverage_rarefied.csv"))
+s9 <- read.csv(file.path(tab_dir, "H2_season_effect_per_sample.csv"))
+stopifnot(setequal(bt$Order.q, 0:2), length(unique(bt$draw)) == 50L,
+          all(tapply(bt$boot, list(bt$Order.q, bt$draw), length) >= 95),
+          isTRUE(all.equal(bt$ratio_summer_winter, bt$qTD_summer / bt$qTD_winter)),
+          unique(s8$depth) == 12615, unique(s8$SC) == 0.65, unique(s8$n_draws) == 50,
+          identical(s9$metric, c("q0", "q1", "q2")), all(s9$n == 52))
+# Point = Table S8's ratio (median over the 50 draws of the draw-level estimate,
+# the number Section 5.1 quotes); interval = 2.5-97.5% of the ratio over every
+# draw x bootstrap replicate, so it carries both rarefaction and sampling noise.
+# (The median of the replicate ratios is printed below for reference; it sits
+# 0.01-0.06 from the point estimate because the bootstrap is mildly skewed.)
+s8r <- tapply(s8$ratio_summer_winter_median, s8$Order.q, unique)
+pooled <- do.call(rbind, lapply(0:2, function(q) {
+  r <- bt$ratio_summer_winter[bt$Order.q == q]
+  qs <- unname(quantile(r, c(0.025, 0.5, 0.975)))
+  data.frame(q = q, est = unname(s8r[as.character(q)]), lo = qs[1], hi = qs[3],
+             boot_median = qs[2], n = length(r))
+}))
+single <- data.frame(q = 0:2, est = s9$ratio_summer_winter, lo = s9$ratio_lwr,
+                     hi = s9$ratio_upr, p = s9$p_season)
+# Drift guards on every printed ratio (pooled = Table S8, single = Table S9),
+# plus the claims the panel makes visually: the pooled interval excludes 1 at
+# every order, the single-dropping one excludes 1 at q = 1 and 2.
+stopifnot(all(pooled$lo > 1), all(pooled$n >= 4750),
+          all(pooled$lo < pooled$est & pooled$est < pooled$hi),
+          identical(sprintf("%.2f", pooled$est), c("1.42", "1.57", "1.78")),
+          identical(sprintf("%.2f", single$est), c("1.58", "0.46", "0.40")),
+          identical(sprintf("%.2f", single$lo),  c("1.08", "0.29", "0.26")),
+          identical(sprintf("%.2f", single$hi),  c("2.32", "0.73", "0.61")),
+          single$hi[2:3] < 1, single$lo[1] > 1)
+SERIES <- c("Pooled season", "Single dropping")
+dA <- rbind(cbind(pooled[, c("q", "est", "lo", "hi")], series = SERIES[1]),
+            cbind(single[, c("q", "est", "lo", "hi")], series = SERIES[2]))
+dA$series <- factor(dA$series, levels = SERIES)
+DODGE <- 0.13
+dA$x <- dA$q + ifelse(dA$series == SERIES[1], -DODGE, DODGE)
+dA$lab <- sprintf("%.2f", dA$est)
+SER_FILL <- c("Pooled season" = "grey15", "Single dropping" = "white")
+YL <- c(0.22, 3.2)
 
-# The two seasons' top-5 sets are disjoint, so one global factor ordered
-# (Season, share) gives each facet its own descending bars under free_y.
-top5 <- top5[order(top5$Season, top5$share), ]
-top5$label <- factor(top5$label, levels = top5$label)
-n_lab <- setNames(sprintf("%s (n = %d)", levels(season_c), as.integer(table(season_c))),
-                  levels(season_c))
+pA <- ggplot(dA, aes(x, est)) +
+  # tinted halves: above 1 = summer higher, below 1 = winter higher
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = 1, ymax = YL[2], fill = COL_S, alpha = 0.07) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = YL[1], ymax = 1, fill = COL_W, alpha = 0.07) +
+  geom_hline(yintercept = 1, linetype = "22", colour = "grey35", linewidth = PT(0.6)) +
+  annotate("text", x = -0.45, y = YL[2] * 0.93, hjust = 0, vjust = 1, label = "summer higher",
+           colour = COL_S, fontface = "bold", size = PT(7), family = FONT) +
+  annotate("text", x = -0.45, y = YL[1] * 1.08, hjust = 0, vjust = 0, label = "winter higher",
+           colour = COL_W, fontface = "bold", size = PT(7), family = FONT) +
+  geom_line(aes(group = series), colour = "grey45", linewidth = PT(0.6)) +
+  geom_linerange(aes(ymin = lo, ymax = hi), colour = "grey15", linewidth = PT(0.9)) +
+  geom_point(aes(fill = series), shape = 21, colour = "grey15", size = 2.4, stroke = 0.6) +
+  geom_text(aes(x = x + ifelse(series == SERIES[1], -0.07, 0.07), label = lab,
+                hjust = ifelse(series == SERIES[1], 1, 0)),
+            size = PT(7), family = FONT, colour = INK) +
+  scale_fill_manual(values = SER_FILL, name = NULL,
+                    labels = c("Pooled season (iNEXT3D, equal depth and coverage)",
+                               "Single dropping (year-adjusted gamma GLM)")) +
+  scale_x_continuous(breaks = 0:2, labels = c("q = 0\nrichness", "q = 1\nShannon", "q = 2\nSimpson")) +
+  scale_y_log10(breaks = c(0.25, 0.5, 1, 2), labels = c("0.25", "0.5", "1", "2")) +
+  coord_cartesian(xlim = c(-0.5, 2.5), ylim = YL, expand = FALSE) +
+  labs(x = "Hill order", y = "Summer / winter diversity ratio (log scale)", tag = "A") +
+  guides(fill = guide_legend(ncol = 1, override.aes = list(size = 2.2))) +
+  theme_journal() +
+  theme(legend.position = "inside", legend.position.inside = c(0.99, 0.985),
+        legend.justification = c(1, 1), legend.key.size = unit(3.2, "mm"),
+        legend.margin = margin(0, 0, 0, 0), legend.background = element_blank(),
+        axis.title.x = element_text(margin = margin(t = 1, unit = "mm")))
 
-pD <- ggplot(top5, aes(share, label, fill = Guild)) +
-  geom_col(width = 0.72, colour = "grey30", linewidth = 0.15) +
-  geom_text(aes(label = sprintf("%.1f%%  (%d/%d)", share, n_detect, n_season)),
-            hjust = -0.12, size = 2.8, colour = "grey25") +
-  facet_grid(Season ~ ., scales = "free_y", space = "free_y",
-             labeller = labeller(Season = n_lab)) +
-  # drop = TRUE: "Other assigned" has no member among these ten OTUs and a key
-  # with no bar is noise; the level ORDER stays the repo-canonical one.
-  scale_fill_manual(values = guild_cols, name = "Functional guild", drop = TRUE) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0.32))) +
-  labs(x = "Mean within-season read share (%)", y = NULL,
-       subtitle = "Bar labels give the mean share and, in parentheses,\nthe number of that season's samples with any detection.") +
-  base_theme +
-  theme(axis.text.y = ggtext::element_markdown(size = 9)) +
-  guides(fill = guide_legend(order = 2, nrow = 2))
+# ============================================================================
+# Panel B -- per-dropping top-1 OTU read share (Section 5.3, Table S10)
+# ============================================================================
+dom <- read.csv(file.path(tab_dir, "report_dominance_per_sample.csv"))
+dsum <- read.csv(file.path(tab_dir, "report_dominance_summary.csv"))
+stopifnot(nrow(dom) == 52L, all(table(dom$Season) == 26L))
+dom$Season <- factor(c(winter = "Winter", summer = "Summer")[dom$Season],
+                     levels = c("Winter", "Summer"))
+p_top1 <- wilcox.test(top1_prop ~ Season, data = dom)$p.value
+mn_top1 <- tapply(100 * dom$top1_prop, dom$Season, mean)
+# Drift guards: Table S10's stored (rounded) p and season means.
+stopifnot(all(abs(round(p_top1, 5) - dsum$wilcox_p_top1_prop) < 1e-12),
+          abs(round(mn_top1[["Summer"]], 1) - dsum$mean_top1_prop_pct[dsum$Season == "summer"]) < 1e-9,
+          abs(round(mn_top1[["Winter"]], 1) - dsum$mean_top1_prop_pct[dsum$Season == "winter"]) < 1e-9,
+          identical(sprintf("%.0f", mn_top1), c("25", "56")))
+mB <- data.frame(Season = factor(c("Winter", "Summer"), levels = c("Winter", "Summer")),
+                 m = unname(mn_top1[c("Winter", "Summer")]))
+pB <- ggplot(dom, aes(Season, 100 * top1_prop)) +
+  geom_boxplot(aes(fill = Season), width = 0.55, outlier.shape = NA, alpha = 0.35,
+               colour = "grey20", linewidth = PT(0.5)) +
+  geom_point(aes(colour = Season), size = 1.3, alpha = 0.85,
+             position = position_jitter(width = 0.12, height = 0, seed = 1)) +
+  geom_point(data = mB, aes(Season, m), shape = 23, fill = "white", colour = "grey10",
+             size = 2.2, stroke = 0.5) +
+  geom_text(data = mB, aes(Season, m, label = sprintf("%.0f%%", m)), nudge_x = 0.36,
+            size = PT(7), family = FONT, colour = INK, fontface = "bold") +
+  annotate("segment", x = 1, xend = 2, y = 106, yend = 106, linewidth = PT(0.5), colour = INK) +
+  annotate("richtext", x = 1.5, y = 107.5, vjust = 0, size = PT(7), family = FONT, colour = INK,
+           fill = NA, label.colour = NA, label.padding = unit(0, "mm"),
+           label = sprintf("Wilcoxon p = %s", sci_p(p_top1))) +
+  scale_fill_manual(values = c(Winter = COL_W, Summer = COL_S), guide = "none") +
+  scale_colour_manual(values = c(Winter = COL_W, Summer = COL_S), guide = "none") +
+  scale_x_discrete(labels = c(Winter = sprintf("<span style='color:%s'>**Winter**</span>", COL_W),
+                              Summer = sprintf("<span style='color:%s'>**Summer**</span>", COL_S))) +
+  scale_y_continuous(breaks = seq(0, 100, 25), labels = function(x) paste0(x, "%")) +
+  coord_cartesian(ylim = c(0, 116), clip = "off") +
+  labs(x = NULL, y = "Read share of the single most abundant OTU", tag = "B") +
+  theme_journal() +
+  theme(axis.text.x = element_markdown(size = 8, family = FONT))
 
 # ---- assemble and write ----------------------------------------------------
-# An explicit design grid, not nested `/` and `|`: patchwork FLATTENS a chain of
-# `/`, so (pA / pB) / (pC | pD) silently becomes a three-row layout and errors.
-# The grid also guarantees what panel A and B depend on -- one shared column
-# geometry, so their facet columns line up and the slope flip reads vertically.
-# D gets five of the eight columns because its taxon labels are up to 38 chars.
-design <- "
-AAAAAAAA
-BBBBBBBB
-CCCDDDDD
-"
-fig4 <- pA + pB + pC + pD +
-  plot_layout(design = design, heights = c(1, 1.18, 1.55), guides = "collect") +
-  plot_annotation(tag_levels = "A") &
-  theme(legend.position = "bottom", legend.box = "horizontal")
+for (nm in c("pA", "pB")) audit(get(nm), nm)
+fig4 <- pA + pB + plot_layout(widths = c(2.15, 1))
 
 # Every main figure is written three ways: PNG and JPG (600 dpi raster, for
 # submission systems that demand one or the other) and PDF (vector, for print).
 save_fig <- function(stem, obj, width, height, res = 600) {
   one <- function(open_dev) { open_dev(); on.exit(grDevices::dev.off()); print(obj) }
-  one(function() grDevices::png(paste0(stem, ".png"), width = width, height = height,
-                                units = "in", res = res))
+  png_dev <- if (requireNamespace("ragg", quietly = TRUE)) ragg::agg_png else grDevices::png
+  one(function() png_dev(paste0(stem, ".png"), width = width, height = height,
+                         units = "in", res = res))
   one(function() grDevices::jpeg(paste0(stem, ".jpg"), width = width, height = height,
                                  units = "in", res = res, quality = 95))
-  pdf_dev <- if (capabilities("cairo")) grDevices::cairo_pdf else grDevices::pdf
-  one(function() pdf_dev(paste0(stem, ".pdf"), width = width, height = height))
+  one(function() grDevices::cairo_pdf(paste0(stem, ".pdf"), width = width, height = height))
 }
-save_fig(file.path(out_dir, "Fig4_richness_evenness_crossover"), fig4, 10, 10.4)
+save_fig(file.path(out_dir, "Fig4_richness_evenness_crossover"), fig4, FIG_W / 25.4, FIG_H / 25.4)
 
-# ---- console summary -------------------------------------------------------
-cat("Season-pool diversity, depth-controlled and coverage-standardised (Table S8):\n")
-print(data.frame(q = Q_LEVELS,
-                 summer = sprintf("%.0f [%.0f, %.0f]", A_sum$TD_asy, A_sum$qTD.LCL, A_sum$qTD.UCL),
-                 winter = sprintf("%.0f [%.0f, %.0f]", A_win$TD_asy, A_win$qTD.LCL, A_win$qTD.UCL)),
-      row.names = FALSE)
-hill_means <- aggregate(cbind(q0, q1, q2) ~ Season, hill, mean)
-hill_means[-1] <- round(hill_means[-1], 2)
-cat(sprintf("\nPer-sample Hill means (n = %d, size-standardised to %d reads):\n", nrow(hill), rfy_depth))
-print(hill_means, row.names = FALSE)
-cat("\nPer-sample gamma GLM, summer/winter ratio (n = 52; Table S9):\n")
-print(data.frame(metric = lmm$metric, ratio = round(lmm$ratio_summer_winter, 3),
-                 lwr = round(lmm$ratio_lwr, 3), upr = round(lmm$ratio_upr, 3),
-                 p = signif(lmm$p_season, 3)), row.names = FALSE)
-cat(sprintf("\nTop-1 OTU read share: summer %.1f%% vs winter %.1f%%  (%s)\n",
-            100 * obs_top1[["Summer"]], 100 * obs_top1[["Winter"]], pfmt(p_top1)))
-cat(sprintf("Pielou evenness J   : summer %.2f  vs winter %.2f   (%s)\n",
-            obs_J[["Summer"]], obs_J[["Winter"]], pfmt(p_J)))
-cat("\nTop-5 OTUs per season (mean within-season read share):\n")
-print(data.frame(Season = chk$Season, OTU = chk$OTU, share_pct = round(chk$share, 2),
-                 detected = sprintf("%d/%d", chk$n_detect, chk$n_season),
-                 guild = as.character(top5$Guild[match(chk$OTU, top5$OTU)])),
-      row.names = FALSE)
+cat("Summer/winter ratio, pooled season (Table S8 median; 2.5-97.5% of draw x bootstrap ratios):\n")
+print(transform(pooled, est = round(est, 3), lo = round(lo, 3), hi = round(hi, 3),
+                boot_median = round(boot_median, 3)), row.names = FALSE)
+cat("Summer/winter ratio, single dropping (Table S9):\n")
+print(transform(single, est = round(est, 3), lo = round(lo, 3), hi = round(hi, 3),
+                p = signif(p, 3)), row.names = FALSE)
+cat(sprintf("Top-1 OTU share: winter %.1f%% vs summer %.1f%%, Wilcoxon p = %.2g\n",
+            mn_top1[["Winter"]], mn_top1[["Summer"]], p_top1))
 ```
 
 
