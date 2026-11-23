@@ -3581,6 +3581,9 @@ KX <- c(0, 0.98, 1.9, 2.55, 3.66)                      # column x positions (0..
 key$x <- KX[key$col]; key$y <- -key$row
 key$y[key$row > 0] <- key$y[key$row > 0] - 0.25       # genera set below their guild
 pK <- ggplot(key) +
+  # thin rule separating the guild row (panel B) from the genus rows (panel A)
+  annotate("segment", x = -0.42, xend = 4.72, y = -0.625, yend = -0.625,
+           colour = "grey70", linewidth = PT(0.3)) +
   geom_tile(aes(x = x, y = y, fill = I(fill)), width = 0.075, height = 0.72,
             colour = "white", linewidth = PT(0.25)) +
   geom_richtext(aes(x = x + 0.07, y = y, label = txt), hjust = 0, size = PT(7), family = FONT,
