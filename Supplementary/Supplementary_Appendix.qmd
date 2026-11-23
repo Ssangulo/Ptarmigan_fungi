@@ -3693,9 +3693,9 @@ pB <- ggplot(cls, aes(y = y)) +
                 family = FONT, lineheight = 1.15, fill = NA, label.colour = NA,
                 label.padding = unit(0, "mm")) +
   # phylogenetic signal of the same Season responses (Section 9.6), in the
-  # margin under the Ascomycota bracket
-  annotate("richtext", x = XB - 1.5, y = min(cls$y) - 0.05, label = rho_txt, hjust = 0,
-           vjust = 0.5, size = PT(7), family = FONT, colour = INK, lineheight = 1.2,
+  # margin directly under the Ascomycota bracket
+  annotate("richtext", x = XB + 1.5, y = ph$ybot[ph$grp == "Ascomycota"] - 0.15, label = rho_txt,
+           hjust = 0, vjust = 1, size = PT(7), family = FONT, colour = INK, lineheight = 1.2,
            fill = "grey95", label.colour = NA, label.padding = unit(c(0.7, 1, 0.7, 1), "mm"),
            label.r = unit(0.6, "mm")) +
   scale_colour_manual(values = c(Winter = COL_W, Summer = COL_S), guide = "none") +
