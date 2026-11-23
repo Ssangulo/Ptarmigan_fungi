@@ -323,44 +323,44 @@ S10_1_dung_w,10.1,tables/guild_season_readshare.csv,"100 * d$mean_winter[d$Guild
 S10_1_dung_s,10.1,tables/guild_season_readshare.csv,"100 * d$mean_summer[d$Guild == ""Dung saprotroph""]",1,51.5,"dung saprotrophs rise from 13.6% of winter reads to 51.5% in summer, and the unassigned fraction falls from 51.1% to 21.0%"
 S10_1_dark_w,10.1,tables/guild_season_readshare.csv,"100 * d$mean_winter[d$Guild == ""Unassigned / dark""]",1,51.1,"dung saprotrophs rise from 13.6% of winter reads to 51.5% in summer, and the unassigned fraction falls from 51.1% to 21.0%"
 S10_1_dark_s,10.1,tables/guild_season_readshare.csv,"100 * d$mean_summer[d$Guild == ""Unassigned / dark""]",1,21.0,"dung saprotrophs rise from 13.6% of winter reads to 51.5% in summer, and the unassigned fraction falls from 51.1% to 21.0%"
-S10_2_season_pct,10.2,tables/report_permanova.csv,"100 * d$R2[d$term == ""Season""]",0,11,Season explains 11% of compositional variance (PERMANOVA p = 0.002; Table S5)
-S10_2_season_p,10.2,tables/report_permanova.csv,"d[[""Pr(>F)""]][d$term == ""Season""]",3,0.002,Season explains 11% of compositional variance (PERMANOVA p = 0.002; Table S5)
-S10_2_inter_R2,10.2,tables/report_permanova.csv,"d$R2[d$term == ""Season:Year""]",2,0.10,"the Season × Year interaction is significant (R² = 0.10, p = 0.011), as it is under three of the four alternative distances"
-S10_2_inter_p,10.2,tables/report_permanova.csv,"d[[""Pr(>F)""]][d$term == ""Season:Year""]",3,0.011,"the Season × Year interaction is significant (R² = 0.10, p = 0.011), as it is under three of the four alternative distances"
-S10_2_inter_alt_sig,10.2,tables/report_permanova_sensitivity.csv,sum(d$interaction_p[d$rank > 3] < 0.05),0,3,as it is under three of the four alternative distances
-S10_2_rclr0_p,10.2,tables/report_permanova_sensitivity.csv,"d$interaction_p[d$distance == ""robust CLR, zeros retained""]",3,0.061,only marginal under the zeros-retained robust CLR (p = 0.061; Table S7b)
-S10_2_2023_R2_min,10.2,tables/report_permanova_sensitivity_by_year.csv,min(d$R2[d$Year == 2023]),2,0.14,"largest in 2023 (R² = 0.14–0.24, p ≤ 0.009 under every distance)"
-S10_2_2023_R2_max,10.2,tables/report_permanova_sensitivity_by_year.csv,max(d$R2[d$Year == 2023]),2,0.24,"largest in 2023 (R² = 0.14–0.24, p ≤ 0.009 under every distance)"
-S10_2_2023_p_max,10.2,tables/report_permanova_sensitivity_by_year.csv,max(d$p_value[d$Year == 2023]),3,0.009,"largest in 2023 (R² = 0.14–0.24, p ≤ 0.009 under every distance)"
-S10_2_2024_R2_min,10.2,tables/report_permanova_sensitivity_by_year.csv,min(d$R2[d$Year == 2024]),2,0.09,smaller contrasts in 2024 (R² = 0.09–0.14) and 2022 (R² = 0.07–0.10)
-S10_2_2024_R2_max,10.2,tables/report_permanova_sensitivity_by_year.csv,max(d$R2[d$Year == 2024]),2,0.14,smaller contrasts in 2024 (R² = 0.09–0.14) and 2022 (R² = 0.07–0.10)
-S10_2_2022_R2_min,10.2,tables/report_permanova_sensitivity_by_year.csv,"min(d$R2[d$Year == 2022 & d$distance != ""robust Aitchison (rank-3)""])",2,0.07,smaller contrasts in 2024 (R² = 0.09–0.14) and 2022 (R² = 0.07–0.10)
-S10_2_2022_R2_max,10.2,tables/report_permanova_sensitivity_by_year.csv,"max(d$R2[d$Year == 2022 & d$distance != ""robust Aitchison (rank-3)""])",2,0.10,smaller contrasts in 2024 (R² = 0.09–0.14) and 2022 (R² = 0.07–0.10)
-S10_2_2024_nsig,10.2,tables/report_permanova_sensitivity_by_year.csv,sum(d$p_value[d$Year == 2024] < 0.05),0,3,each significant under three of the five distances
-S10_2_2022_nsig,10.2,tables/report_permanova_sensitivity_by_year.csv,sum(d$p_value[d$Year == 2022] < 0.05),0,3,each significant under three of the five distances
-S10_2_2022_rank3_R2,10.2,tables/report_permanova_by_year.csv,d$R2[d$Year == 2022],2,0.02,collapses to R² = 0.02 (p = 0.789)
-S10_2_2022_rank3_p,10.2,tables/report_permanova_by_year.csv,d$p_value[d$Year == 2022],3,0.789,collapses to R² = 0.02 (p = 0.789)
-S10_2_centroid_inter_p,10.2,tables/report_centroid_lm.csv,"d[[""Pr(>F)""]][d$term == ""Season:Year""]",2,0.79,with no Season × Year interaction in that spread (p = 0.79)
-S10_3_otu1369_lo,10.3,tables/hmsc_beta_season.csv,"d$beta_season_CrI2.5[d$OTU_ID == ""OTU1369""]",2,-6.48,(it reaches −6.48)
-S10_3_n_resolved,10.3,tables/hmsc_beta_season.csv,sum(d$beta_season_CrI2.5 > 0 | d$beta_season_CrI97.5 < 0),0,74,"community-wide, 74 of 226 OTUs have a 95% credible interval excluding zero"
-S10_3_psrf,10.3,tables/hmsc_convergence_psrf.csv,"d$beta_psrf_max[d$model == ""clr""]",2,1.01,(Beta PSRF ≤ 1.01; Table S-HMSCb)
-S10_3_b_otu1,10.3,tables/hmsc_beta_season.csv,"d$beta_season_mean[d$OTU_ID == ""OTU1""]",2,4.17,"*Thelebolus* (OTU1, β = +4.17), *Sporormiella* (OTU636, +3.52), *Coniochaeta* (OTU1225, +3.44)"
-S10_3_b_otu636,10.3,tables/hmsc_beta_season.csv,"d$beta_season_mean[d$OTU_ID == ""OTU636""]",2,3.52,"*Thelebolus* (OTU1, β = +4.17), *Sporormiella* (OTU636, +3.52), *Coniochaeta* (OTU1225, +3.44)"
-S10_3_b_otu1225,10.3,tables/hmsc_beta_season.csv,"d$beta_season_mean[d$OTU_ID == ""OTU1225""]",2,3.44,"*Thelebolus* (OTU1, β = +4.17), *Sporormiella* (OTU636, +3.52), *Coniochaeta* (OTU1225, +3.44)"
-S10_3_b_otu1369,10.3,tables/hmsc_beta_season.csv,"d$beta_season_mean[d$OTU_ID == ""OTU1369""]",2,-5.00,ending at OTU1369 (−5.00)
-S10_3_gm_dung,10.3,tables/hmsc_beta_season.csv,"mean(d$beta_season_mean[d$guild == ""dung_saprotroph""])",2,1.32,Dung saprotrophs (+1.32) have by far the most summer-shifted mean
-S10_3_gm_dark,10.3,tables/hmsc_beta_season.csv,"mean(d$beta_season_mean[d$guild == ""dark_unassigned""])",2,-0.31,dark/unassigned taxa (−0.31) and pathotrophs (−0.33) lean winter
-S10_3_gm_patho,10.3,tables/hmsc_beta_season.csv,"mean(d$beta_season_mean[d$guild == ""pathotroph""])",2,-0.33,dark/unassigned taxa (−0.31) and pathotrophs (−0.33) lean winter
-S10_3_gm_other,10.3,tables/hmsc_beta_season.csv,"mean(d$beta_season_mean[d$guild == ""other""])",2,0.22,"the yeast-rich ""other"" group is weakly positive (+0.22)"
-S10_3_gamma_sup,10.3,tables/hmsc_gamma_CrI.csv,"d$support[d$covariate == ""Seasonsummer"" & d$trait == ""(Intercept)""]",3,0.994,Season effect is positive with posterior support 0.994
-S10_3_vp_season,10.3,tables/hmsc_variance_partition.csv,100 * mean(d$Season),1,31.5,"Season accounts for 31.5% of the variance the model explains and Year for 18.5%, while half (49.9%)"
-S10_3_vp_year,10.3,tables/hmsc_variance_partition.csv,100 * mean(d$Year),1,18.5,"Season accounts for 31.5% of the variance the model explains and Year for 18.5%, while half (49.9%)"
-S10_3_vp_sample,10.3,tables/hmsc_variance_partition.csv,"100 * mean(d[[""Random: sample""]])",1,49.9,"Season accounts for 31.5% of the variance the model explains and Year for 18.5%, while half (49.9%)"
-S10_3_vp_dung,10.3,tables/hmsc_variance_partition.csv,"100 * mean(d$Season[d$guild == ""dung_saprotroph""])",1,49.8,The Season share is largest for dung saprotrophs (49.8%)
-S10_3_pcr_all,10.3,tables/hmsc_pcr_replicate_variance.csv,"100 * d$share_total_mean[d$group == ""all""]",0,32,a further 32% of total CLR variance is replicate-to-replicate noise
-S10_3_pcr_dung,10.3,tables/hmsc_pcr_replicate_variance.csv,"100 * d$share_total_mean[d$group == ""dung_saprotroph""]",0,17,coprophiles are the most repeatable guild (17%)
-S10_3_r2,10.3,tables/hmsc_predictive_R2_summary.csv,"d$mean_expl_R2[d$model == ""clr""]",2,0.29,explains the samples it has seen (R² ≈ 0.29)
-S10_3_r2cv,10.3,tables/hmsc_predictive_R2_summary.csv,"d$mean_cv_R2[d$model == ""clr""]",2,0.03,(cross-validated R² ≈ 0.03; Section 9.7)
+S10_2_season_pct,4.3,tables/report_permanova.csv,"100 * d$R2[d$term == ""Season""]",0,11,Season explains 11% of compositional variance (PERMANOVA p = 0.002; Table S5)
+S10_2_season_p,4.3,tables/report_permanova.csv,"d[[""Pr(>F)""]][d$term == ""Season""]",3,0.002,Season explains 11% of compositional variance (PERMANOVA p = 0.002; Table S5)
+S10_2_inter_R2,4.3,tables/report_permanova.csv,"d$R2[d$term == ""Season:Year""]",2,0.10,"the Season × Year interaction is significant (R² = 0.10, p = 0.011), as it is under three of the four alternative distances"
+S10_2_inter_p,4.3,tables/report_permanova.csv,"d[[""Pr(>F)""]][d$term == ""Season:Year""]",3,0.011,"the Season × Year interaction is significant (R² = 0.10, p = 0.011), as it is under three of the four alternative distances"
+S10_2_inter_alt_sig,4.3,tables/report_permanova_sensitivity.csv,sum(d$interaction_p[d$rank > 3] < 0.05),0,3,as it is under three of the four alternative distances
+S10_2_rclr0_p,4.3,tables/report_permanova_sensitivity.csv,"d$interaction_p[d$distance == ""robust CLR, zeros retained""]",3,0.061,only marginal under the zeros-retained robust CLR (p = 0.061; Table S7b)
+S10_2_2023_R2_min,4.3,tables/report_permanova_sensitivity_by_year.csv,min(d$R2[d$Year == 2023]),2,0.14,"largest in 2023 (R² = 0.14–0.24, p ≤ 0.009 under every distance)"
+S10_2_2023_R2_max,4.3,tables/report_permanova_sensitivity_by_year.csv,max(d$R2[d$Year == 2023]),2,0.24,"largest in 2023 (R² = 0.14–0.24, p ≤ 0.009 under every distance)"
+S10_2_2023_p_max,4.3,tables/report_permanova_sensitivity_by_year.csv,max(d$p_value[d$Year == 2023]),3,0.009,"largest in 2023 (R² = 0.14–0.24, p ≤ 0.009 under every distance)"
+S10_2_2024_R2_min,4.3,tables/report_permanova_sensitivity_by_year.csv,min(d$R2[d$Year == 2024]),2,0.09,smaller contrasts in 2024 (R² = 0.09–0.14) and 2022 (R² = 0.07–0.10)
+S10_2_2024_R2_max,4.3,tables/report_permanova_sensitivity_by_year.csv,max(d$R2[d$Year == 2024]),2,0.14,smaller contrasts in 2024 (R² = 0.09–0.14) and 2022 (R² = 0.07–0.10)
+S10_2_2022_R2_min,4.3,tables/report_permanova_sensitivity_by_year.csv,"min(d$R2[d$Year == 2022 & d$distance != ""robust Aitchison (rank-3)""])",2,0.07,smaller contrasts in 2024 (R² = 0.09–0.14) and 2022 (R² = 0.07–0.10)
+S10_2_2022_R2_max,4.3,tables/report_permanova_sensitivity_by_year.csv,"max(d$R2[d$Year == 2022 & d$distance != ""robust Aitchison (rank-3)""])",2,0.10,smaller contrasts in 2024 (R² = 0.09–0.14) and 2022 (R² = 0.07–0.10)
+S10_2_2024_nsig,4.3,tables/report_permanova_sensitivity_by_year.csv,sum(d$p_value[d$Year == 2024] < 0.05),0,3,each significant under three of the five distances
+S10_2_2022_nsig,4.3,tables/report_permanova_sensitivity_by_year.csv,sum(d$p_value[d$Year == 2022] < 0.05),0,3,each significant under three of the five distances
+S10_2_2022_rank3_R2,4.3,tables/report_permanova_by_year.csv,d$R2[d$Year == 2022],2,0.02,collapses to R² = 0.02 (p = 0.789)
+S10_2_2022_rank3_p,4.3,tables/report_permanova_by_year.csv,d$p_value[d$Year == 2022],3,0.789,collapses to R² = 0.02 (p = 0.789)
+S10_2_centroid_inter_p,4.3,tables/report_centroid_lm.csv,"d[[""Pr(>F)""]][d$term == ""Season:Year""]",2,0.79,with no Season × Year interaction in that spread (p = 0.79)
+S10_3_otu1369_lo,9.4,tables/hmsc_beta_season.csv,"d$beta_season_CrI2.5[d$OTU_ID == ""OTU1369""]",2,-6.48,(it reaches −6.48)
+S10_2_n_res_winter,10.2,tables/hmsc_beta_season.csv,sum(d$beta_season_CrI97.5 < 0),0,44,"(44 winter-shifted, 30 summer-shifted)"
+S10_2_n_res_summer,10.2,tables/hmsc_beta_season.csv,sum(d$beta_season_CrI2.5 > 0),0,30,"(44 winter-shifted, 30 summer-shifted)"
+S10_3_b_otu1,10.2,tables/hmsc_beta_season.csv,"d$beta_season_mean[d$OTU_ID == ""OTU1""]",2,4.17,"*Thelebolus* (OTU1, β = +4.17), *Sporormiella* (OTU636, +3.52), *Coniochaeta* (OTU1225, +3.44)"
+S10_3_b_otu636,10.2,tables/hmsc_beta_season.csv,"d$beta_season_mean[d$OTU_ID == ""OTU636""]",2,3.52,"*Thelebolus* (OTU1, β = +4.17), *Sporormiella* (OTU636, +3.52), *Coniochaeta* (OTU1225, +3.44)"
+S10_3_b_otu1225,10.2,tables/hmsc_beta_season.csv,"d$beta_season_mean[d$OTU_ID == ""OTU1225""]",2,3.44,"*Thelebolus* (OTU1, β = +4.17), *Sporormiella* (OTU636, +3.52), *Coniochaeta* (OTU1225, +3.44)"
+S10_3_b_otu1369,10.2,tables/hmsc_beta_season.csv,"d$beta_season_mean[d$OTU_ID == ""OTU1369""]",2,-5.00,ending at OTU1369 (−5.00)
+S10_3_gm_dung,10.2,tables/hmsc_beta_season.csv,"mean(d$beta_season_mean[d$guild == ""dung_saprotroph""])",2,1.32,Dung saprotrophs (+1.32) have by far the most summer-shifted mean
+S10_3_gm_dark,10.2,tables/hmsc_beta_season.csv,"mean(d$beta_season_mean[d$guild == ""dark_unassigned""])",2,-0.31,dark/unassigned taxa (−0.31) and pathotrophs (−0.33) lean winter
+S10_3_gm_patho,10.2,tables/hmsc_beta_season.csv,"mean(d$beta_season_mean[d$guild == ""pathotroph""])",2,-0.33,dark/unassigned taxa (−0.31) and pathotrophs (−0.33) lean winter
+S10_3_gm_other,10.2,tables/hmsc_beta_season.csv,"mean(d$beta_season_mean[d$guild == ""other""])",2,0.22,"the yeast-rich ""other"" group is weakly positive (+0.22)"
+S10_3_gamma_sup,10.2,tables/hmsc_gamma_CrI.csv,"d$support[d$covariate == ""Seasonsummer"" & d$trait == ""(Intercept)""]",3,0.994,Season effect is positive with posterior support 0.994
+S10_3_vp_season,10.2,tables/hmsc_variance_partition.csv,100 * mean(d$Season),1,31.5,"Season accounts for 31.5% of the variance the model explains and Year for 18.5%, while half (49.9%)"
+S10_3_vp_year,10.2,tables/hmsc_variance_partition.csv,100 * mean(d$Year),1,18.5,"Season accounts for 31.5% of the variance the model explains and Year for 18.5%, while half (49.9%)"
+S10_3_vp_sample,10.2,tables/hmsc_variance_partition.csv,"100 * mean(d[[""Random: sample""]])",1,49.9,"Season accounts for 31.5% of the variance the model explains and Year for 18.5%, while half (49.9%)"
+S10_3_vp_dung,10.2,tables/hmsc_variance_partition.csv,"100 * mean(d$Season[d$guild == ""dung_saprotroph""])",1,49.8,The Season share is largest for dung saprotrophs (49.8%)
+S10_3_pcr_all,10.2,tables/hmsc_pcr_replicate_variance.csv,"100 * d$share_total_mean[d$group == ""all""]",0,32,a further 32% of total CLR variance is replicate-to-replicate noise
+S10_3_pcr_dung,10.2,tables/hmsc_pcr_replicate_variance.csv,"100 * d$share_total_mean[d$group == ""dung_saprotroph""]",0,17,coprophiles are the most repeatable guild (17%)
+S10_3_r2,10.2,tables/hmsc_predictive_R2_summary.csv,"d$mean_expl_R2[d$model == ""clr""]",2,0.29,explains the samples it has seen (R² ≈ 0.29)
+S10_3_r2cv,10.2,tables/hmsc_predictive_R2_summary.csv,"d$mean_cv_R2[d$model == ""clr""]",2,0.03,(cross-validated R² ≈ 0.03; Section 9.7)
 S10_4_q0_s,10.4,tables/H2_iNEXT3D_TD_coverage_rarefied.csv,"d$qTD[d$Season == ""Summer"" & d$Order.q == 0]",0,548,548 against winter's 383 OTUs at q = 0
 S10_4_q0_w,10.4,tables/H2_iNEXT3D_TD_coverage_rarefied.csv,"d$qTD[d$Season == ""Winter"" & d$Order.q == 0]",0,383,548 against winter's 383 OTUs at q = 0
 S10_4_q1_s,10.4,tables/H2_iNEXT3D_TD_coverage_rarefied.csv,"d$qTD[d$Season == ""Summer"" & d$Order.q == 1]",0,412,(412 vs 261 at q = 1; 287 vs 162 at q = 2)
@@ -386,26 +386,26 @@ S10_4_copro3_share,10.4,tables/report_coprophilous_by_season_v2.csv,"sum(d$summe
 S10_4_otu1369_prev,10.4,tables/report_season_occupancy.csv,"d$prev_winter[d$OTU_ID == ""OTU1369""]",0,20,is present in 20 of 26 winter samples
 S10_4_otu1_share,10.4,tables/report_top5_otu_by_season.csv,"d$mean_pct_share[d$Season == ""summer"" & d$OTU == ""OTU1""]",1,24.9,*Thelebolus* reaches its 24.9% mean while being detected in only 15 of the 26
 S10_4_otu1_prev,10.4,tables/report_coprophilous_by_season_v2.csv,"d$occ_summer[d$OTU == ""OTU1""]",0,15,*Thelebolus* reaches its 24.9% mean while being detected in only 15 of the 26
-S10_5_n_dark,10.5,tables/E1_SH_assignment_summary.csv,d$n_dark,0,493,placement of all 493 dark OTUs
-S10_5_novel_med_sim,10.5,tables/dark_taxa_SH_matching.csv,"median(d$similarity_percentage[d$is_dark & d$SH_class == ""novel_new_SH""], na.rm = TRUE)",1,92.0,(median best hit 92.0% identity across these 228 OTUs)
-S10_5_n_novel,10.5,tables/E1_SH_assignment_summary.csv,d$novel_new_SH,0,228,(median best hit 92.0% identity across these 228 OTUs)
-S10_5_n_excl,10.5,tables/E1_SH_assignment_summary.csv,d$excluded_nonITS,0,13,additionally absorbs 13 OTUs that the pipeline filtered
-S10_5_n_cand_any,10.5,tables/E1_SH_assignment_summary.csv,d$novel_new_SH + d$no_SH_match + d$excluded_nonITS,0,331,Together they are 331 of the 493 dark OTUs (67%)
-S10_5_pct_cand_any,10.5,tables/E1_SH_assignment_summary.csv,100 * (d$novel_new_SH + d$no_SH_match + d$excluded_nonITS) / d$n_dark,0,67,Together they are 331 of the 493 dark OTUs (67%)
-S10_5_novel_w,10.5,tables/E1_SH_readshare_by_sample.csv,"100 * mean(d$read_share[d$Season == ""winter"" & d$stratum == ""Dark: candidate novel""])",0,29,Candidate-novel lineages hold 29% of winter reads against 7% of summer reads
-S10_5_novel_s,10.5,tables/E1_SH_readshare_by_sample.csv,"100 * mean(d$read_share[d$Season == ""summer"" & d$stratum == ""Dark: candidate novel""])",0,7,Candidate-novel lineages hold 29% of winter reads against 7% of summer reads
-S10_5_dark_w,10.5,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_share[d$Season == ""winter"" & d$stratum == ""Named""]))",0,51,the dark fraction as a whole is 51% of winter against 31% of summer reads
-S10_5_dark_s,10.5,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_share[d$Season == ""summer"" & d$stratum == ""Named""]))",0,31,the dark fraction as a whole is 51% of winter against 31% of summer reads
-S10_5_n_wd,10.5,tables/E1_winter_dominant_dark_taxa_SH.csv,nrow(d),0,30,The 30 dark OTUs with the highest mean winter read share
-S10_5_otu1369_share,10.5,tables/E1_winter_dominant_dark_taxa_SH.csv,"100 * d$winter_mean_share[d$OTU_ID == ""OTU1369""]",1,11.2,winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings
-S10_5_otu1369_occ,10.5,tables/E1_winter_dominant_dark_taxa_SH.csv,"d$winter_occ[d$OTU_ID == ""OTU1369""]",0,20,winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings
-S10_5_otu1369_sim,10.5,tables/E1_winter_dominant_dark_taxa_SH.csv,"d$similarity_percentage[d$OTU_ID == ""OTU1369""]",0,85,yet its best UNITE hit is only 85% similar
-S10_5_n_besthit,10.5,tables/dark_taxa_SH_matching.csv,sum(d$is_dark & !is.na(d$similarity_percentage)),0,390,"(of the 390 dark OTUs with a best hit at all, 37% sit at ≥ 99% identity"
-S10_5_pct_99,10.5,tables/dark_taxa_SH_matching.csv,100 * mean(d$similarity_percentage[d$is_dark & !is.na(d$similarity_percentage)] >= 99),0,37,"(of the 390 dark OTUs with a best hit at all, 37% sit at ≥ 99% identity"
-S10_5_pct_lt95,10.5,tables/dark_taxa_SH_matching.csv,100 * mean(d$similarity_percentage[d$is_dark & !is.na(d$similarity_percentage)] < 95),0,38,But a comparable fraction of them (38%) sits below 95% identity
-S10_5_pct_novel,10.5,tables/E1_SH_assignment_summary.csv,100 * d$novel_new_SH / d$n_dark,0,46,228 of the 493 dark OTUs (46%) form candidate new Species Hypotheses
-S10_5_n_noref,10.5,tables/E1_SH_assignment_summary.csv,d$no_SH_match + d$excluded_nonITS,0,103,a further 103 (21%) have no UNITE reference within 80% identity
-S10_5_pct_noref,10.5,tables/E1_SH_assignment_summary.csv,100 * (d$no_SH_match + d$excluded_nonITS) / d$n_dark,0,21,a further 103 (21%) have no UNITE reference within 80% identity
+S10_5_n_dark,10.3,tables/E1_SH_assignment_summary.csv,d$n_dark,0,493,placement of all 493 dark OTUs
+S10_5_novel_med_sim,10.3,tables/dark_taxa_SH_matching.csv,"median(d$similarity_percentage[d$is_dark & d$SH_class == ""novel_new_SH""], na.rm = TRUE)",1,92.0,(median best hit 92.0% identity across these 228 OTUs)
+S10_5_n_novel,10.3,tables/E1_SH_assignment_summary.csv,d$novel_new_SH,0,228,(median best hit 92.0% identity across these 228 OTUs)
+S10_5_n_excl,10.3,tables/E1_SH_assignment_summary.csv,d$excluded_nonITS,0,13,additionally absorbs 13 OTUs that the pipeline filtered
+S10_5_n_cand_any,10.3,tables/E1_SH_assignment_summary.csv,d$novel_new_SH + d$no_SH_match + d$excluded_nonITS,0,331,Together they are 331 of the 493 dark OTUs (67%)
+S10_5_pct_cand_any,10.3,tables/E1_SH_assignment_summary.csv,100 * (d$novel_new_SH + d$no_SH_match + d$excluded_nonITS) / d$n_dark,0,67,Together they are 331 of the 493 dark OTUs (67%)
+S10_5_novel_w,10.3,tables/E1_SH_readshare_by_sample.csv,"100 * mean(d$read_share[d$Season == ""winter"" & d$stratum == ""Dark: candidate novel""])",0,29,Candidate-novel lineages hold 29% of winter reads against 7% of summer reads
+S10_5_novel_s,10.3,tables/E1_SH_readshare_by_sample.csv,"100 * mean(d$read_share[d$Season == ""summer"" & d$stratum == ""Dark: candidate novel""])",0,7,Candidate-novel lineages hold 29% of winter reads against 7% of summer reads
+S10_5_dark_w,10.3,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_share[d$Season == ""winter"" & d$stratum == ""Named""]))",0,51,the dark fraction as a whole is 51% of winter against 31% of summer reads
+S10_5_dark_s,10.3,tables/E1_SH_readshare_by_sample.csv,"100 * (1 - mean(d$read_share[d$Season == ""summer"" & d$stratum == ""Named""]))",0,31,the dark fraction as a whole is 51% of winter against 31% of summer reads
+S10_5_n_wd,10.3,tables/E1_winter_dominant_dark_taxa_SH.csv,nrow(d),0,30,The 30 dark OTUs with the highest mean winter read share
+S10_5_otu1369_share,10.3,tables/E1_winter_dominant_dark_taxa_SH.csv,"100 * d$winter_mean_share[d$OTU_ID == ""OTU1369""]",1,11.2,winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings
+S10_5_otu1369_occ,10.3,tables/E1_winter_dominant_dark_taxa_SH.csv,"d$winter_occ[d$OTU_ID == ""OTU1369""]",0,20,winter's single most abundant OTU at 11.2% of winter reads and is present in 20 of 26 winter droppings
+S10_5_otu1369_sim,10.3,tables/E1_winter_dominant_dark_taxa_SH.csv,"d$similarity_percentage[d$OTU_ID == ""OTU1369""]",0,85,yet its best UNITE hit is only 85% similar
+S10_5_n_besthit,10.3,tables/dark_taxa_SH_matching.csv,sum(d$is_dark & !is.na(d$similarity_percentage)),0,390,"(of the 390 dark OTUs with a best hit at all, 37% sit at ≥ 99% identity"
+S10_5_pct_99,10.3,tables/dark_taxa_SH_matching.csv,100 * mean(d$similarity_percentage[d$is_dark & !is.na(d$similarity_percentage)] >= 99),0,37,"(of the 390 dark OTUs with a best hit at all, 37% sit at ≥ 99% identity"
+S10_5_pct_lt95,10.3,tables/dark_taxa_SH_matching.csv,100 * mean(d$similarity_percentage[d$is_dark & !is.na(d$similarity_percentage)] < 95),0,38,But a comparable fraction of them (38%) sits below 95% identity
+S10_5_pct_novel,10.3,tables/E1_SH_assignment_summary.csv,100 * d$novel_new_SH / d$n_dark,0,46,228 of the 493 dark OTUs (46%) form candidate new Species Hypotheses
+S10_5_n_noref,10.3,tables/E1_SH_assignment_summary.csv,d$no_SH_match + d$excluded_nonITS,0,103,a further 103 (21%) have no UNITE reference within 80% identity
+S10_5_pct_noref,10.3,tables/E1_SH_assignment_summary.csv,100 * (d$no_SH_match + d$excluded_nonITS) / d$n_dark,0,21,a further 103 (21%) have no UNITE reference within 80% identity
 S3_E1_local_novel,3.4,tables/dark_taxa_SH_matching.csv,"sum(d$is_dark & (d$SH_class == ""novel_new_SH"" | d$SH_source == ""PlutoF_live""))",0,247,247 formed new (candidate) species hypotheses
 S3_E1_cand_any,3.4,tables/E1_SH_assignment_summary.csv,d$novel_new_SH + d$no_SH_match + d$excluded_nonITS,0,331,"Taken together, 331 of the 493 dark OTUs (67%) are candidate-novel"
 S3_E1_cand_any_pct,3.4,tables/E1_SH_assignment_summary.csv,100 * (d$novel_new_SH + d$no_SH_match + d$excluded_nonITS) / d$n_dark,0,67,"Taken together, 331 of the 493 dark OTUs (67%) are candidate-novel"

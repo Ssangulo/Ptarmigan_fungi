@@ -19,7 +19,7 @@ absorb the Season contrast, which is constant within a dropping. Longer chains d
 `Scripts/10_hmsc.R` (CLR averaged across the two PCR replicates, two latent factors) passed every per-chain
 check.
 
-**Cited in.** Appendix §9.1 (Table S-HMSCb2) and §10.3 (Figure 3).
+**Cited in.** Appendix §9.1 (Table S-HMSCb2), §9.4 (Figure S-HMSCg) and §10.2 (Figure 2C).
 `04_v1_disagreement_table.R` is the live producer of Table S-HMSCb2, and the repro harness runs
 it from the repository root:
 
@@ -30,6 +30,9 @@ Rscript model_development/hmsc_convergence/04_v1_disagreement_table.R
 Scripts: `00_diagnostics.R` (per-chain convergence test), `01_fit_arms.R` (fit one candidate
 model), `02_compare.R`, `03_fig5_draft.R` (draft Figure 3 from a candidate fit),
 `04_v1_disagreement_table.R`, `05_fill_numbers.R` (one-off fill-in of appendix numbers).
+`03_fig5_draft.R` and `05_fill_numbers.R` are historical: they locate the appendix chunk
+`fig3-build`, which no longer exists. Its panel A is now `figS-hmscg-build` (Figure S-HMSCg,
+§9.4) and its variance partition is panel C of `fig2-build`.
 
 ## [`brms_refit/`](brms_refit/) (2026-10-01): H2-mechanism and H3 brms models
 

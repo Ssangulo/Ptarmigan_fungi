@@ -269,6 +269,51 @@ est_rar <- do.call(rbind, lapply(seq_len(NDRAW), function(k) {
 }))
 write.csv(est_rar, file.path(out_dir, "H2_iNEXT3D_TD_coverage_rarefied_draws.csv"),
           row.names = FALSE)
+
+# Per-bootstrap replicates of the same 50 x 100 estimates (main-text Figure 4A).
+# estimate3D() returns only each draw's bootstrap s.e., so this block REPLAYS its
+# bootstrap: same seed per draw, same data conversion and the same calls as
+# iNEXT.3D 1.0.12's invChat() (incidence_freq branch), keeping every replicate.
+# The guard below proves the replay is exact: each draw's replicate SD must equal
+# the s.e. estimate3D reported. The summer/winter ratio is then formed within each
+# draw x bootstrap (replicate b of summer with replicate b of winter).
+# .Random.seed is saved and restored, so nothing seeded after this block moves.
+boot_TD <- function(L, seed, C, q = c(0, 1, 2), nboot = 100) {
+  set.seed(seed)
+  dat <- iNEXT.3D:::check.datatype(L, "incidence_raw", nT = NULL, to.datalist = TRUE)[[2]]
+  do.call(rbind, lapply(names(dat), function(a) {
+    x_ <- dat[[a]]
+    est <- iNEXT.3D:::invChat.Sam(x_, q, C)
+    Prob.hat <- iNEXT.3D:::EstiBootComm.Sam(x_)
+    M <- t(sapply(Prob.hat, function(p) rbinom(nboot, x_[1], p)))
+    M <- matrix(c(rbind(x_[1], M)), ncol = nboot)
+    drop <- which(colSums(M) == x_[1]); if (length(drop)) M <- M[, -drop, drop = FALSE]
+    bt <- matrix(apply(M, 2, function(b) iNEXT.3D:::invChat.Sam(b, q, C)$qTD), nrow = length(q))
+    data.frame(Assemblage = a, Order.q = rep(q, ncol(bt)), boot = rep(seq_len(ncol(bt)), each = length(q)),
+               qTD_boot = as.vector(bt), qTD = rep(est$qTD, ncol(bt)))
+  }))
+}
+rng_saved <- .Random.seed
+boot_rar <- do.call(rbind, lapply(seq_len(NDRAW), function(k) {
+  b <- boot_TD(rar_draws[[k]], 20260929 + k, C_common); b$draw <- k; b
+}))
+.Random.seed <- rng_saved
+chk <- merge(aggregate(qTD_boot ~ Assemblage + Order.q + draw, boot_rar, stats::sd),
+             est_rar[, c("Assemblage", "Order.q", "draw", "qTD", "s.e.")])
+chk_pt <- merge(unique(boot_rar[, c("Assemblage", "Order.q", "draw", "qTD")]),
+                est_rar[, c("Assemblage", "Order.q", "draw", "qTD")], by = c("Assemblage", "Order.q", "draw"))
+stopifnot(nrow(chk) == nrow(est_rar), max(abs(chk$qTD_boot - chk$s.e.)) < 1e-8,
+          max(abs(chk_pt$qTD.x - chk_pt$qTD.y)) < 1e-8)
+boot_w <- reshape(boot_rar[, c("Assemblage", "Order.q", "draw", "boot", "qTD_boot")],
+                  idvar = c("Order.q", "draw", "boot"), timevar = "Assemblage", direction = "wide")
+boot_w <- boot_w[complete.cases(boot_w), ]           # pair replicate b with replicate b
+names(boot_w) <- sub("^qTD_boot\\.", "qTD_", names(boot_w))
+boot_w$ratio_summer_winter <- boot_w$qTD_summer / boot_w$qTD_winter
+boot_w <- boot_w[order(boot_w$Order.q, boot_w$draw, boot_w$boot),
+                 c("Order.q", "draw", "boot", "qTD_winter", "qTD_summer", "ratio_summer_winter")]
+write.csv(boot_w, file.path(out_dir, "H2_iNEXT3D_TD_coverage_rarefied_boot.csv"), row.names = FALSE)
+print(t(sapply(split(boot_w$ratio_summer_winter, boot_w$Order.q), quantile,
+               probs = c(0.025, 0.5, 0.975))))
 s8 <- aggregate(cbind(qTD, qTD.LCL, qTD.UCL) ~ Assemblage + Order.q, est_rar, median)
 s8$SC <- C_common; s8$depth <- rar_depth_pool; s8$n_draws <- NDRAW
 s8$Season <- factor(labs_map[s8$Assemblage], levels = lvl_order)
@@ -566,7 +611,7 @@ print(s9); print(s9b)
 
 # ---- Stage Section 5.1-5.2 outputs for the Quarto appendix -------------------
 # Tables S8, S8b, S9, S9b, S9c and Figures S7, S8 (+ their per-draw / per-sample
-# source tables, which the remaining sec5-build chunk and fig4-build read).
+# source tables, which the remaining sec5-build chunk, fig4-build and figS8b-build read).
 invisible(file.copy(file.path(plot_dir, c("H2_iNEXT_TD_by_Season.png",
                                           "H2_iNEXT_TD_by_Season_rarefied.png",
                                           "H2_hill_boxplot_Season.png",
@@ -576,6 +621,7 @@ invisible(file.copy(file.path(out_dir, c("H2_iNEXT3D_TD_asymptotic.csv",
                                          "H2_iNEXT3D_TD_coverage_standardised.csv",
                                          "H2_iNEXT3D_TD_coverage_rarefied.csv",
                                          "H2_iNEXT3D_TD_coverage_rarefied_draws.csv",
+                                         "H2_iNEXT3D_TD_coverage_rarefied_boot.csv",
                                          "H2_hill_per_pcr_replicate.csv",
                                          "H2_lmm_season_effect.csv",
                                          "H2_hill_per_sample.csv",
