@@ -4317,7 +4317,7 @@ lab$txt <- sprintf("**%s** %s<br><span style='color:#606060'>%s</span>", lab$OTU
                                                        "no relative")[match(as.character(lab$cat),
                                                        STRATA[2:4])], lab$similarity_percentage)))
 stopifnot(identical(lab$OTU_ID, "OTU1369"))
-lab$tx <- 19.2; lab$ty <- 11.24; lab$hj <- 1             # hand-placed, left of the point
+lab$tx <- 18.6; lab$ty <- 9.3; lab$hj <- 1               # hand-placed, below-left of the point
 
 pB <- ggplot(wd, aes(winter_occ)) +
   geom_segment(aes(xend = winter_occ, y = w_pct, yend = s_pct), colour = "grey70",
